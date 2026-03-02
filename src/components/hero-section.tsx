@@ -14,7 +14,7 @@ export default function HeroSection() {
           </h1>
 
           <p className="mt-4 max-w-2xl text-xl sm:text-3xl text-foreground/80">
-            Modern tools for modern Kreator.
+            Toolsnya Para Kreator
           </p>
 
           <Button
