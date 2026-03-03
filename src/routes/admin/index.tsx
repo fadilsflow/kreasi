@@ -1,8 +1,8 @@
-import * as React from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { CalendarIcon, Eye, EyeOff, InfoIcon } from 'lucide-react'
-import * as motion from 'motion/react-client'
+import { AnimatePresence, motion } from 'motion/react'
 import {
   Area,
   AreaChart,
@@ -45,6 +45,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardHeader, CardPanel, CardTitle } from '@/components/ui/card'
+import { useState } from 'react'
 
 export const Route = createFileRoute('/admin/')({
   component: HomePage,
@@ -80,13 +81,13 @@ function HomePage() {
   const today = new Date()
   today.setHours(23, 59, 59, 999)
 
-  const [mode, setMode] = React.useState<AnalyzeMode>('activity')
-  const [dateRange, setDateRange] = React.useState<DateRange>({
+  const [mode, setMode] = useState<AnalyzeMode>('activity')
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(Date.now() - 29 * 24 * 60 * 60 * 1000),
     to: today,
   })
-  const [activePreset, setActivePreset] = React.useState<string | null>('30D')
-  const [isBalanceHidden, setIsBalanceHidden] = React.useState(true)
+  const [activePreset, setActivePreset] = useState<string | null>('30D')
+  const [isBalanceHidden, setIsBalanceHidden] = useState(true)
 
   const fromStr = dateRange.from?.toISOString().slice(0, 10)
   const toStr = dateRange.to?.toISOString().slice(0, 10)
@@ -208,25 +209,32 @@ function HomePage() {
             </CardHeader>
             <CardPanel className="flex items-center justify-center h-24">
               <div className="flex justify-between items-center w-full">
-                <span className="h-full text-4xl tracking-tight overflow-hidden">
+
+                <div className="h-10 overflow-hidden flex items-center">
                   {isLoadingBalance ? (
                     <Spinner className="h-5 w-5 text-muted-foreground" />
                   ) : (
-                    <motion.span
-                      key={isBalanceHidden ? 'hidden' : 'visible'}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2, ease: 'easeOut' }}
-                      className="inline-block"
-                    >
-                      {isBalanceHidden ? '•••••' : formatPrice(balance?.currentBalance ?? 0)}
-                    </motion.span>
+                    <AnimatePresence mode="wait" initial={false} >
+                      <motion.div
+                        key={isBalanceHidden ? "hidden" : "visible"}
+                        initial={{ y: "50%" }}
+                        animate={{ y: "0%" }}
+                        exit={{ y: "-50%" }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="text-4xl tracking-tight"
+                      >
+                        {isBalanceHidden
+                          ? "•••••"
+                          : formatPrice(balance?.currentBalance ?? 0)}
+                      </motion.div>
+                    </AnimatePresence>
                   )}
-                </span>
+                </div>
+
                 <Button size="lg" variant="outline" render={<Link to="/admin/balance" />}>
                   Payout
                 </Button>
+
               </div>
             </CardPanel>
           </Card>
@@ -510,7 +518,7 @@ function DateRangePicker({
   value: DateRange
   onChange: (range: DateRange) => void
 }) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false)
 
   const formatDateRange = () => {
     if (!value.from) return 'Pick a date range'
