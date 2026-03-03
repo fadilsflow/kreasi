@@ -137,7 +137,7 @@ function HomePage() {
         </AppHeaderContent>
       </AppHeader>
       <div className="p-6 space-y-6">
-        <Alert className="border-none bg-muted">
+        <Alert variant={'info'} className="border-none bg-muted">
           <InfoIcon />
           <AlertTitle>Payment processing is not yet available</AlertTitle>
           <AlertDescription>
