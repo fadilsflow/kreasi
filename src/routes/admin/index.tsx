@@ -355,7 +355,7 @@ function AnalyticsCard({
     revenue: (
       <ChartContainer
         config={{
-          revenue: { label: 'Net Revenue', color: 'hsl(var(--chart-1))' },
+          revenue: { label: 'Net Revenue', color: 'var(--chart-4)' },
         }}
         className="h-[320px] w-full"
       >
@@ -398,7 +398,7 @@ function AnalyticsCard({
                   })
                 }
                 formatter={(value) => (
-                  <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                  <div className=" flex items-baseline gap-0.5 text-primary font-medium tabular-nums">
                     {formatPrice(value as number)}
                   </div>
                 )}
