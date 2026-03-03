@@ -348,7 +348,7 @@ function AppearanceEditor({
         <AppHeaderContent title="Appearance">
         </AppHeaderContent>
       </AppHeader>
-      <Frame className="shadow-sm overflow-hidden">
+      <Frame>
         <FrameHeader className="flex flex-row items-center justify-between">
           <FrameTitle>Banner</FrameTitle>
           <Button
@@ -390,7 +390,7 @@ function AppearanceEditor({
         </FramePanel>
       </Frame>
 
-      <Frame className="shadow-sm">
+      <Frame >
         <FrameHeader className="flex flex-row items-center justify-between">
           <FrameTitle>Background</FrameTitle>
           <Button
@@ -514,7 +514,7 @@ function AppearanceEditor({
 
       </Frame>
 
-      <Frame className="shadow-sm">
+      <Frame >
         <FrameHeader className="flex flex-row items-center justify-between">
           <FrameTitle>Blocks</FrameTitle>
           <Button
@@ -563,7 +563,7 @@ function AppearanceEditor({
         </FramePanel>
       </Frame>
 
-      <Frame className="shadow-sm">
+      <Frame >
         <FrameHeader className="flex flex-row items-center justify-between">
           <FrameTitle>Font</FrameTitle>
           <Button
