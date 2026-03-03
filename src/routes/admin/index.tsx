@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { CalendarIcon, InfoIcon } from 'lucide-react'
+import { CalendarIcon, Copy, ExternalLink, InfoIcon } from 'lucide-react'
 import {
   Area,
   AreaChart,
@@ -34,7 +34,7 @@ import { ShareProfileModal } from '@/components/share-profile-modal'
 import { BASE_URL } from '@/lib/constans'
 import { cn, formatPrice } from '@/lib/utils'
 import { Spinner } from '@/components/ui/spinner'
-import { Frame, FrameDescription, FrameHeader, FramePanel, FrameTitle } from '@/components/ui/frame'
+import { Frame, FrameHeader, FramePanel, FrameTitle } from '@/components/ui/frame'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Select,
@@ -43,6 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Card, CardHeader, CardPanel, CardTitle } from '@/components/ui/card'
 
 export const Route = createFileRoute('/admin/')({
   component: HomePage,
@@ -145,11 +146,11 @@ function HomePage() {
         </Alert>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Frame>
-            <FrameHeader>
-              <FrameTitle>Account</FrameTitle>
-            </FrameHeader>
-            <FramePanel className="flex items-center justify-center h-24">
+          <Card>
+            <CardHeader >
+              <CardTitle>Profile</CardTitle>
+            </CardHeader>
+            <CardPanel className=" flex items-center justify-center h-24">
               <div className="flex justify-between items-center w-full">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-14 w-14 rounded-md border-2 border-background ring-2 ring-primary/10">
@@ -165,7 +166,7 @@ function HomePage() {
                         href={`/${username}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-0.5 flex w-fit items-center text-sm text-muted-foreground underline"
+                        className="mt-0.5 flex w-fit items-center text-sm underline"
                       >
                         <span className="font-medium">
                           {PUBLIC_BASE_HOST}/{username}
@@ -174,20 +175,21 @@ function HomePage() {
                     ) : null}
                   </div>
                 </div>
+
                 <ShareProfileModal url={username ? `${BASE_URL}/${username}` : BASE_URL}>
-                  <Button size="lg" variant="outline">
+                  <Button size="lg" variant="default">
                     Share
                   </Button>
                 </ShareProfileModal>
               </div>
-            </FramePanel>
-          </Frame>
+            </CardPanel>
+          </Card>
 
-          <Frame>
-            <FrameHeader>
-              <FrameTitle>Earnings</FrameTitle>
-            </FrameHeader>
-            <FramePanel className="flex items-center justify-center h-24">
+          <Card >
+            <CardHeader>
+              <CardTitle>Earnings</CardTitle>
+            </CardHeader>
+            <CardPanel className="flex items-center justify-center h-24">
               <div className="flex justify-between items-center w-full">
                 <span className="h-full text-4xl tracking-tight">
                   {isLoadingBalance ? (
@@ -200,8 +202,8 @@ function HomePage() {
                   Payout
                 </Button>
               </div>
-            </FramePanel>
-          </Frame>
+            </CardPanel>
+          </Card>
         </div>
 
         <AnalyticsCard
