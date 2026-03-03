@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { XCircle } from 'lucide-react'
+import { XCircle, Eye, EyeOff } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { ReactNode } from 'react'
 import { AppHeader, AppHeaderContent } from '@/components/app-header'
@@ -79,6 +80,7 @@ function BalancePage() {
   const [historyTab, setHistoryTab] = useState<HistoryTab>('all')
   const [historyTypeFilter, setHistoryTypeFilter] = useState('all')
   const [historyDateOrder, setHistoryDateOrder] = useState<HistorySort>('recent')
+  const [isBalanceHidden, setIsBalanceHidden] = useState(true)
 
   // Balance summary
   const { data: summary, isLoading: isSummaryLoading } = useQuery({
@@ -341,6 +343,8 @@ function BalancePage() {
           value={summary?.availableBalance ?? 0}
           isLoading={isLoading}
           activeBalance
+          isHidden={isBalanceHidden}
+          onToggleHidden={() => setIsBalanceHidden(!isBalanceHidden)}
           actionLabel={
             hasPendingPayout
               ? 'Pending payout in progress'
@@ -368,6 +372,8 @@ function BalancePage() {
           title="Pending Balance"
           value={summary?.pendingBalance ?? 0}
           isLoading={isLoading}
+          isHidden={isBalanceHidden}
+          onToggleHidden={() => setIsBalanceHidden(!isBalanceHidden)}
           actionLabel={'Refresh'}
           actionLoading={isRefreshing}
           onAction={handleRefreshBalance}
@@ -521,6 +527,8 @@ function BalanceCard({
   isLoading,
   activeBalance,
   negative,
+  isHidden,
+  onToggleHidden,
   actionLabel,
   actionDisabled,
   actionLoading,
@@ -532,12 +540,16 @@ function BalanceCard({
   isLoading?: boolean
   activeBalance?: boolean
   negative?: boolean
+  isHidden?: boolean
+  onToggleHidden?: () => void
   actionLabel?: string
   actionDisabled?: boolean
   actionLoading?: boolean
   onAction?: () => void
   actionIcon?: ReactNode
 }) {
+  const hideable = isHidden !== undefined && onToggleHidden !== undefined
+
   return (
     <Card
       className={cn(
@@ -548,7 +560,24 @@ function BalanceCard({
       )}
     >
       <CardHeader className="pb-2">
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="flex items-center">
+          {title}
+          {hideable && (
+            <Button
+              onClick={onToggleHidden}
+              size={'icon-sm'}
+              className='ml-3'
+              variant='ghost'
+              aria-label={isHidden ? 'Show balance' : 'Hide balance'}
+            >
+              {isHidden ? (
+                <Eye className='h-5 w-5' />
+              ) : (
+                <EyeOff className='h-5 w-5' />
+              )}
+            </Button>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? (
@@ -557,11 +586,38 @@ function BalanceCard({
           </div>
         ) : (
           <>
-            <div
-              className={`text-4xl tracking-tight  ${negative && value > 0 ? 'text-red-500' : ''} ${activeBalance ? 'text-primary-fo  reground' : ''}`}
-            >
-              {negative && value > 0 ? '-' : ''}
-              {formatPrice(value)}
+            <div className="h-10 overflow-hidden flex items-center">
+              {hideable ? (
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={isHidden ? "hidden" : "visible"}
+                    initial={{ y: "50%" }}
+                    animate={{ y: "0%" }}
+                    exit={{ y: "-50%" }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className={cn(
+                      "text-4xl tracking-tight",
+                      negative && value > 0 ? 'text-red-500' : '',
+                      activeBalance ? 'text-foreground' : ''
+                    )}
+                  >
+                    {isHidden
+                      ? "•••••"
+                      : `${negative && value > 0 ? '-' : ''}${formatPrice(value)}`}
+                  </motion.div>
+                </AnimatePresence>
+              ) : (
+                <div
+                  className={cn(
+                    "text-4xl tracking-tight",
+                    negative && value > 0 ? 'text-red-500' : '',
+                    activeBalance ? 'text-foreground' : ''
+                  )}
+                >
+                  {negative && value > 0 ? '-' : ''}
+                  {formatPrice(value)}
+                </div>
+              )}
             </div>
           </>
         )}
