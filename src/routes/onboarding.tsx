@@ -569,7 +569,7 @@ function OnboardingPage() {
     <div className="bg-background text-foreground flex flex-col">
       <main className="min-h-screen flex-1 flex flex-col items-center justify-center px-6 py-10">
         <div className="w-full max-w-md relative">
-          <AnimatePresence mode="wait" initial={false} custom={direction}>
+          <AnimatePresence mode="wait" initial={true} custom={direction}>
             <motion.div
               key={currentPage}
               custom={direction}
