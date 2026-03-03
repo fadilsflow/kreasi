@@ -3,13 +3,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { BlockRadius, BlockStyle } from '@/lib/block-styles'
 import type { AppearanceBackgroundType, AppearanceTextFont } from '@/lib/appearance'
-import { Separator } from "@/components/ui/separator";
 import {
   APPEARANCE_DEFAULTS,
   APPEARANCE_FONT_OPTIONS,
   isValidAppearanceHexColor,
 } from '@/lib/appearance'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -33,14 +31,12 @@ import {
 } from '@/components/app-header'
 import {
   Frame,
-  FrameDescription,
   FrameHeader,
   FramePanel,
   FrameTitle,
 } from "@/components/ui/frame";
 import { usePreview } from '@/lib/preview-context'
 import { cn } from '@/lib/utils'
-import { Redo2 } from 'lucide-react'
 
 export const Route = createFileRoute('/admin/editor/appearance')({
   component: AppearanceRouteComponent,
@@ -362,7 +358,6 @@ function AppearanceEditor({
             className="gap-2"
             onClick={resetBannerSection}
           >
-            <Redo2 />
             Reset
           </Button>
         </FrameHeader>
@@ -405,7 +400,6 @@ function AppearanceEditor({
             className="gap-2"
             onClick={resetBackgroundSection}
           >
-            <Redo2 />
             Reset
           </Button>
         </FrameHeader>
@@ -530,7 +524,6 @@ function AppearanceEditor({
             onClick={resetBlockSection}
             size='xs'
           >
-            <Redo2 />
             Reset
           </Button>
         </FrameHeader>
@@ -580,7 +573,6 @@ function AppearanceEditor({
             onClick={resetTextSection}
             size='xs'
           >
-            <Redo2 />
             Reset
           </Button>
         </FrameHeader>
