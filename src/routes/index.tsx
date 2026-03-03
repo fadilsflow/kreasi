@@ -5,6 +5,8 @@ import { checkOnboardingStatus } from '@/lib/onboarding-server'
 import { SiteFooter } from '@/components/site-footer'
 import FeatureSection from '@/components/feature-section'
 import CTASection from '@/components/cta-section'
+import { StickyBanner } from '@/components/sticky-banner'
+import { REPO_URL } from '@/lib/constans'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -24,6 +26,11 @@ export const Route = createFileRoute('/')({
 function App() {
   return (
     <>
+      <StickyBanner closable={false} className="bg-primary">
+        <a href={REPO_URL} className="underline mx-0 max-w-[90%] text-white drop-shadow-md">
+          Project Under Active Development ⛩
+        </a>
+      </StickyBanner >
       <Header />
       <div className="max-w-screen overflow-x-hidden">
         <div className="relative isolate flex min-h-svh flex-col">
