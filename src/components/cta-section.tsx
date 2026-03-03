@@ -8,8 +8,8 @@ export default function CTASection() {
             <Button
                 size={'lg'}
                 className="text-sm py-6 mt-8 w-fit"
-                variant={'neutral'}
-                render={<Link to="/login"/>}
+                variant={'default'}
+                render={<Link to="/login" />}
             >Mulai Sekarang!</Button>
         </div>
     )

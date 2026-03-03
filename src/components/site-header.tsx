@@ -24,7 +24,7 @@ export const Header = () => {
             {/* Right section — always mounted */}
             <div className="flex items-center gap-6 ">
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size='sm' render={<a href={REPO_URL} target='_blank' />} className="rounded-full hidden md:flex justify-center ">
+                <Button variant="ghost" render={<a href={REPO_URL} target='_blank' />} className="rounded-full hidden md:flex justify-center ">
                   <GitHub className='text-black' />5.3K
                 </Button>
               </div>
@@ -32,8 +32,8 @@ export const Header = () => {
                 <UserButton />
               ) : (
                 <div className="flex items-center gap-2">
-                  <Button variant='outline' size='sm' render={<Link to='/login' />}>Log in</Button>
-                  <Button variant='neutral' size='sm' render={<Link to='/register' />}>Sign Up</Button>
+                  <Button variant='ghost' render={<Link to='/login' />}>Log in</Button>
+                  <Button variant='neutral' render={<Link to='/register' />}>Sign Up</Button>
                 </div>
               )}
             </div>

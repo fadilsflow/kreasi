@@ -199,11 +199,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         isActive={isActive}
                         className={cn(
                           'text-foreground',
-                          isActive && 'bg-background!'
                         )}
                       >
-                        <item.icon className={cn('h-4 w-4 mr-1', isActive && 'text-primary')} />
-                        <span>{item.title}</span>
+                        <item.icon className={cn('h-4 w-4 mr-1')} />
+                        <span  > {item.title}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
