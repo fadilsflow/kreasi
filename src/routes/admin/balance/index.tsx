@@ -353,20 +353,6 @@ function BalancePage() {
           actionDisabled={disablePayoutRequest || isLoading}
           // actionLoading={requestPayoutMutation.isPending}
           onAction={() => setPayoutDialogOpen(true)}
-          actionIcon={
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M5.74992 14.416L5.74992 13.0827L11.0833 13.0827L11.0833 14.416L5.74992 14.416ZM5.74992 11.7493L5.74992 10.416L11.0833 10.416L11.0833 11.7493L5.74992 11.7493ZM5.74992 9.08268L5.74992 7.74935L11.0833 7.74935L11.0833 9.08268L5.74992 9.08268ZM13.2499 6.41602L3.58325 6.41602L8.41658 1.58268L13.2499 6.41602Z"
-                fill="currentColor"
-              />
-            </svg>
-          }
         />
         <BalanceCard
           title="Pending Balance"
@@ -533,7 +519,6 @@ function BalanceCard({
   actionDisabled,
   actionLoading,
   onAction,
-  actionIcon,
 }: {
   title: string
   value: number
@@ -546,7 +531,6 @@ function BalanceCard({
   actionDisabled?: boolean
   actionLoading?: boolean
   onAction?: () => void
-  actionIcon?: ReactNode
 }) {
   const hideable = isHidden !== undefined && onToggleHidden !== undefined
 
@@ -635,7 +619,6 @@ function BalanceCard({
               actionLabel
             ) : (
               <>
-                {actionIcon}
                 {actionLabel}
               </>
             )}
