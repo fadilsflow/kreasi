@@ -58,7 +58,7 @@ export function BannerSelector({
                   )}
                 />
                 {isSelected ? (
-                  <span className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background shadow-sm">
+                  <span className="absolute right-2 top-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-background shadow-sm">
                     <Check className="h-3 w-3" />
                   </span>
                 ) : null}
