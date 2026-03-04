@@ -158,7 +158,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 queryKey: adminAuthQueryKey(),
                               })
                               router.invalidate()
-                              router.navigate({ to: '/login' })
+                              router.navigate({ to: '/' })
                             },
                           },
                         })
