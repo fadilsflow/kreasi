@@ -62,12 +62,11 @@ const data = {
       url: '/admin/editor/profiles',
       icon: UserIcon,
     },
-    // {
-    //   title: 'Appearance',
-    //   url: '/admin/editor/appearance',
-    //   icon: Paintbrush,
-    // },
-
+    {
+      title: 'Appearance',
+      url: '/admin/editor/appearance',
+      icon: Paintbrush,
+    },
     {
       title: 'Balance',
       url: '/admin/balance',
