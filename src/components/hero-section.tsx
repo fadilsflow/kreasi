@@ -7,8 +7,7 @@ export default function HeroSection() {
       <div className=" pt-25 pb-5">
         <div className="z-10  flex flex-col">
           <h1 className="text-6xl sm:text-7xl lg:text-8xl font-heading tracking-tight">
-            Kreasi kamu
-            berharga 👊🏼
+            Kreasi kamu berharga 👊🏼
           </h1>
 
           <p className="mt-4 max-w-2xl text-xl sm:text-3xl text-foreground/80">
