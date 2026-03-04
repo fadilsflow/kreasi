@@ -641,7 +641,7 @@ function UserProfile() {
         )}
       >
         {isBanner && lcpBannerSrc ? (
-          <div className="h-[120px] overflow-hidden lg:h-[200px] sm:max-w-2xl md:max-w-3xl sm:mx-auto lg:max-w-full lg:overflow-hidden px-3 lg:px-0">
+          <div className="h-[120px] overflow-hidden  sm:max-w-2xl md:max-w-3xl sm:mx-auto  px-3 ">
             <img
               src={lcpBannerSrc}
               alt={`${user.name} banner`}
@@ -650,11 +650,11 @@ function UserProfile() {
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              className="h-full w-full object-cover rounded-lg lg:rounded-none"
+              className="h-full w-full object-cover rounded-lg"
             />
           </div>
         ) : (
-          <div className="h-[160px] w-full lg:h-[150px]" />
+          <div className="h-[160px] w-full " />
         )}
 
         <div
@@ -662,59 +662,63 @@ function UserProfile() {
             // 'lg:divide-x',
             divideClass,
             hasActiveProducts
-              ? 'sm:max-w-2xl md:max-w-3xl lg:max-w-7xl mx-auto grid grid-cols-1 px-5 lg:grid-cols-2 lg:auto-rows-max lg:px-10'
-              : 'sm:max-w-2xl md:max-w-3xl lg:max-w-3xl mx-auto grid grid-cols-1 px-5',
+              ? 'sm:max-w-2xl md:max-w-3xl  mx-auto grid grid-cols-1 px-5 '
+              : 'sm:max-w-2xl md:max-w-3xl mx-auto grid grid-cols-1 px-5',
           )}
         >
           <section
             className={cn(
-              'relative pt-10 lg:pt-[70px]',
-              hasActiveProducts && 'lg:pr-6 lg:border-r',
+              'relative pt-10',
               isDarkBg ? 'border-white/10' : 'border-border',
             )}
           >
-            <Avatar className="absolute -top-14 left-1/2 h-24 w-24 -translate-x-1/2 rounded-full ring-2 ring-primary/10 lg:-top-[60px] lg:left-0 lg:h-[120px] lg:w-[120px] lg:translate-x-0">
-              {/* <Avatar className="absolute -top-14 left-0 h-24 w-24 rounded-full  ring-2 ring-primary/10  lg:-top-[60px] lg:h-[120px] lg:w-[120px]"> */}
-              <AvatarImage src={user.image || '/avatar-placeholder.png'} />
-              <AvatarFallback className="text-lg font-bold">
-                {user.name}
-              </AvatarFallback>
-            </Avatar>
+            <div className="flex gap-4">
+              <Avatar className="h-24 w-24 rounded-full ring-2 ring-primary/10 ">
+                {/* <Avatar className="absolute -top-14 left-0 h-24 w-24 rounded-full  ring-2 ring-primary/10  lg:-top-[60px] lg:h-[120px] lg:w-[120px]"> */}
+                <AvatarImage src={user.image || '/avatar-placeholder.png'} />
+                <AvatarFallback className="text-lg font-bold">
+                  {user.name}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
 
-            <h1
-              id="profile-name"
-              className="mt-4 text-center text-xl font-bold lg:text-left lg:text-2xl"
-              style={{ color: profileTextColor.foreground }}
-            >
-              {user.name}
-            </h1>
-            {user.title ? (
-              <p
-                className="mt-1 text-center text-sm lg:text-left lg:text-base"
-                style={{ color: profileTextColor.mutedForeground }}
-              >
-                {user.title}
-              </p>
-            ) : null}
-            {user.bio ? (
-              <p
-                className="mt-1  mx-auto text-center text-sm  leading-relaxed lg:text-left lg:text-base"
-                style={{ color: profileTextColor.mutedForeground }}
-              >
-                {user.bio}
-              </p>
-            ) : null}
+                <h1
+                  id="profile-name"
+                  className=" text-3xl font-bold "
+                  style={{ color: profileTextColor.foreground }}
+                >
+                  {user.name}
+                </h1>
+                {user.title ? (
+                  <p
+                    className="text-sm "
+                    style={{ color: profileTextColor.mutedForeground }}
+                  >
+                    {user.title}
+                  </p>
+                ) : null}
 
-            {socialItems.length > 0 ? (
-              <SocialProfileBlocks
-                links={socialItems}
-                iconColor={profileTextColor.foreground}
-                className="mt-5 flex lg:block justify-center lg:justify-start lg:-ml-3"
-              />
-            ) : null}
+                {user.bio ? (
+                  <p
+                    className="mx-auto text-sm  leading-relaxed "
+                    style={{ color: profileTextColor.mutedForeground }}
+                  >
+                    {user.bio}
+                  </p>
+                ) : null}
+
+                {socialItems.length > 0 ? (
+                  <SocialProfileBlocks
+                    links={socialItems}
+                    iconColor={profileTextColor.foreground}
+                    className="mt-5 flex "
+                  />
+                ) : null}
+              </div>
+            </div>
 
             {hasActiveProducts && (
-              <div className="mt-6 lg:hidden">
+              <div className="mt-6">
                 <Tabs
                   value={tab}
                   onValueChange={(val) => setTab(val as 'profile' | 'products')}
@@ -764,7 +768,7 @@ function UserProfile() {
                 'mt-6',
                 !hasActiveProducts
                   ? 'block space-y-3 outline-none'
-                  : 'hidden lg:block space-y-3 outline-none',
+                  : 'hidden  space-y-3 outline-none',
               )}
             >
               {profileBlocksSection}
@@ -774,13 +778,13 @@ function UserProfile() {
           {hasActiveProducts && (
             <aside
               className={cn(
-                'pb-6 lg:border-y border-r hidden lg:block h-full',
+                'pb-6 border-r hidden h-full',
                 isDarkBg ? 'border-white/10' : 'border-border',
               )}
             >
               <div
                 className={cn(
-                  'mb-5 lg:px-6 border-b py-4',
+                  'mb-5 border-b py-4',
                   isDarkBg ? 'border-white/10' : 'border-border',
                 )}
               >
@@ -794,7 +798,7 @@ function UserProfile() {
                   </span>
                 </div>
               </div>
-              <div className="hidden space-y-5 lg:block  lg:px-6">
+              <div className="hidden space-y-5">
                 {productsSection}
               </div>
             </aside>
@@ -802,7 +806,7 @@ function UserProfile() {
         </div>
 
         <div className="pb-4 pt-10">
-          <div className="mx-auto sm:max-w-2xl md:max-w-3xl lg:max-w-7xl">
+          <div className="mx-auto sm:max-w-2xl md:max-w-3xl">
             <PublicMark
               textColor={profileTextColor.mutedForeground}
               logoColor={profileTextColor.foreground}

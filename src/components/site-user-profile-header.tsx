@@ -21,17 +21,17 @@ export default function SiteUserProfileHeader({
 
   return (
     <>
-      <header className="lg:absolute lg:left-0 lg:right-0 lg:top-0 z-50 px-2">
-        <div className="mx-auto sm:max-w-2xl md:max-w-3xl lg:max-w-7xl">
-          <div className="flex h-16 items-center justify-between px-3 lg:px-6">
+      <header className="z-50 px-2">
+        <div className="mx-auto sm:max-w-2xl md:max-w-3xl">
+          <div className="flex h-16 items-center justify-between px-3">
             <Link
               to="/"
               className="relative"
             >
               {/* Default: below lg screens - use background color */}
-              <LogoType className="lg:hidden" style={{ color: backgroundLogoColor }} />
+              <LogoType style={{ color: backgroundLogoColor }} />
               {/* lg and above: use banner color (absolute positioned header) */}
-              <LogoType className="hidden lg:flex" style={{ color: logoColor }} />
+              {/* <LogoType className="hidden lg:flex" style={{ color: logoColor }} /> */}
             </Link>
 
             <div className="ml-auto flex items-center gap-3">
