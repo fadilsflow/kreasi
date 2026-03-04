@@ -737,13 +737,13 @@ function UserProfile() {
                       value="profile"
                       style={{ color: profileTextColor.foreground }}
                     >
-                      Profile
+                      Beranda
                     </TabsTab>
                     <TabsTab
                       value="products"
                       style={{ color: profileTextColor.foreground }}
                     >
-                      Products
+                      Toko
                     </TabsTab>
                   </TabsList>
                   <TabsPanel
