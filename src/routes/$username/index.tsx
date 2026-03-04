@@ -766,47 +766,7 @@ function UserProfile() {
                 </Tabs>
               </div>
             )}
-
-            <div
-              className={cn(
-                'mt-6',
-                !hasActiveProducts
-                  ? 'block space-y-3 outline-none'
-                  : 'hidden  space-y-3 outline-none',
-              )}
-            >
-              {profileBlocksSection}
-            </div>
           </section>
-
-          {hasActiveProducts && (
-            <aside
-              className={cn(
-                'pb-6 border-r hidden h-full',
-                isDarkBg ? 'border-white/10' : 'border-border',
-              )}
-            >
-              <div
-                className={cn(
-                  'mb-5 border-b py-4',
-                  isDarkBg ? 'border-white/10' : 'border-border',
-                )}
-              >
-                <div className="flex  items-center gap-2 text-sm font-semibold">
-                  <Package2
-                    className="size-4"
-                    style={{ color: profileTextColor.foreground }}
-                  />
-                  <span style={{ color: profileTextColor.foreground }}>
-                    Products
-                  </span>
-                </div>
-              </div>
-              <div className="hidden space-y-5">
-                {productsSection}
-              </div>
-            </aside>
-          )}
         </div>
 
         <div className="pb-4 pt-10">
