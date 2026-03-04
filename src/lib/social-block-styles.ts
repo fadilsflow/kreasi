@@ -1,11 +1,11 @@
 export function getSocialBlocksWrapperClasses(): string {
-  return 'flex w-full flex-wrap gap-2'
+  return 'flex w-full flex-wrap gap-5'
 }
 
 export function getSocialBlockButtonClasses(): string {
-  return 'group inline-flex h-10 w-10 items-center justify-center rounded-full transition-all'
+  return 'group inline-flex items-center justify-center rounded-full transition-all'
 }
 
 export function getSocialBlockIconClasses(): string {
-  return 'size-4 text-foreground transition-transform group-hover:scale-110'
+  return 'size-5 text-foreground transition-transform group-hover:scale-110'
 }
