@@ -32,6 +32,7 @@ import {
 
 import SiteUserProfileHeader from '@/components/site-user-profile-header'
 import PublicMark from '@/components/public-mark'
+import { Button } from '@/components/ui/button'
 
 type PublicBlock = PublicProfileBlock
 
@@ -629,10 +630,7 @@ function UserProfile() {
           <div className="absolute inset-0 bg-background/45" />
         </div>
       ) : null}
-      <SiteUserProfileHeader
-        logoColor={headerLogoColor}
-        backgroundLogoColor={profileTextColor.foreground}
-      />
+      <SiteUserProfileHeader />
 
       <div
         className={cn(
@@ -654,7 +652,8 @@ function UserProfile() {
             />
           </div>
         ) : (
-          <div className="h-[160px] w-full " />
+          // <div className="h-[160px] w-full " />
+          null
         )}
 
         <div
@@ -668,7 +667,7 @@ function UserProfile() {
         >
           <section
             className={cn(
-              'relative pt-10',
+              'relative pt-6  ',
               isDarkBg ? 'border-white/10' : 'border-border',
             )}
           >
@@ -698,25 +697,25 @@ function UserProfile() {
                   </p>
                 ) : null}
 
-                {user.bio ? (
-                  <p
-                    className="mx-auto text-sm  leading-relaxed "
-                    style={{ color: profileTextColor.mutedForeground }}
-                  >
-                    {user.bio}
-                  </p>
-                ) : null}
-
                 {socialItems.length > 0 ? (
                   <SocialProfileBlocks
                     links={socialItems}
                     iconColor={profileTextColor.foreground}
-                    className="mt-5 flex "
+                    className="flex mt-5"
                   />
                 ) : null}
               </div>
             </div>
-
+            {user.bio ? (
+              <p
+                className="mt-7 mx-auto text-md leading-relaxed "
+                style={{ color: profileTextColor.mutedForeground }}
+              >
+                {user.bio}
+              </p>
+            ) : null}
+            {/* TODO: MAKE USER CAN SET THIS CTA ON  admin/editor/profiles.tsx */}
+            <Button variant='neutral' className='mt-7 w-full py-6' size='lg'>Join Discord Sekarang!</Button>
             {hasActiveProducts && (
               <div className="mt-6">
                 <Tabs
@@ -726,7 +725,7 @@ function UserProfile() {
                 >
                   <TabsList
                     variant="underline"
-                    className="grid w-full grid-cols-2 border-b-0"
+                    className="grid w-full grid-cols-2"
                     style={
                       {
                         color: profileTextColor.foreground,
@@ -814,6 +813,6 @@ function UserProfile() {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   )
 }
