@@ -1,7 +1,6 @@
 import {
   ChevronDown,
   Copy,
-  ExternalLink,
   Home,
   Package,
   Paintbrush,
@@ -10,6 +9,8 @@ import {
   ShoppingBag,
   User as UserIcon,
   Wallet,
+  CircleQuestionMark,
+  ExternalLink,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useRouter, useRouterState } from '@tanstack/react-router'
@@ -38,6 +39,8 @@ import { adminAuthQueryKey, useAdminAuthContext } from '@/lib/admin-auth'
 import { BASE_URL } from '@/lib/constans'
 import { cn } from '@/lib/utils'
 import DashboardSearchCommand from '../dashboard-search-command'
+import { LogoStudioSidebar } from '../kreasi-logo'
+import { Button } from '../ui/button'
 
 const data = {
   navBottom: [
@@ -111,7 +114,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar
       {...props}
       collapsible="icon"
-      variant="inset"
+      variant="sidebar"
       className="border-muted"
     >
 
@@ -119,10 +122,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <>
           <SidebarHeader>
             <SidebarMenu>
+              {/* <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <LogoStudioSidebar />
+                </SidebarMenuButton>
+              </SidebarMenuItem> */}
               <SidebarMenuItem className="flex gap-3 items-center">
                 <Menu>
                   <MenuTrigger render={<SidebarMenuButton size="default" />}>
-                    <Avatar className="h-6 w-6 border">
+                    <Avatar className="h-6 w-6 border rounded-md -ml-1">
                       <AvatarImage src={adminAuth?.image || ''} />
                       <AvatarFallback>
                         {adminAuth?.name?.slice(0, 2).toUpperCase() || 'US'}
@@ -170,7 +178,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </Menu>
                 <DashboardSearchCommand >
                   <SidebarMenuButton size={'default'} className='size-9 sm:size-8 shrink-0 justify-center items-center ml-auto'>
-                    <Search />
+                    <Search className='size-4' />
                   </SidebarMenuButton>
                 </DashboardSearchCommand>
               </SidebarMenuItem>
@@ -178,7 +186,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenu>
           </SidebarHeader>
 
-          <SidebarContent>
+          <SidebarContent >
             <SidebarGroup>
               <SidebarMenu>
                 {data.navMain.map((item) => {
@@ -198,11 +206,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         }
                         isActive={isActive}
                         className={cn(
-                          'text-foreground',
+                          'text-foreground'
                         )}
                       >
-                        <item.icon className={cn('h-4 w-4 mr-1')} />
-                        <span  > {item.title}</span>
+                        <item.icon className={cn('h-4 w-4 mr-1', 'text-foreground')} />
+                        <span> {item.title}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )
@@ -211,7 +219,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter>
+          <SidebarFooter >
             <SidebarMenu>
               {username ? (
                 <SidebarMenuItem>
@@ -250,7 +258,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuItem>
               ))}
 
-              <SidebarMenuItem>
+              {/* <SidebarMenuIsItem> */}
+              <Button variant='outline' size='icon-sm' className='rounded-full absolute bottom-4 left-4 '>
+                <CircleQuestionMark />
+              </Button>
+              <SidebarMenuItem className='text-center '>
                 <Credits />
               </SidebarMenuItem>
             </SidebarMenu>
