@@ -243,7 +243,7 @@ function ProductDetailPage() {
           </div>
 
           <div className="lg:sticky lg:top-6">
-            <Form className="space-y-4 pt-6" onSubmit={handleBuyNowSubmit}>
+            <Form onSubmit={handleBuyNowSubmit}>
               <div className="flex items-center gap-2">
                 <p className="text-2xl font-semibold">{priceLabel(product)}</p>
                 {originalPrice && (
@@ -260,6 +260,7 @@ function ProductDetailPage() {
                   placeholder="Nama kamu"
                   required
                   disabled={isSubmittingBuy}
+                  size={'lg'}
                 />
                 <FieldError>Please enter your name.</FieldError>
               </Field>
@@ -272,6 +273,7 @@ function ProductDetailPage() {
                   placeholder="you@example.com"
                   required
                   disabled={isSubmittingBuy}
+                  size={'lg'}
                 />
                 <FieldError>Please enter a valid email.</FieldError>
               </Field>
@@ -284,7 +286,7 @@ function ProductDetailPage() {
                 <ShoppingCart />
                 Add to cart
               </Button>
-              <Button type="submit" className="w-full" loading={isSubmittingBuy}>
+              <Button size='lg' type="submit" className="py-6 w-full" loading={isSubmittingBuy}>
                 Beli
               </Button>
             </Form>
