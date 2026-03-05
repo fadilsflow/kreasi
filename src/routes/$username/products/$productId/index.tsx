@@ -5,7 +5,7 @@ import {
   notFound,
   useNavigate,
 } from '@tanstack/react-router'
-import { Bookmark, Share2, ShoppingBag } from 'lucide-react'
+import { Bookmark, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -20,6 +20,7 @@ import { ShareProfileModal } from '@/components/share-profile-modal'
 import { SavedDrawer } from '@/components/saved-drawer'
 import { useSavedStore } from '@/store/saved-store'
 import { BASE_URL } from '@/lib/constans'
+import { Separator } from '@/components/ui/separator'
 
 export const Route = createFileRoute('/$username/products/$productId/')({
   component: ProductDetailPage,
@@ -189,21 +190,34 @@ function ProductDetailPage() {
             >
               <Bookmark />
             </Button>
-
-            <ShareProfileModal url={productHref}>
-              <Button variant="outline" size="icon" aria-label="Share product">
-                <Share2 />
-              </Button>
-            </ShareProfileModal>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-start pb-4 px-4">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] md:items-start gap-6 pb-4 px-4">
+          <div className="space-y-6 lg:col-span-1">
             <ProductImage images={productImages} title={product.title} />
 
-            <div className="space-y-4 pb-2">
+            <div className="space-y-4 pb-2 relative pr-28">
               <h1 className="text-3xl font-bold">{product.title}</h1>
+
+              <div className="flex absolute top-0 right-0 gap-1">
+                <Button
+                  type="button"
+                  size="icon-sm"
+                  variant={'ghost'}
+                  onClick={handleToggleSaved}
+                  disabled={isSubmittingBuy}
+                  aria-label={isCurrentProductSaved ? 'Remove from saved' : 'Save product'}
+                >
+                  <Bookmark className={isCurrentProductSaved ? 'fill-primary text-foreground' : ''} />
+                </Button>
+
+                <ShareProfileModal url={productHref}>
+                  <Button variant="ghost" size="icon-sm" aria-label="Share product">
+                    <svg className='size-4' viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.6875 6.8752H10.625V12.5393C10.625 12.705 10.5592 12.864 10.4419 12.9812C10.3247 13.0984 10.1658 13.1643 10 13.1643C9.83424 13.1643 9.67527 13.0984 9.55806 12.9812C9.44085 12.864 9.375 12.705 9.375 12.5393V6.8752H5.3125C4.73253 6.87582 4.17649 7.10649 3.76639 7.51659C3.35629 7.92669 3.12562 8.48273 3.125 9.0627V16.5627C3.12562 17.1427 3.35629 17.6987 3.76639 18.1088C4.17649 18.5189 4.73253 18.7496 5.3125 18.7502H14.6875C15.2675 18.7496 15.8235 18.5189 16.2336 18.1088C16.6437 17.6987 16.8744 17.1427 16.875 16.5627V9.0627C16.8744 8.48273 16.6437 7.92669 16.2336 7.51659C15.8235 7.10649 15.2675 6.87582 14.6875 6.8752ZM10.625 3.38418L12.6832 5.442C12.8014 5.55426 12.9587 5.61592 13.1217 5.61383C13.2847 5.61175 13.4404 5.54608 13.5556 5.43083C13.6709 5.31557 13.7365 5.15986 13.7386 4.99689C13.7407 4.83391 13.6791 4.67657 13.5668 4.5584L10.4418 1.4334C10.3246 1.31628 10.1657 1.25049 10 1.25049C9.83431 1.25049 9.6754 1.31628 9.5582 1.4334L6.4332 4.5584C6.32094 4.67657 6.25928 4.83391 6.26137 4.99689C6.26345 5.15986 6.32912 5.31557 6.44437 5.43083C6.55962 5.54608 6.71534 5.61175 6.87831 5.61383C7.04129 5.61592 7.19863 5.55426 7.3168 5.442L9.375 3.38418V6.8752H10.625V3.38418Z" fill="currentColor"></path></svg>
+                  </Button>
+                </ShareProfileModal>
+              </div>
 
               {product.description ? (
                 <p className="whitespace-pre-line text-muted-foreground">
@@ -227,8 +241,11 @@ function ProductDetailPage() {
               </Card>
             ) : null}
           </div>
+          <div className="sticky md:hidden bg-background flex bottom-0 py-2">
+            <Button className='w-full' size='lg' render={<Link to='/$username/products/$productId/checkout' params={{ username, productId }} />}>Beli</Button >
+          </div>
 
-          <div className="lg:sticky lg:top-6">
+          <div className="md:sticky md:top-6 hidden md:block">
             <Form onSubmit={handleBuyNowSubmit}>
               <div className="flex items-center gap-2">
                 <p className="text-2xl font-semibold">{priceLabel(product)}</p>
@@ -238,6 +255,7 @@ function ProductDetailPage() {
                   </p>
                 )}
               </div>
+              <Separator />
               <Field name="name">
                 <FieldLabel>Name</FieldLabel>
                 <Input
@@ -264,16 +282,7 @@ function ProductDetailPage() {
                 <FieldError>Please enter a valid email.</FieldError>
               </Field>
               <div className="flex items-center gap-2 w-full">
-                <Button
-                  type="button"
-                  size="icon-lg"
-                  variant={isCurrentProductSaved ? 'default' : 'outline'}
-                  onClick={handleToggleSaved}
-                  disabled={isSubmittingBuy}
-                  aria-label={isCurrentProductSaved ? 'Remove from saved' : 'Save product'}
-                >
-                  <Bookmark className={isCurrentProductSaved ? 'fill-current' : ''} />
-                </Button>
+
 
                 <Button
                   size="lg"
@@ -289,6 +298,6 @@ function ProductDetailPage() {
         </div>
       </div>
       <SavedDrawer open={isSavedOpen} onClose={() => setIsSavedOpen(false)} />
-    </div>
+    </div >
   )
 }
