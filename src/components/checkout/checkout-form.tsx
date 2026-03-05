@@ -186,8 +186,8 @@ export function CheckoutForm({
                 </CardContent>
               </Card>
 
-              <Button type="submit" size="xl" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Processing...' : payLabel}
+              <Button type="submit" size="xl" className="w-full" loading={isSubmitting}>
+                {payLabel}
               </Button>
             </div>
           </div>
