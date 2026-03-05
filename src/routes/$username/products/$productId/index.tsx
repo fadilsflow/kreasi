@@ -283,8 +283,7 @@ function ProductDetailPage() {
               </Field>
               <div className="flex items-center gap-2 w-full">
 
-
-                <Button
+                <Button 
                   size="lg"
                   type="submit"
                   className="py-6 flex-1"
