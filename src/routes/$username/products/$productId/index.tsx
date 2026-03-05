@@ -5,7 +5,7 @@ import {
   notFound,
   useNavigate,
 } from '@tanstack/react-router'
-import { Share2, ShoppingBag, ShoppingCart } from 'lucide-react'
+import { Bookmark, Share2, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -16,10 +16,9 @@ import { getPublicProduct } from '@/lib/profile-server'
 import { formatPrice } from '@/lib/utils'
 import LiteYouTube from '@/components/LiteYouTube'
 import { extractYouTubeVideoIdFromText } from '@/lib/lite-youtube'
-import { toastManager } from '@/components/ui/toast'
-import { useCartStore } from '@/store/cart-store'
 import { ShareProfileModal } from '@/components/share-profile-modal'
-import { CartDrawer } from '@/components/cart-drawer'
+import { SavedDrawer } from '@/components/saved-drawer'
+import { useSavedStore } from '@/store/saved-store'
 import { BASE_URL } from '@/lib/constans'
 
 export const Route = createFileRoute('/$username/products/$productId/')({
@@ -112,35 +111,30 @@ function ProductDetailPage() {
   const { username, productId } = Route.useParams()
   const { user, product } = Route.useLoaderData()
   const navigate = useNavigate()
-  const [isCartOpen, setIsCartOpen] = React.useState(false)
+  const [isSavedOpen, setIsSavedOpen] = React.useState(false)
   const [isSubmittingBuy, setIsSubmittingBuy] = React.useState(false)
-  const { addItem, getTotalItems } = useCartStore()
+  const { toggleItem, isSaved, getTotalItems } = useSavedStore()
 
   const productHref = `${BASE_URL.replace(/\/$/, '')}/${username}/products/${productId}`
   const productImages = product.images || []
   const originalPrice = getOriginalPrice(product)
   const productVideoId = extractYouTubeVideoIdFromText(product.description)
-  const totalItems = getTotalItems()
+  const totalSavedItems = getTotalItems()
+  const isCurrentProductSaved = isSaved(product.id)
   const creatorName = user.username || user.name || 'creator'
   const creatorInitial = creatorName.charAt(0).toUpperCase()
 
-  const handleAddToCart = () => {
-    const cartPrice = product.payWhatYouWant
+  const handleToggleSaved = () => {
+    const savedPrice = product.payWhatYouWant
       ? product.suggestedPrice ?? product.minimumPrice ?? 0
       : product.salePrice ?? product.price ?? 0
 
-    addItem({
+    toggleItem({
       productId: product.id,
+      username,
       title: product.title,
-      price: cartPrice,
+      price: savedPrice,
       image: product.images?.[0] ?? null,
-      maxQuantity: product.totalQuantity ?? null,
-      limitPerCheckout: product.limitPerCheckout ?? null,
-    })
-
-    toastManager.add({
-      title: 'Added to cart',
-      description: `${product.title} added to your cart`,
     })
   }
 
@@ -192,14 +186,14 @@ function ProductDetailPage() {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => setIsCartOpen(true)}
-                aria-label="Open cart"
+                onClick={() => setIsSavedOpen(true)}
+                aria-label="Open saved products"
               >
-                <ShoppingCart />
+                <Bookmark />
               </Button>
-              {totalItems > 0 ? (
+              {totalSavedItems > 0 ? (
                 <span className="absolute -right-2 -top-2 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold text-primary-foreground">
-                  {totalItems}
+                  {totalSavedItems}
                 </span>
               ) : null}
             </div>
@@ -279,12 +273,13 @@ function ProductDetailPage() {
               </Field>
               <Button
                 type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleAddToCart}
+                size="icon"
+                variant={isCurrentProductSaved ? 'default' : 'outline'}
+                onClick={handleToggleSaved}
+                disabled={isSubmittingBuy}
+                aria-label={isCurrentProductSaved ? 'Remove from saved' : 'Save product'}
               >
-                <ShoppingCart />
-                Add to cart
+                <Bookmark className={isCurrentProductSaved ? 'fill-current' : ''} />
               </Button>
               <Button size='lg' type="submit" className="py-6 w-full" loading={isSubmittingBuy}>
                 Beli
@@ -293,8 +288,7 @@ function ProductDetailPage() {
           </div>
         </div>
       </div>
-
-      <CartDrawer open={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <SavedDrawer open={isSavedOpen} onClose={() => setIsSavedOpen(false)} />
     </div>
   )
 }

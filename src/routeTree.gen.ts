@@ -17,7 +17,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UsernameIndexRouteImport } from './routes/$username/index'
 import { Route as DTokenRouteImport } from './routes/d/$token'
-import { Route as CartCheckoutRouteImport } from './routes/cart/checkout'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminProductsRouteRouteImport } from './routes/admin/products/route'
@@ -75,11 +74,6 @@ const UsernameIndexRoute = UsernameIndexRouteImport.update({
 const DTokenRoute = DTokenRouteImport.update({
   id: '/d/$token',
   path: '/d/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CartCheckoutRoute = CartCheckoutRouteImport.update({
-  id: '/cart/checkout',
-  path: '/cart/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
@@ -187,7 +181,6 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AdminProductsRouteRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/cart/checkout': typeof CartCheckoutRoute
   '/d/$token': typeof DTokenRoute
   '/$username/': typeof UsernameIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -212,7 +205,6 @@ export interface FileRoutesByTo {
   '/admin/editor': typeof AdminEditorRouteRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/cart/checkout': typeof CartCheckoutRoute
   '/d/$token': typeof DTokenRoute
   '/$username': typeof UsernameIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -242,7 +234,6 @@ export interface FileRoutesById {
   '/admin/products': typeof AdminProductsRouteRouteWithChildren
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
-  '/cart/checkout': typeof CartCheckoutRoute
   '/d/$token': typeof DTokenRoute
   '/$username/': typeof UsernameIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -273,7 +264,6 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/settings'
     | '/auth/callback'
-    | '/cart/checkout'
     | '/d/$token'
     | '/$username/'
     | '/admin/'
@@ -298,7 +288,6 @@ export interface FileRouteTypes {
     | '/admin/editor'
     | '/admin/settings'
     | '/auth/callback'
-    | '/cart/checkout'
     | '/d/$token'
     | '/$username'
     | '/admin'
@@ -327,7 +316,6 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/settings'
     | '/auth/callback'
-    | '/cart/checkout'
     | '/d/$token'
     | '/$username/'
     | '/admin/'
@@ -352,7 +340,6 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   RegisterRoute: typeof RegisterRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
-  CartCheckoutRoute: typeof CartCheckoutRoute
   DTokenRoute: typeof DTokenRoute
   UsernameIndexRoute: typeof UsernameIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -417,13 +404,6 @@ declare module '@tanstack/react-router' {
       path: '/d/$token'
       fullPath: '/d/$token'
       preLoaderRoute: typeof DTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cart/checkout': {
-      id: '/cart/checkout'
-      path: '/cart/checkout'
-      fullPath: '/cart/checkout'
-      preLoaderRoute: typeof CartCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -636,7 +616,6 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   RegisterRoute: RegisterRoute,
   AuthCallbackRoute: AuthCallbackRoute,
-  CartCheckoutRoute: CartCheckoutRoute,
   DTokenRoute: DTokenRoute,
   UsernameIndexRoute: UsernameIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

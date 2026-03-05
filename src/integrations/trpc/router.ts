@@ -1138,7 +1138,7 @@ const orderRouter = {
     }),
 
   /**
-   * Multi-product cart checkout.
+   * Multi-product checkout.
    * Processes one checkout transaction but splits into one order per store.
    */
   createMultiple: publicProcedure
@@ -1159,7 +1159,7 @@ const orderRouter = {
     )
     .mutation(async ({ input }) => {
       if (input.items.length === 0) {
-        throw new Error('No items in cart')
+        throw new Error('No items selected for checkout')
       }
 
       const checkoutGroupId = crypto.randomUUID()
@@ -1178,7 +1178,7 @@ const orderRouter = {
       for (const item of input.items) {
         const product = productMap.get(item.productId)
         if (!product) {
-          throw new Error('One or more products in your cart no longer exist')
+          throw new Error('One or more selected products no longer exist')
         }
         if (!product.isActive) {
           throw new Error(`${product.title} is no longer available`)
