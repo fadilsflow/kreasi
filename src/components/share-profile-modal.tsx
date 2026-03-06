@@ -1,4 +1,4 @@
-import { Check, Copy, QrCodeIcon, Share } from 'lucide-react'
+import { CircleCheck, Copy, QrCodeIcon, Share } from 'lucide-react'
 import { useState } from 'react'
 import {
   Popover,
@@ -126,7 +126,7 @@ export function ShareProfileModal({
                 aria-label={copyStatus === 'copied' ? 'Copied' : 'Copy link'}
               >
                 {copyStatus === 'copied' ? (
-                  <Check className="h-4 w-4 text-success" />
+                  <CircleCheck className="size-4 fill-emerald-600 text-white dark:fill-emerald-400" />
                 ) : (
                   <Copy className="h-4 w-4 " />
                 )}
@@ -158,7 +158,7 @@ export function ShareProfileModal({
                 className="flex items-center gap-2"
                 onClick={handleCopyQrImage}
               >
-                {copyImageStatus === 'copied' ? <><Check className="size-3 text-success" /></> : 'Copy PNG'}
+                {copyImageStatus === 'copied' ? <CircleCheck className="size-4 fill-emerald-600 text-white dark:fill-emerald-400" /> : 'Copy PNG'}
               </Button>
             </div>
           </div>
