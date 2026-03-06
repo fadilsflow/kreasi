@@ -36,8 +36,8 @@ export const APPEARANCE_FONT_OPTIONS: Array<{
   family: string
 }> = [
   { value: 'sans', label: 'Sans', family: 'Cal Sans UI' },
-  { value: 'mono', label: 'Mono', family: 'Paper Mono' },
   { value: 'inter', label: 'Inter', family: 'Inter' },
+  { value: 'mono', label: 'Mono', family: 'Paper Mono' },
   { value: 'roboto-mono', label: 'Roboto Mono', family: 'Roboto Mono' },
   { value: 'urbanist', label: 'Urbanist', family: 'Urbanist' },
   { value: 'pixelify-sans', label: 'Pixelify Sans', family: 'Pixelify Sans' },
