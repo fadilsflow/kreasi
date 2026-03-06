@@ -58,16 +58,8 @@ export default function UserButton() {
           <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/admin/products' />}>
             Produk
           </Button>
-          <div className='my-1 border-t border-dashed' />
-
           <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/admin/editor/profiles' />}>
             Edit Profile
-          </Button>
-          <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/admin/editor/appearance' />}>
-            Appearance
-          </Button>
-          <Button className='justify-start gap-4 flex' variant={'ghost'} onClick={copyProfileLink}>
-            Copy Profile URL
           </Button>
 
           <div className='my-1 border-t border-dashed' />
