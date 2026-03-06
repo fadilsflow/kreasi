@@ -49,7 +49,7 @@ export function SavedDrawer({ open, onClose }: SavedDrawerProps) {
                   key={item.productId}
                   className="flex gap-4 rounded-lg border bg-card p-4"
                 >
-                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted">
+                  <div className="h-21 w-auto aspect-video shrink-0 overflow-hidden rounded-md bg-muted">
                     {item.image ? (
                       <img
                         src={item.image}
@@ -68,8 +68,8 @@ export function SavedDrawer({ open, onClose }: SavedDrawerProps) {
                     <p className="mt-1 text-sm">{formatPrice(item.price)}</p>
                     <div className="mt-3 flex items-center gap-2">
                       <Button
-                        size="sm"
-                        variant="outline"
+                        size="xs"
+                        variant="secondary"
                         render={
                           <Link
                             to="/$username/products/$productId"
@@ -84,7 +84,7 @@ export function SavedDrawer({ open, onClose }: SavedDrawerProps) {
                         View
                       </Button>
                       <Button
-                        size="sm"
+                        size="xs"
                         render={
                           <Link
                             to="/$username/products/$productId/checkout"
