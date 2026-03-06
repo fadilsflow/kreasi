@@ -125,8 +125,8 @@ export const BLOCK_TYPE_CONFIG: BlockTypeConfig[] = [
     category: 'general',
     icon: YouTubeColor,
     iconColor: '',
-    title: 'Youtube',
-    description: 'Share your channel and showcase videos.',
+    title: 'YouTube Video',
+    description: 'Share a YouTube video URL.',
   },
   {
     type: 'discord',
