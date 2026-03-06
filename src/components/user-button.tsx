@@ -17,14 +17,7 @@ export default function UserButton() {
 
   const username =
     (session.user as { username?: string | null }).username ?? ''
-  const publicUrl = `${window.location.origin}/${username}`
-  const copyProfileLink = () => {
-    navigator.clipboard.writeText(publicUrl)
-    toastManager.add({
-      title: 'Copied',
-      description: 'Profile link copied to clipboard',
-    })
-  }
+  const publicUrl = `${window.location.origin}/${username}`re
 
   return (
     <Popover>
