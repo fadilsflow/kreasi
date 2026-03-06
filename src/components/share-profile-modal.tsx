@@ -7,13 +7,11 @@ import { LinkedIn } from './icon/linkedin'
 import { WhatsApp } from './icon/whatsapp'
 import { Gmail } from './icon/gmail'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogPanel,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  Popover,
+  PopoverContent,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import {
   InputGroup,
@@ -77,8 +75,8 @@ export function ShareProfileModal({
   ]
 
   return (
-    <Dialog>
-      <DialogTrigger
+    <Popover>
+      <PopoverTrigger
         render={
           children || (
             <Button
@@ -97,16 +95,16 @@ export function ShareProfileModal({
             <Share className="ml-2 h-4 w-4" />
           </>
         )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md border-none shadow-2xl overflow-hidden p-0">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-heading font-bold">
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[min(92vw,28rem)] border-none p-0 shadow-2xl"
+        align="end"
+      >
+        <div className="space-y-8 p-4">
+          <PopoverTitle className="text-xl font-heading font-bold">
             Share
-          </DialogTitle>
-        </DialogHeader>
+          </PopoverTitle>
 
-        <DialogPanel className="space-y-8">
-          {/* Social Share Grid */}
           <div className="space-y-4">
             <div className="grid grid-cols-5 gap-3">
               {platform.map((p) => (
@@ -115,11 +113,12 @@ export function ShareProfileModal({
                   to={p.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center gap-2 group outline-none"
+                  className="group flex flex-col items-center gap-2 outline-none"
                 >
                   <div
                     className={cn(
-                      'h-14 w-14 rounded-2xl flex items-center justify-center border', p.color
+                      'flex h-14 w-14 items-center justify-center rounded-2xl border',
+                      p.color,
                     )}
                   >
                     {p.icon}
@@ -130,21 +129,20 @@ export function ShareProfileModal({
             </div>
           </div>
 
-          {/* Copy Link Section */}
-          <InputGroup className='py-1 px-0.5'>
+          <InputGroup className="px-0.5 py-1">
             <InputGroupInput
               readOnly
               value={url.replace(/^https?:\/\//, '')}
               className="text-sm font-medium"
             />
             <InputGroupAddon align="inline-end">
-              <Button size="sm" className='rounded-full' onClick={handleCopyLink}>
+              <Button size="sm" className="rounded-full" onClick={handleCopyLink}>
                 {copyStatus === 'copied' ? 'Copied' : 'Copy'}
               </Button>
             </InputGroupAddon>
           </InputGroup>
-        </DialogPanel>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
