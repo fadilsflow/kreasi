@@ -449,7 +449,7 @@ export function BlockFormDialog({
             disabled={submitting || deleting || isUploading}
             loading={!!submitting}
           >
-            {mode === 'create' ? 'Add Block' : 'Save Changes'}
+            {titleMode === 'create' ? 'Add Block' : 'Save Changes'}
           </Button>
         </DialogFooter>
       </DialogPopup>
