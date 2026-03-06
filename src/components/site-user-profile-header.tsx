@@ -17,11 +17,10 @@ export default function SiteUserProfileHeader() {
               <UserButton />
               <Button
                 variant="outline"
-                size="icon"
-                className="relative h-9 w-9"
+                className="relative"
                 onClick={() => setIsSavedOpen(true)}
               >
-                <Bookmark className="h-4 w-4" />
+                <Bookmark className="h-4 w-4 fill-current" /> Library
               </Button>
             </div>
           </div>
