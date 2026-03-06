@@ -146,9 +146,16 @@ function AdminDashboard() {
 
   useEffect(() => {
     if (isAddBlockOpen || !pendingCreateType) return
+    const defaultValues = getDefaultBlockValues(pendingCreateType)
     setBlockFormState({
       mode: 'create',
-      values: getDefaultBlockValues(pendingCreateType),
+      values:
+        pendingCreateType === 'video'
+          ? {
+            ...defaultValues,
+            title: defaultValues.title || 'YouTube Video',
+          }
+          : defaultValues,
     })
     setPendingCreateType(null)
   }, [isAddBlockOpen, pendingCreateType])
