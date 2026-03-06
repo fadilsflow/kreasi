@@ -41,6 +41,7 @@ type PublicBlock = PublicProfileBlock
 interface PublicProduct {
   id: string
   title: string
+  description: string
   images?: Array<string> | null
   payWhatYouWant?: boolean | null
   minimumPrice?: number | null
@@ -62,16 +63,10 @@ function runWhenBrowserIdle(callback: () => void, timeout = 1200) {
 }
 
 function getVideoMeta(rawUrl?: string | null): {
-  embedUrl: string | null
-  posterUrl: string | null
-  provider: 'youtube' | 'tiktok' | null
   youtubeVideoId: string | null
 } {
   if (!rawUrl) {
     return {
-      embedUrl: null,
-      posterUrl: null,
-      provider: null,
       youtubeVideoId: null,
     }
   }
@@ -79,43 +74,12 @@ function getVideoMeta(rawUrl?: string | null): {
   const youtubeVideoId = extractYouTubeVideoId(rawUrl)
   if (youtubeVideoId) {
     return {
-      embedUrl: `https://www.youtube-nocookie.com/embed/${youtubeVideoId}`,
-      posterUrl: `https://i.ytimg.com/vi/${youtubeVideoId}/hqdefault.jpg`,
-      provider: 'youtube',
       youtubeVideoId,
     }
   }
 
-  try {
-    const url = new URL(rawUrl)
-    const host = url.hostname.toLowerCase()
-
-    if (host.includes('tiktok.com')) {
-      const parts = url.pathname.split('/').filter(Boolean)
-      const videoIndex = parts.findIndex((part) => part === 'video')
-      if (videoIndex !== -1 && parts[videoIndex + 1]) {
-        return {
-          embedUrl: `https://www.tiktok.com/embed/v2/${parts[videoIndex + 1]}`,
-          posterUrl: null,
-          provider: 'tiktok',
-          youtubeVideoId: null,
-        }
-      }
-    }
-
-    return {
-      embedUrl: null,
-      posterUrl: null,
-      provider: null,
-      youtubeVideoId: null,
-    }
-  } catch {
-    return {
-      embedUrl: null,
-      posterUrl: null,
-      provider: null,
-      youtubeVideoId: null,
-    }
+  return {
+    youtubeVideoId: null,
   }
 }
 
@@ -236,15 +200,15 @@ function ProductCard({
   username,
   cardBase,
   radiusClass,
-  imageRadiusClass,
   cardStyle,
+  horizontalOnMd = false,
 }: {
   product: PublicProduct
   username: string
   cardBase: string
   radiusClass: string
-  imageRadiusClass?: string
   cardStyle?: React.CSSProperties
+  horizontalOnMd?: boolean
 }) {
   const hasDiscount = !!(product.salePrice && product.price)
   const price = hasDiscount
@@ -274,11 +238,11 @@ function ProductCard({
         />
       }
     >
-      <CardContent className="p-0">
+      <CardContent className={cn('p-0', horizontalOnMd && 'md:flex md:items-start')}>
         <div
           className={cn(
             'aspect-video w-full overflow-hidden bg-muted',
-            // imageRadiusClass && 'rounded-md',
+            horizontalOnMd && 'md:basis-1/2 md:w-1/2 md:shrink-0',
           )}
         >
           {hasImage ? (
@@ -296,14 +260,15 @@ function ProductCard({
           )}
         </div>
 
-        <div className="space-y-1  p-2">
-          <h3 className="line-clamp-2 text-sm font-semibold">
+        <div className={cn('space-y-2 p-4', horizontalOnMd && 'md:basis-1/2 md:w-1/2')}>
+          <h3 className="line-clamp-2 text-xl font-medium">
             {product.title}
           </h3>
-          <div className="flex flex-col gap-2 text-sm">
-            <p className="font-semibold text-foreground">{price}</p>
+          <p className='text-sm line-clamp-2 text-foreground/70   '>{product.description}</p>
+          <div className="flex items-center gap-1">
+            <p className="text-foreground  text-sm">{price}</p>
             {originalPrice ? (
-              <p className="text-foreground/80 text-xs line-through">
+              <p className="text-foreground/80 text-[10px] line-through">
                 {originalPrice}
               </p>
             ) : null}
@@ -325,62 +290,39 @@ function DeferredVideoEmbed({
   radiusClass: string
   cardStyle?: React.CSSProperties
 }) {
-  const { embedUrl, posterUrl, provider, youtubeVideoId } = React.useMemo(
+  const { youtubeVideoId } = React.useMemo(
     () => getVideoMeta(block.content),
     [block.content],
   )
 
   return (
-    <Card
+    <div
       className={cn(
-        'w-full overflow-hidden p-3 space-y-3',
-        cardClass,
+        'w-full overflow-hidden space-y-3 mt-6',
+        // cardClass,
         radiusClass,
       )}
       style={cardStyle}
     >
-      <div className="flex items-center gap-2 text-sm font-semibold">
-        <PlayCircle className="h-4 w-4 text-foreground" />
-        {block.title || 'Video'}
+      <div className="flex items-center gap-2 text-md font-medium">
+        {block.title || 'YouTube Video'}
       </div>
 
-      {provider === 'youtube' && youtubeVideoId ? (
+      {youtubeVideoId ? (
         // We render a lightweight custom element first and defer iframe creation until interaction.
         // This removes YouTube's third-party JS cost from hydration, reducing TBT and improving Speed Index.
         <LiteYouTube
           videoId={youtubeVideoId}
-          title={block.title || 'Embedded video'}
+          title={block.title || 'Embedded YouTube video'}
           className="w-full overflow-hidden rounded-lg border"
-          playLabel={`Play ${block.title || 'video'}`}
+          playLabel={`Play ${block.title || 'YouTube video'}`}
         />
-      ) : embedUrl ? (
-        <div className="relative w-full overflow-hidden rounded-lg border aspect-video">
-          <iframe
-            src={embedUrl}
-            title={block.title || 'Embedded video'}
-            className="absolute inset-0 h-full w-full"
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-          {posterUrl ? (
-            <img
-              src={posterUrl}
-              alt={block.title || 'Video preview'}
-              width={1280}
-              height={720}
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-0 h-full w-full object-cover -z-10"
-            />
-          ) : null}
-        </div>
       ) : (
         <p className="text-xs text-muted-foreground">
-          Unsupported video URL. Please use a valid YouTube or TikTok link.
+          Invalid URL. Please use a valid YouTube link.
         </p>
       )}
-    </Card>
+    </div>
   )
 }
 
@@ -584,8 +526,8 @@ function UserProfile() {
             username={user.username || ''}
             cardBase={cardBase}
             radiusClass={radiusClass}
-            imageRadiusClass={radiusClass}
             cardStyle={blockInlineStyle}
+            horizontalOnMd
           />
         )
       }}
@@ -609,7 +551,6 @@ function UserProfile() {
             username={user.username || ''}
             cardBase={cardBase}
             radiusClass={radiusClass}
-            imageRadiusClass={radiusClass}
             cardStyle={blockInlineStyle}
           />
         )
