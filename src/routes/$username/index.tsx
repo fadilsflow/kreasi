@@ -274,11 +274,11 @@ function ProductCard({
         />
       }
     >
-      <CardContent className="p-2">
+      <CardContent className="p-0">
         <div
           className={cn(
-            'aspect-square w-full overflow-hidden bg-muted',
-            imageRadiusClass && 'rounded-md',
+            'aspect-video w-full overflow-hidden bg-muted',
+            // imageRadiusClass && 'rounded-md',
           )}
         >
           {hasImage ? (
@@ -296,7 +296,7 @@ function ProductCard({
           )}
         </div>
 
-        <div className="space-y-1 mt-2">
+        <div className="space-y-1  p-2">
           <h3 className="line-clamp-2 text-sm font-semibold">
             {product.title}
           </h3>
@@ -600,7 +600,7 @@ function UserProfile() {
       />
     ))
   ) : (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {(products as Array<PublicProduct>).map((product) => {
         return (
           <ProductCard
