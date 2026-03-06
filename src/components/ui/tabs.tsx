@@ -47,7 +47,7 @@ function TabsList({
         className={cn(
           '-translate-y-(--active-tab-bottom) absolute bottom-0 left-0 h-(--active-tab-height) w-(--active-tab-width) translate-x-(--active-tab-left) transition-[width,translate] duration-200 ease-in-out',
           variant === 'underline'
-            ? 'data-[orientation=vertical]:-translate-x-px z-10 bg-[var(--tabs-indicator-color)] data-[orientation=horizontal]:h-0.5 data-[orientation=vertical]:w-0.5 data-[orientation=horizontal]:translate-y-px'
+            ? 'data-[orientation=vertical]:-translate-x-px z-10 bg-[var(--tabs-indicator-color)] data-[orientation=horizontal]:h-px data-[orientation=vertical]:w-px data-[orientation=horizontal]:translate-y-px'
             : '-z-1 rounded-md bg-background shadow-sm/5 dark:bg-input',
         )}
         data-slot="tab-indicator"
