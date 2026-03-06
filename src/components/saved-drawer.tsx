@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import {
   Sheet,
   SheetContent,
-  SheetFooter,
   SheetHeader,
   SheetPanel,
   SheetTitle,
@@ -19,14 +18,14 @@ interface SavedDrawerProps {
 }
 
 export function SavedDrawer({ open, onClose }: SavedDrawerProps) {
-  const { items, removeItem, clearSaved } = useSavedStore()
+  const { items, removeItem } = useSavedStore()
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            Saved
+            <Bookmark className="h-4 w-4 fill-current" /> Library
           </SheetTitle>
         </SheetHeader>
 
@@ -115,15 +114,7 @@ export function SavedDrawer({ open, onClose }: SavedDrawerProps) {
           )}
         </SheetPanel>
 
-        {items.length > 0 && (
-          <SheetFooter>
-            <div className="space-y-4 pt-4">
-              <Button variant="outline" className="w-full" size="lg" onClick={clearSaved}>
-                Clear saved
-              </Button>
-            </div>
-          </SheetFooter>
-        )}
+
       </SheetContent>
     </Sheet>
   )
