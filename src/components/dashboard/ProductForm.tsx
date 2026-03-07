@@ -2,12 +2,16 @@ import * as React from 'react'
 import { z } from 'zod'
 import {
   FileText,
-  Image as ImageIcon,
+  ImageIcon,
   Link2,
   Plus,
   Trash2,
   Upload,
   X,
+  Package,
+  Tag,
+  Users,
+  Settings2,
 } from 'lucide-react'
 import { useFileUpload } from '@/hooks/use-file-upload'
 import { uploadFile } from '@/lib/upload-client'
@@ -17,13 +21,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
-import {
-  cn,
-  formatPrice,
-  formatPriceInput,
-  parsePriceInput,
-} from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { toastManager } from '@/components/ui/toast'
+import { cn, formatPriceInput, parsePriceInput } from '@/lib/utils'
+import { Separator } from '../ui/separator'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui/input-group'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type PriceSettings = {
   payWhatYouWant: boolean
@@ -52,67 +56,27 @@ export type ProductFormValues = {
   title: string
   description: string
   productUrl: string
-  images: Array<string>
-  productFiles: Array<ProductFile>
+  images: string[]
+  productFiles: ProductFile[]
   isActive: boolean
   totalQuantity?: number | null
   limitPerCheckout?: number | null
   priceSettings: PriceSettings
-  customerQuestions: Array<CustomerQuestion>
+  customerQuestions: CustomerQuestion[]
 }
 
-// Client-side validation schema (mirrors server rules but stays in client bundle)
-export const priceSettingsClientSchema = z
-  .object({
-    payWhatYouWant: z.boolean(),
-    price: z.number().int().nonnegative().nullable().optional(),
-    salePrice: z.number().int().nonnegative().nullable().optional(),
-    minimumPrice: z.number().int().nonnegative().nullable().optional(),
-    suggestedPrice: z.number().int().nonnegative().nullable().optional(),
-  })
-  .superRefine((val, ctx) => {
-    if (val.payWhatYouWant) {
-      if (val.minimumPrice == null && val.suggestedPrice == null) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            'For pay-what-you-want products, set a minimum or suggested price.',
-          path: ['minimumPrice'],
-        })
-      }
-    } else if (val.price == null) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Fixed-price products require a price.',
-        path: ['price'],
-      })
-    }
-  })
+export interface ProductFormProps {
+  value: ProductFormValues
+  onChange: (value: ProductFormValues) => void
+  onSubmit: (value: ProductFormValues) => void
+  submitting?: boolean
+  onDelete?: (id: string) => void
+  formId?: string
+  hideFooter?: boolean
+  onUploadingChange?: (isUploading: boolean) => void
+}
 
-export const customerQuestionClientSchema = z.object({
-  id: z.string(),
-  label: z.string().min(1, 'Question label is required.'),
-  required: z.boolean().default(false),
-})
-
-export const productFormClientSchema = z.object({
-  id: z.string().optional(),
-  title: z.string().min(1, 'Title is required.'),
-  description: z.string().optional(),
-  productUrl: z
-    .string()
-    .url('Please enter a valid URL')
-    .optional()
-    .or(z.literal('')),
-  images: z.array(z.string()).optional(),
-  // productFiles validation is looser on client, mostly handled by UI state
-  productFiles: z.array(z.any()).optional(),
-  isActive: z.boolean(),
-  totalQuantity: z.number().int().positive().nullable().optional(),
-  limitPerCheckout: z.number().int().positive().nullable().optional(),
-  priceSettings: priceSettingsClientSchema,
-  customerQuestions: z.array(customerQuestionClientSchema),
-})
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function emptyProductForm(): ProductFormValues {
   return {
@@ -135,638 +99,756 @@ export function emptyProductForm(): ProductFormValues {
   }
 }
 
-export function humanPriceLabel(p: PriceSettings): string {
-  if (p.payWhatYouWant) {
-    if (p.minimumPrice) {
-      return `Pay what you want · minimum ${formatPrice(p.minimumPrice)}`
-    }
-    if (p.suggestedPrice) {
-      return `Pay what you want · suggested ${formatPrice(p.suggestedPrice)}`
-    }
-    return 'Pay what you want'
-  }
-  if (p.salePrice && p.price && p.salePrice < p.price) {
-    return `${formatPrice(p.salePrice)} (sale)`
-  }
-  if (p.price) return formatPrice(p.price)
-  return 'No price'
-}
-
-export function parseCustomerQuestions(raw: unknown): Array<CustomerQuestion> {
+export function parseCustomerQuestions(raw: unknown): CustomerQuestion[] {
   if (typeof raw !== 'string') return []
   try {
     const parsed = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    return parsed
-      .filter(
-        (q: any) =>
-          q &&
-          typeof q.id === 'string' &&
-          typeof q.label === 'string' &&
-          typeof q.required === 'boolean',
-      )
-      .map((q: any) => ({
-        id: q.id,
-        label: q.label,
-        required: q.required,
-      }))
+    return parsed.filter(
+      (q: any) =>
+        q &&
+        typeof q.id === 'string' &&
+        typeof q.label === 'string' &&
+        typeof q.required === 'boolean',
+    )
   } catch {
     return []
   }
 }
 
-export interface ProductFormProps {
-  value: ProductFormValues
-  onChange: (value: ProductFormValues) => void
-  onSubmit: (value: ProductFormValues) => void
-  submitting?: boolean
-  onDelete?: (id: string) => void
-  formId?: string
-  hideFooter?: boolean
-  onUploadingChange?: (isUploading: boolean) => void
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function ProductForm(props: ProductFormProps) {
-  const {
-    value,
-    onChange,
-    onSubmit,
-    submitting,
-    onDelete,
-    formId,
-    hideFooter,
-    onUploadingChange,
-  } = props
+type FormErrors = Record<string, string>
+type PricingType = 'fixed' | 'pay-what-you-want' | 'free'
 
-  const [isUploadingLocal, setIsUploadingLocal] = React.useState(false)
-  const isUploading = isUploadingLocal
+function validate(
+  value: ProductFormValues,
+  imageCount: number,
+  pricingType: PricingType,
+  enableQuantityChoice: boolean,
+  enableSalesLimit: boolean,
+): FormErrors {
+  const errors: FormErrors = {}
+
+  if (!value.title.trim()) errors.title = 'Title is required.'
+  if (imageCount === 0) errors.images = 'At least one image is required.'
+
+  if (value.productUrl.trim() && !z.string().url().safeParse(value.productUrl.trim()).success) {
+    errors.productUrl = 'Please enter a valid URL.'
+  }
+
+  if (pricingType === 'fixed' && value.priceSettings.price == null) {
+    errors['priceSettings.price'] = 'Price is required.'
+  }
+
+  if (pricingType === 'pay-what-you-want' && value.priceSettings.minimumPrice == null) {
+    errors['priceSettings.minimumPrice'] = 'Minimum price is required.'
+  }
+
+  if (enableQuantityChoice && (value.limitPerCheckout ?? 0) < 1) {
+    errors.limitPerCheckout = 'Must be at least 1.'
+  }
+
+  if (enableSalesLimit && (value.totalQuantity ?? 0) < 1) {
+    errors.totalQuantity = 'Must be at least 1.'
+  }
+
+  value.customerQuestions.forEach((q, i) => {
+    if (!q.label.trim()) errors[`question.${i}`] = 'Question is required.'
+  })
+
+  return errors
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function SectionHeader({ title, description }: {
+  title: string
+  description?: string
+}) {
+  return (
+    <div className="flex flex-col items-start gap-3">
+      <div>
+        <p className="text-lg font-medium">{title}</p>
+        {description && <p className="text-sm leading-snug text-muted-foreground mt-0.5">{description}</p>}
+      </div>
+    </div>
+  )
+}
+
+function FieldWrapper({ label, error, hint, children, required }: {
+  label: string
+  error?: string
+  hint?: string
+  children: React.ReactNode
+  required?: boolean
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium">
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </Label>
+      {children}
+      {error && <p className="text-[11px] text-destructive font-medium">{error}</p>}
+    </div>
+  )
+}
+
+function PriceInput({ id, placeholder, value, onChange }: {
+  id: string
+  placeholder: string
+  value: number | null | undefined
+  onChange: (val: number | undefined) => void
+}) {
+  return (
+    <InputGroup className="relative">
+      <InputGroupAddon align={'inline-start'}>
+        Rp
+      </InputGroupAddon>
+      {/* <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">
+        Rp
+      </span> */}
+      <InputGroupInput
+        id={id}
+        inputMode="numeric"
+        placeholder={placeholder}
+        className="pl-8"
+        value={formatPriceInput(value ?? null)}
+        onChange={(e) => {
+          const amount = parsePriceInput(e.target.value)
+          onChange(amount ?? undefined)
+        }}
+      />
+    </InputGroup>
+  )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export function ProductForm({
+  value,
+  onChange,
+  onSubmit,
+  submitting,
+  onDelete,
+  formId,
+  hideFooter,
+  onUploadingChange,
+}: ProductFormProps) {
+  const [isUploading, setIsUploading] = React.useState(false)
+  const [errors, setErrors] = React.useState<FormErrors>({})
+  const [pricingType, setPricingType] = React.useState<PricingType>('fixed')
+  const [enableQuantityChoice, setEnableQuantityChoice] = React.useState(false)
+  const [enableSalesLimit, setEnableSalesLimit] = React.useState(false)
 
   const setUploading = (val: boolean) => {
-    setIsUploadingLocal(val)
+    setIsUploading(val)
     onUploadingChange?.(val)
   }
 
-  // Carousel Images Hook
-  const [
-    { files: imageFiles },
-    {
-      getInputProps: getImageInputProps,
-      openFileDialog: openImageDialog,
-      removeFile: removeImage,
-      handleDrop: handleImageDrop,
-      handleDragOver: handleImageDragOver,
-      handleDragEnter: handleImageDragEnter,
-      handleDragLeave: handleImageDragLeave,
-    },
-  ] = useFileUpload({
+  React.useEffect(() => {
+    const isFreePricing = !value.priceSettings.payWhatYouWant &&
+      value.priceSettings.price === 0 &&
+      value.priceSettings.salePrice == null &&
+      value.priceSettings.minimumPrice == null &&
+      value.priceSettings.suggestedPrice == null
+
+    const nextPricingType: PricingType = value.priceSettings.payWhatYouWant
+      ? 'pay-what-you-want'
+      : isFreePricing
+        ? 'free'
+        : value.priceSettings.price != null || value.priceSettings.salePrice != null
+          ? 'fixed'
+          : value.priceSettings.minimumPrice != null || value.priceSettings.suggestedPrice != null
+            ? 'pay-what-you-want'
+            : 'fixed'
+    setPricingType(nextPricingType)
+    setEnableQuantityChoice((value.limitPerCheckout ?? 1) > 1)
+    setEnableSalesLimit(value.totalQuantity != null)
+  }, [value.id])
+
+  const clearError = (...keys: string[]) => {
+    setErrors((prev) => {
+      const next = { ...prev }
+      keys.forEach((k) => delete next[k])
+      return next
+    })
+  }
+
+  // Image upload
+  const [{ files: imageFiles }, {
+    getInputProps: getImageInputProps,
+    openFileDialog: openImageDialog,
+    removeFile: removeImage,
+    handleDrop: handleImageDrop,
+    handleDragOver: handleImageDragOver,
+    handleDragEnter: handleImageDragEnter,
+    handleDragLeave: handleImageDragLeave,
+  }] = useFileUpload({
     accept: 'image/*',
     multiple: true,
     initialFiles: value.images.map((url) => ({
-      id: url,
-      name: 'Image',
-      url,
-      size: 0,
-      type: 'image/jpeg',
+      id: url, name: 'Image', url, size: 0, type: 'image/jpeg',
     })),
   })
 
-  // Digital Files Hook
-  const [
-    { files: digitalFiles },
-    {
-      getInputProps: getFileInputProps,
-      openFileDialog: openFileDialog,
-      removeFile: removeDigitalFile,
-      handleDrop: handleFileDrop,
-      handleDragOver: handleFileDragOver,
-      handleDragEnter: handleFileDragEnter,
-      handleDragLeave: handleFileDragLeave,
-    },
-  ] = useFileUpload({
-    accept: '*', // Accept any file type for digital products
+  // Digital files upload
+  const [{ files: digitalFiles }, {
+    getInputProps: getFileInputProps,
+    openFileDialog: openFileDialog,
+    removeFile: removeDigitalFile,
+    handleDrop: handleFileDrop,
+    handleDragOver: handleFileDragOver,
+    handleDragEnter: handleFileDragEnter,
+    handleDragLeave: handleFileDragLeave,
+  }] = useFileUpload({
+    accept: '*',
     multiple: true,
-    initialFiles: value.productFiles.map((f) => ({
-      ...f,
-      url: f.url, // Ensure url is present
-    })),
+    initialFiles: value.productFiles.map((f) => ({ ...f })),
   })
+
+  React.useEffect(() => {
+    if (imageFiles.length > 0) clearError('images')
+  }, [imageFiles.length])
 
   const handleSubmit: React.FormEventHandler = async (e) => {
     e.preventDefault()
+    const nextErrors = validate(value, imageFiles.length, pricingType, enableQuantityChoice, enableSalesLimit)
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
+      toastManager.add({
+        title: 'Check your form',
+        description: 'Some fields need your attention.',
+        type: 'error',
+      })
+      return
+    }
+
+    setErrors({})
     setUploading(true)
 
     try {
-      const result = productFormClientSchema.safeParse(value)
-      if (!result.success) {
-        const flat = result.error.flatten()
-        const firstFieldError =
-          Object.values(flat.fieldErrors).flat().filter(Boolean)[0] ??
-          flat.formErrors[0]
-        if (typeof window !== 'undefined' && firstFieldError) {
-          window.alert(firstFieldError)
-        }
-        setUploading(false)
-        return
-      }
-
-      // 1. Upload new images
-      const finalImages: Array<string> = []
-      for (const fileItem of imageFiles) {
-        if (fileItem.file instanceof File) {
-          const url = await uploadFile(fileItem.file, 'products/images')
-          finalImages.push(url)
+      const finalImages: string[] = []
+      for (const f of imageFiles) {
+        if (f.file instanceof File) {
+          finalImages.push(await uploadFile(f.file, 'products/images'))
         } else {
-          // Existing file (FileMetadata)
-          finalImages.push(fileItem.file.url)
+          finalImages.push(f.file.url)
         }
       }
 
-      // 2. Upload new digital files
-      const finalProductFiles: Array<ProductFile> = []
-      for (const fileItem of digitalFiles) {
-        if (fileItem.file instanceof File) {
-          const url = await uploadFile(fileItem.file, 'products/files')
+      const finalProductFiles: ProductFile[] = []
+      for (const f of digitalFiles) {
+        if (f.file instanceof File) {
+          const url = await uploadFile(f.file, 'products/files')
           finalProductFiles.push({
             id: crypto.randomUUID(),
-            name: fileItem.file.name,
-            size: fileItem.file.size,
-            type: fileItem.file.type,
+            name: f.file.name,
+            size: f.file.size,
+            type: f.file.type,
             url,
           })
         } else {
-          // Existing
-          finalProductFiles.push(fileItem.file as ProductFile)
+          finalProductFiles.push(f.file as ProductFile)
         }
       }
 
       onSubmit({
-        ...result.data,
-        description: result.data.description ?? '',
-        productUrl: result.data.productUrl ?? '',
+        ...value,
         images: finalImages,
         productFiles: finalProductFiles,
+        priceSettings:
+          pricingType === 'fixed'
+            ? {
+              payWhatYouWant: false,
+              price: value.priceSettings.price,
+              salePrice: value.priceSettings.salePrice,
+              minimumPrice: undefined,
+              suggestedPrice: undefined,
+            }
+            : pricingType === 'pay-what-you-want'
+              ? {
+                payWhatYouWant: true,
+                price: undefined,
+                salePrice: undefined,
+                minimumPrice: value.priceSettings.minimumPrice,
+                suggestedPrice: value.priceSettings.suggestedPrice,
+              }
+              : {
+                payWhatYouWant: false,
+                price: 0,
+                salePrice: undefined,
+                minimumPrice: undefined,
+                suggestedPrice: undefined,
+              },
+        limitPerCheckout: enableQuantityChoice ? value.limitPerCheckout : 1,
+        totalQuantity: enableSalesLimit ? value.totalQuantity : null,
       })
-    } catch (err) {
-      console.error('Upload failed', err)
-      window.alert('Failed to upload files. Please try again.')
+    } catch {
+      toastManager.add({
+        title: 'Upload failed',
+        description: 'Could not upload files. Please try again.',
+        type: 'error',
+      })
     } finally {
       setUploading(false)
     }
   }
 
+  const update = (patch: Partial<ProductFormValues>) => onChange({ ...value, ...patch })
+  const updatePrice = (patch: Partial<PriceSettings>) =>
+    update({ priceSettings: { ...value.priceSettings, ...patch } })
+
   return (
-    <form
-      id={formId}
-      onSubmit={handleSubmit}
-      className="space-y-6 text-sm"
-      aria-label="Product form"
-    >
-      <div className="space-y-2">
-        <Label htmlFor="product-title">Title</Label>
-        <Input
-          id="product-title"
-          value={value.title}
-          onChange={(e) => onChange({ ...value, title: e.target.value })}
-          placeholder="My Notion template, e-book, course..."
-          required
-        />
-      </div>
+    <>
+      <form id={formId} onSubmit={handleSubmit} className="w-full min-w-0">
+        <div className="rounded-2xl border">
 
-      <div className="space-y-2">
-        <Label htmlFor="product-description">Description</Label>
-        <Textarea
-          id="product-description"
-          value={value.description}
-          onChange={(e) => onChange({ ...value, description: e.target.value })}
-          placeholder="Short description that appears on the product detail and checkout pages."
-          rows={3}
-        />
-      </div>
+          {/* ── Basic Info ─────────────────────────────────────────────── */}
+          <section className="space-y-5 p-4 md:p-10">
+            <SectionHeader title="Product" description="Basic product information" />
 
-      <div className="space-y-3">
-        <Label>Product Images</Label>
-        <div
-          className="grid grid-cols-4 gap-3"
-          onDrop={handleImageDrop}
-          onDragOver={handleImageDragOver}
-          onDragEnter={handleImageDragEnter}
-          onDragLeave={handleImageDragLeave}
-        >
-          {imageFiles.map((file) => (
-            <div
-              key={file.id}
-              className="relative aspect-square rounded-lg overflow-hidden border group"
-            >
-              <img
-                src={file.preview}
-                alt="Product"
-                className="w-full h-full object-cover"
+            <FieldWrapper label="Name" error={errors.title} required>
+              <Input
+                value={value.title}
+                onChange={(e) => { update({ title: e.target.value }); clearError('title') }}
+                placeholder="e.g. Notion template, e-book, Figma kit..."
               />
-              <button
-                type="button"
-                onClick={() => removeImage(file.id)}
-                className="absolute top-1 right-1 bg-white/80 p-1 rounded-full text-black opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ))}
+            </FieldWrapper>
 
-          <div
-            onClick={openImageDialog}
-            className="aspect-square flex flex-col items-center justify-center rounded-lg border border-dashed cursor-pointer bg-input/50 hover:bg-input/80"
-          >
-            <ImageIcon className="h-6 w-6 mb-1" />
-            <span className="text-[10px]">Add Image</span>
-            <input {...getImageInputProps()} className="hidden" />
-          </div>
-        </div>
-        <p className="text-[11px]">
-          *Drag and drop images or click to upload. First image is the cover.
-        </p>
-      </div>
+            <FieldWrapper label="Description" >
+              <Textarea
+                value={value.description}
+                onChange={(e) => update({ description: e.target.value })}
+                placeholder="Describe what the customer will get..."
+                rows={3}
+                className="resize-none"
+              />
+            </FieldWrapper>
+          </section>
 
-      <div className="space-y-3">
-        <Label>Digital Files</Label>
-        <div
-          className="space-y-2"
-          onDrop={handleFileDrop}
-          onDragOver={handleFileDragOver}
-          onDragEnter={handleFileDragEnter}
-          onDragLeave={handleFileDragLeave}
-        >
-          {digitalFiles.map((file) => (
-            <div
-              key={file.id}
-              className="flex items-center gap-3 p-2 rounded-lg border "
-            >
-              <div className="h-8 w-8 rounded flex items-center justify-center bg-input/50 hover:bg-input/80">
-                <FileText className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">
-                  {file.file instanceof File ? file.file.name : file.file.name}
-                </p>
-                <p className="text-[10px] text-zinc-400">
-                  {file.file instanceof File
-                    ? (file.file.size / 1024).toFixed(0)
-                    : (file.file.size / 1024).toFixed(0)}{' '}
-                  KB
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-zinc-400"
-                onClick={() => removeDigitalFile(file.id)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-
-          <div
-            onClick={openFileDialog}
-            className="flex items-center justify-center gap-2 p-4 rounded-lg border border-dashed bg-input/50 hover:bg-input/80 cursor-pointer"
-          >
-            <Upload className="h-4 w-4" />
-            <span className="text-xs">Upload digital files</span>
-            <input {...getFileInputProps()} className="hidden" />
-          </div>
-        </div>
-      </div>
-
-      <Separator />
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <Label className="block">Pricing</Label>
-            <p className="text-xs text-zinc-500">
-              Choose fixed price or pay-what-you-want.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-zinc-500">Fixed</span>
-            <Switch
-              checked={value.priceSettings.payWhatYouWant}
-              onCheckedChange={(checked) =>
-                onChange({
-                  ...value,
-                  priceSettings: {
-                    ...value.priceSettings,
-                    payWhatYouWant: checked,
-                  },
-                })
-              }
-            />
-            <span className="font-medium">Pay what you want</span>
-          </div>
-        </div>
-
-        {!value.priceSettings.payWhatYouWant ? (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="price">Price</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-500">Rp</span>
-                <Input
-                  id="price"
-                  inputMode="numeric"
-                  placeholder="10000"
-                  value={formatPriceInput(value.priceSettings.price ?? null)}
-                  onChange={(e) => {
-                    const amount = parsePriceInput(e.target.value)
-                    onChange({
-                      ...value,
-                      priceSettings: {
-                        ...value.priceSettings,
-                        price: amount ?? undefined,
-                      },
-                    })
-                  }}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="sale-price">Sale price (optional)</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-500">Rp</span>
-                <Input
-                  id="sale-price"
-                  inputMode="numeric"
-                  placeholder="7000"
-                  value={formatPriceInput(value.priceSettings.salePrice ?? null)}
-                  onChange={(e) => {
-                    const amount = parsePriceInput(e.target.value)
-                    onChange({
-                      ...value,
-                      priceSettings: {
-                        ...value.priceSettings,
-                        salePrice: amount ?? undefined,
-                      },
-                    })
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="min-price">Minimum price</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-500">Rp</span>
-                <Input
-                  id="min-price"
-                  inputMode="numeric"
-                  placeholder="0"
-                  value={formatPriceInput(value.priceSettings.minimumPrice ?? null)}
-                  onChange={(e) => {
-                    const amount = parsePriceInput(e.target.value)
-                    onChange({
-                      ...value,
-                      priceSettings: {
-                        ...value.priceSettings,
-                        minimumPrice: amount ?? undefined,
-                      },
-                    })
-                  }}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="suggested-price">Suggested price</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-zinc-500">Rp</span>
-                <Input
-                  id="suggested-price"
-                  inputMode="numeric"
-                  placeholder="10000"
-                  value={formatPriceInput(
-                    value.priceSettings.suggestedPrice ?? null,
-                  )}
-                  onChange={(e) => {
-                    const amount = parsePriceInput(e.target.value)
-                    onChange({
-                      ...value,
-                      priceSettings: {
-                        ...value.priceSettings,
-                        suggestedPrice: amount ?? undefined,
-                      },
-                    })
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <Separator />
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label htmlFor="total-qty">Total quantity (optional)</Label>
-          <Input
-            id="total-qty"
-            inputMode="numeric"
-            placeholder="Unlimited"
-            value={value.totalQuantity?.toString() ?? ''}
-            onChange={(e) => {
-              const v = e.target.value.trim()
-              const parsed = v ? Number(v) : NaN
-              onChange({
-                ...value,
-                totalQuantity: Number.isNaN(parsed) ? null : parsed,
-              })
-            }}
-          />
-          <p className="text-[11px] text-zinc-500">
-            Simple limit only; inventory tracking will be added later.
-          </p>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="limit-per-checkout">Limit per checkout</Label>
-          <Input
-            id="limit-per-checkout"
-            inputMode="numeric"
-            placeholder="1"
-            value={value.limitPerCheckout?.toString() ?? ''}
-            onChange={(e) => {
-              const v = e.target.value.trim()
-              const parsed = v ? Number(v) : NaN
-              onChange({
-                ...value,
-                limitPerCheckout: Number.isNaN(parsed) ? null : parsed,
-              })
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="product-url">Product URL</Label>
-        <div className="flex items-center gap-2">
-          <Link2 className="h-3.5 w-3.5 text-zinc-400" />
-          <Input
-            id="product-url"
-            value={value.productUrl}
-            onChange={(e) => onChange({ ...value, productUrl: e.target.value })}
-            type="url"
-            placeholder="https://your-download-or-course.com"
-          />
-        </div>
-        <p className="text-[11px] text-zinc-500">
-          Optional external link (e.g. if you host files elsewhere).
-        </p>
-      </div>
-
-      <Separator />
-
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <Label>Checkout questions</Label>
-            <p className="text-xs text-zinc-500">
-              Ask for extra information after name and email.
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="xs"
-            className="h-7 rounded-full text-[11px]"
-            onClick={() =>
-              onChange({
-                ...value,
-                customerQuestions: [
-                  ...value.customerQuestions,
-                  {
-                    id: crypto.randomUUID(),
-                    label: '',
-                    required: false,
-                  },
-                ],
-              })
-            }
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add question
-          </Button>
-        </div>
-
-        {value.customerQuestions.length === 0 ? (
-          <p className="text-xs text-zinc-500 italic">
-            No additional questions. Customers will only enter name and email.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {value.customerQuestions.map((q, index) => (
-              <div
-                key={q.id}
-                className="flex items-start gap-2 rounded-lg border px-3 py-2"
-              >
-                <div className="flex-1 space-y-1">
-                  <Label className="text-[11px] text-zinc-500">
-                    Question {index + 1}
-                  </Label>
-                  <Input
-                    value={q.label}
-                    onChange={(e) =>
-                      onChange({
-                        ...value,
-                        customerQuestions: value.customerQuestions.map((cq) =>
-                          cq.id === q.id
-                            ? { ...cq, label: e.target.value }
-                            : cq,
-                        ),
-                      })
-                    }
-                    placeholder="What should we print on your certificate?"
-                  />
-                  <div className="flex items-center gap-2 pt-1">
-                    <Switch
-                      checked={q.required}
-                      onCheckedChange={(checked) =>
-                        onChange({
-                          ...value,
-                          customerQuestions: value.customerQuestions.map(
-                            (cq) =>
-                              cq.id === q.id
-                                ? { ...cq, required: checked }
-                                : cq,
-                          ),
-                        })
-                      }
-                    />
-                    <span className="text-[11px] text-zinc-600">Required</span>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-zinc-400 hover:text-zinc-700"
-                  onClick={() =>
-                    onChange({
-                      ...value,
-                      customerQuestions: value.customerQuestions.filter(
-                        (cq) => cq.id !== q.id,
-                      ),
-                    })
-                  }
-                  aria-label="Remove question"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {!hideFooter && (
-        <>
           <Separator />
 
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs">
+          {/* ── Pricing ────────────────────────────────────────────────── */}
+          <section className="space-y-5 p-4 md:p-10">
+            <SectionHeader title="Pricing" description="Choose pricing mode and set one price value." />
+
+            <FieldWrapper label="Pricing type">
+              <select
+                value={pricingType}
+                onChange={(e) => {
+                  const nextType = e.target.value as PricingType
+                  setPricingType(nextType)
+                  clearError('priceSettings.price', 'priceSettings.minimumPrice')
+
+                  if (nextType === 'fixed') {
+                    updatePrice({
+                      payWhatYouWant: false,
+                      price: value.priceSettings.price ?? value.priceSettings.minimumPrice,
+                    })
+                  } else if (nextType === 'pay-what-you-want') {
+                    updatePrice({
+                      payWhatYouWant: true,
+                      price: undefined,
+                      minimumPrice: value.priceSettings.minimumPrice ?? value.priceSettings.price,
+                    })
+                  } else {
+                    updatePrice({
+                      payWhatYouWant: false,
+                      price: 0,
+                      salePrice: undefined,
+                      minimumPrice: undefined,
+                      suggestedPrice: undefined,
+                    })
+                  }
+                }}
+                className={cn(
+                  'flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs',
+                  'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+                )}
+              >
+                <option value="fixed">Fixed price</option>
+                <option value="pay-what-you-want">Pay what you want</option>
+                <option value="free">Free</option>
+              </select>
+            </FieldWrapper>
+
+            {pricingType !== 'free' && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <FieldWrapper
+                  label={pricingType === 'fixed' ? 'Price' : 'Minimum price'}
+                  error={pricingType === 'fixed' ? errors['priceSettings.price'] : errors['priceSettings.minimumPrice']}
+                  required
+                >
+                  <PriceInput
+                    id={pricingType === 'fixed' ? 'price' : 'min-price'}
+                    placeholder={pricingType === 'fixed' ? '10,000' : '0'}
+                    value={pricingType === 'fixed' ? value.priceSettings.price : value.priceSettings.minimumPrice}
+                    onChange={(v) => {
+                      if (pricingType === 'fixed') {
+                        updatePrice({ price: v })
+                        clearError('priceSettings.price')
+                      } else {
+                        updatePrice({ minimumPrice: v })
+                        clearError('priceSettings.minimumPrice')
+                      }
+                    }}
+                  />
+                </FieldWrapper>
+
+                {pricingType === 'fixed' ? (
+                  <FieldWrapper label="Sale price" hint="Optional discounted price.">
+                    <PriceInput
+                      id="sale-price"
+                      placeholder="7,000"
+                      value={value.priceSettings.salePrice}
+                      onChange={(v) => updatePrice({ salePrice: v })}
+                    />
+                  </FieldWrapper>
+                ) : (
+                  <FieldWrapper label="Suggested price" hint="Shown as default.">
+                    <PriceInput
+                      id="suggested-price"
+                      placeholder="10,000"
+                      value={value.priceSettings.suggestedPrice}
+                      onChange={(v) => updatePrice({ suggestedPrice: v })}
+                    />
+                  </FieldWrapper>
+                )}
+              </div>
+            )}
+          </section>
+
+          <Separator />
+
+          {/* ── Images ─────────────────────────────────────────────────── */}
+          <section className="space-y-5 p-4 md:p-10">
+            <SectionHeader title="Images" description="First image is the cover" />
+
+            <div
+              className="grid w-full min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+              onDrop={handleImageDrop}
+              onDragOver={handleImageDragOver}
+              onDragEnter={handleImageDragEnter}
+              onDragLeave={handleImageDragLeave}
+            >
+              {imageFiles.map((file, i) => (
+                <div
+                  key={file.id}
+                  className="relative aspect-square w-full min-w-0 rounded-lg overflow-hidden border group"
+                >
+                  <img
+                    src={file.preview}
+                    alt="Product"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+
+                  {i === 0 && (
+                    <Badge className="absolute bottom-1 left-1 text-[9px] px-1.5 py-0 h-4">
+                      Cover
+                    </Badge>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => removeImage(file.id)}
+                    className="absolute top-1 right-1 h-5 w-5 bg-background/80 backdrop-blur rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+
+              <div className="aspect-square w-full min-w-0">
+                <button
+                  type="button"
+                  onClick={openImageDialog}
+                  className="w-full h-full flex flex-col items-center justify-center rounded-lg border border-dashed bg-muted/40 hover:bg-muted/70 transition-colors text-muted-foreground gap-1.5"
+                >
+                  <ImageIcon className="h-5 w-5" />
+                  <span className="text-[10px] font-medium">Add image</span>
+                  <input {...getImageInputProps()} className="hidden" />
+                </button>
+              </div>
+            </div>
+
+            {errors.images && (
+              <p className="text-[11px] text-destructive font-medium">{errors.images}</p>
+            )}
+
+            {/* Digital Files */}
+            <div
+              className="space-y-2 mt-2"
+              onDrop={handleFileDrop}
+              onDragOver={handleFileDragOver}
+              onDragEnter={handleFileDragEnter}
+              onDragLeave={handleFileDragLeave}
+            >
+              <Label className="text-sm font-medium">Digital Files <span className="text-muted-foreground font-normal">(optional)</span></Label>
+
+              {digitalFiles.map((file) => (
+                <div key={file.id} className="flex items-center gap-3 rounded-lg border px-3 py-2 bg-muted/30">
+                  <div className="h-8 w-8 rounded-md border bg-background flex items-center justify-center shrink-0">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{file.file.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{formatFileSize(file.file.size ?? 0)}</p>
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeDigitalFile(file.id)}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={openFileDialog}
+                className="w-full flex items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-xs text-muted-foreground hover:bg-muted/40 transition-colors"
+              >
+                <Upload className="h-4 w-4" />
+                Upload files
+                <input {...getFileInputProps()} className="hidden" />
+              </button>
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* ── Inventory & Limits ─────────────────────────────────────── */}
+          <section className="space-y-5 p-4 md:p-10">
+            <SectionHeader title="Inventory & Limits" description="Control quantity and stock" />
+
+            <div className="space-y-2">
+              {/* Quantity choice */}
+              <div className="rounded-lg border">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium">Customer chooses quantity</p>
+                    <p className="text-xs text-muted-foreground">Let buyers order more than one.</p>
+                  </div>
+                  <Switch
+                    checked={enableQuantityChoice}
+                    onCheckedChange={(checked) => {
+                      setEnableQuantityChoice(checked)
+                      clearError('limitPerCheckout')
+                      update({ limitPerCheckout: checked ? (value.limitPerCheckout && value.limitPerCheckout > 1 ? value.limitPerCheckout : 10) : 1 })
+                    }}
+                  />
+                </div>
+                {enableQuantityChoice && (
+                  <div className="border-t px-4 py-3">
+                    <FieldWrapper label="Max per checkout" error={errors.limitPerCheckout}>
+                      <Input
+                        inputMode="numeric"
+                        placeholder="10"
+                        className="w-32"
+                        value={value.limitPerCheckout?.toString() ?? ''}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          update({ limitPerCheckout: v ? Number(v) : null })
+                          clearError('limitPerCheckout')
+                        }}
+                      />
+                    </FieldWrapper>
+                  </div>
+                )}
+              </div>
+
+              {/* Sales limit */}
+              <div className="rounded-lg border">
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium">Limit total sales</p>
+                    <p className="text-xs text-muted-foreground">Set maximum units available.</p>
+                  </div>
+                  <Switch
+                    checked={enableSalesLimit}
+                    onCheckedChange={(checked) => {
+                      setEnableSalesLimit(checked)
+                      clearError('totalQuantity')
+                      update({ totalQuantity: checked ? (value.totalQuantity && value.totalQuantity > 0 ? value.totalQuantity : 100) : null })
+                    }}
+                  />
+                </div>
+                {enableSalesLimit && (
+                  <div className="border-t px-4 py-3">
+                    <FieldWrapper label="Total stock" error={errors.totalQuantity}>
+                      <Input
+                        inputMode="numeric"
+                        placeholder="100"
+                        className="w-32"
+                        value={value.totalQuantity?.toString() ?? ''}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          update({ totalQuantity: v ? Number(v) : null })
+                          clearError('totalQuantity')
+                        }}
+                      />
+                    </FieldWrapper>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* ── Product URL ────────────────────────────────────────────── */}
+          <section className="space-y-5 p-4 md:p-10">
+            <SectionHeader title="External Link" description="Optional — if you host files elsewhere" />
+
+            <FieldWrapper label="URL" error={errors.productUrl}>
+              <div className="relative">
+                <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  type="url"
+                  className="pl-9"
+                  value={value.productUrl}
+                  onChange={(e) => { update({ productUrl: e.target.value }); clearError('productUrl') }}
+                  placeholder="https://your-download-link.com"
+                />
+              </div>
+            </FieldWrapper>
+          </section>
+
+          <Separator />
+
+          {/* ── Checkout Questions ─────────────────────────────────────── */}
+          <section className="space-y-5 p-4 md:p-10">
+            <div className="flex flex-wrap items-start gap-3 pb-4 sm:flex-nowrap">
+              <div className="flex-1">
+                <p className="text-sm font-medium">Checkout Questions</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Collect extra info after name & email.</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 shrink-0 text-xs gap-1.5"
+                onClick={() => update({
+                  customerQuestions: [
+                    ...value.customerQuestions,
+                    { id: crypto.randomUUID(), label: '', required: false },
+                  ],
+                })}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add question
+              </Button>
+            </div>
+
+            {value.customerQuestions.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-2">
+                No questions added. Customers only enter name and email.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {value.customerQuestions.map((q, i) => (
+                  <div key={q.id} className="flex items-start gap-3 rounded-lg border p-3">
+                    <div className="flex-1 space-y-2">
+                      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                        Question {i + 1}
+                      </p>
+                      <Input
+                        value={q.label}
+                        onChange={(e) => {
+                          update({
+                            customerQuestions: value.customerQuestions.map((cq) =>
+                              cq.id === q.id ? { ...cq, label: e.target.value } : cq,
+                            ),
+                          })
+                          clearError(`question.${i}`)
+                        }}
+                        placeholder="e.g. What name should we print on the certificate?"
+                      />
+                      {errors[`question.${i}`] && (
+                        <p className="text-[11px] text-destructive">{errors[`question.${i}`]}</p>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={q.required}
+                          onCheckedChange={(checked) =>
+                            update({
+                              customerQuestions: value.customerQuestions.map((cq) =>
+                                cq.id === q.id ? { ...cq, required: checked } : cq,
+                              ),
+                            })
+                          }
+                        />
+                        <span className="text-xs text-muted-foreground">Required</span>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                      onClick={() =>
+                        update({
+                          customerQuestions: value.customerQuestions.filter((cq) => cq.id !== q.id),
+                        })
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+        </div >
+        {/* ── Footer ─────────────────────────────────────────────────── */}
+        {!hideFooter && (
+          <div className="grid w-full min-w-0 gap-3  py-20 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div className="flex min-w-0 items-center gap-2">
               <Switch
                 checked={value.isActive}
-                onCheckedChange={(checked) =>
-                  onChange({ ...value, isActive: checked })
-                }
+                onCheckedChange={(checked) => update({ isActive: checked })}
               />
-              <span className="text-zinc-700 font-medium">
-                Active on profile
+              <span className="shrink-0 text-sm font-medium">
+                {value.isActive ? 'Active' : 'Hidden'}
+              </span>
+              <span className="hidden min-w-0 truncate text-xs text-muted-foreground sm:inline">
+                {value.isActive ? '— visible on your profile' : '— not shown publicly'}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              {value.id && onDelete && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-red-500 hover:text-red-600"
-                  onClick={() => onDelete(value.id!)}
-                >
-                  Delete
-                </Button>
-              )}
+
+            <div className="flex shrink-0 items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="destructive-outline"
+                size="lg"
+                className={cn(
+                  ' text-xs  hover:text-destructive',
+                  !(value.id && onDelete) && 'pointer-events-none invisible',
+                )}
+                onClick={() => {
+                  if (value.id && onDelete) onDelete(value.id)
+                }}
+              >
+                Delete product
+              </Button>
               <Button
                 type="submit"
-                size="sm"
-                className={cn('rounded-full text-xs')}
+                size="lg"
+                className="min-w-[124px] justify-center px-5"
+                disabled={submitting || isUploading}
                 loading={submitting || isUploading}
               >
-                {value.id ? 'Save changes' : 'Create product'}
+                {submitting || isUploading ? 'Saving…' : value.id ? 'Update Product' : 'Create product'}
               </Button>
             </div>
           </div>
-        </>
-      )}
-    </form>
+        )}
+      </form>
+    </>
   )
 }
