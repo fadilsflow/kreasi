@@ -77,13 +77,13 @@ const LogoStudioSidebar = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-1 text-xl font-heading",
+        "flex items-center gap-1 text-xl",
         className,
       )}
     >
-      <KreasiLogo width={logoSize ?? 30} height={logoSize ?? 30} />
+      <KreasiLogo width={logoSize ?? 20} height={logoSize ?? 20} className="mt-1" />
       <span
-        className={cn("relative top-0.5 text-3xl font-heading", textClassName)}
+        className={cn("relative top-0.5 text-xl font-medium", textClassName)}
         style={textSize ? { fontSize: textSize } : undefined}
       >
         {text}

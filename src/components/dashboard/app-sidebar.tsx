@@ -27,6 +27,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { authClient } from '@/lib/auth-client'
 import { adminAuthQueryKey, useAdminAuthContext } from '@/lib/admin-auth'
@@ -117,30 +118,36 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {isPending ? (null) : (
         <>
-          <SidebarHeader className='p-4'>
-            <SidebarMenu>
-              <SidebarMenuItem className='ml-4'>
-                <LogoStudioSidebar text='Kreasi' />
-              </SidebarMenuItem>
-            </SidebarMenu>
+          <SidebarHeader className=' px-4'>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem className='ml-1' >
+                    <LogoStudioSidebar text='Studio' />
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           </SidebarHeader>
 
-          <SidebarContent className='p-4' >
+          <SidebarContent className='px-4' >
 
             <SidebarGroup>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <DashboardSearchCommand >
-                    <SidebarMenuButton variant={'outline'} className='justify-between'>
-                      <Search className='size-3' /> Search...
-                      <KbdGroup  >
-                        <Kbd>⌘</Kbd>
-                        <Kbd>J</Kbd>
-                      </KbdGroup>
-                    </SidebarMenuButton>
-                  </DashboardSearchCommand>
-                </SidebarMenuItem>
-              </SidebarMenu>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <DashboardSearchCommand >
+                      <SidebarMenuButton variant={'outline'}>
+                        <Search /> <span> Search...</span>
+                        <KbdGroup  >
+                          <Kbd>⌘</Kbd>
+                          <Kbd>J</Kbd>
+                        </KbdGroup>
+                      </SidebarMenuButton>
+                    </DashboardSearchCommand>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
             </SidebarGroup>
             <SidebarGroup>
               <SidebarGroupContent>
