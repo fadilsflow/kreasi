@@ -59,7 +59,6 @@ interface DataTableProps<TData, TValue> {
   filterColumn?: string
   searchKey?: string
   isLoading?: boolean
-  loadingText?: string
   emptyText?: string
   variant?: 'frame' | 'none'
 }
@@ -70,7 +69,6 @@ export function DataTable<TData, TValue>({
   filterPlaceholder = 'Filter...',
   searchKey,
   isLoading = false,
-  loadingText = 'Loading...',
   emptyText = 'No results.',
   variant = 'frame',
 }: DataTableProps<TData, TValue>) {
@@ -181,7 +179,6 @@ export function DataTable<TData, TValue>({
                     {isLoading ? (
                       <div className="flex items-center justify-center gap-2 text-muted-foreground">
                         <Spinner className="h-4 w-4" />
-                        <span>{loadingText}</span>
                       </div>
                     ) : (
                       emptyText
@@ -238,7 +235,6 @@ export function DataTable<TData, TValue>({
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-2 text-muted-foreground">
                       <Spinner className="h-4 w-4" />
-                      <span>{loadingText}</span>
                     </div>
                   ) : (
                     emptyText
