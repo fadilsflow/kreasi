@@ -1,12 +1,9 @@
 import {
   ChevronDown,
-  Copy,
   Search,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useRouter, useRouterState } from '@tanstack/react-router'
-import Credits from '../Credits'
-import { toastManager } from '@/components/ui/toast'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Sidebar,
@@ -14,7 +11,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -22,8 +18,7 @@ import {
 } from '@/components/ui/sidebar'
 import { authClient } from '@/lib/auth-client'
 import { adminAuthQueryKey, useAdminAuthContext } from '@/lib/admin-auth'
-import { adminNavigationItems, adminUtilityItems } from '@/lib/admin-navigation'
-import { BASE_URL } from '@/lib/constans'
+import { adminNavigationItems } from '@/lib/admin-navigation'
 import { cn } from '@/lib/utils'
 import DashboardSearchCommand from '../dashboard-search-command'
 import { LogoStudioSidebar } from '../kreasi-logo'
@@ -51,15 +46,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const { data: adminAuth, isPending } = useAdminAuthContext()
   const username = adminAuth?.username ?? ''
-
-  const handleCopyLink = async () => {
-    if (!username) return
-    await navigator.clipboard.writeText(`${BASE_URL}/${username}`)
-    toastManager.add({
-      title: 'Copied!',
-      description: 'Link copied to clipboard',
-    })
-  }
 
   return (
     <Sidebar
@@ -133,15 +119,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       </SidebarMenuItem>
                     )
                   })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                Monetize
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
                   {data.navMonetize.map((item) => {
                     const isActive = isAdminPage(item.url, location.pathname)
                     return (
@@ -169,54 +146,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       </SidebarMenuItem>
                     )
                   })}
+                  {data.navBottom.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        size={'default'}
+                        render={<Link to={item.url as any} />}
+                        isActive={location.pathname === item.url}
+                        className="text-foreground"
+                      >
+                        <item.icon className=" h-4 w-4" />
+                        <span>{item.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
                 </SidebarMenu>
               </SidebarGroupContent>
-            </SidebarGroup>
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                Others
-              </SidebarGroupLabel>
-              <SidebarMenu>
-                {username ? (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      render={
-                        <Link
-                          to={'/$username'}
-                          params={{ username }}
-                        />
-                      }
-                      className="text-foreground"
-                    >
-                      <adminUtilityItems.openPublicPage.icon />
-                      {adminUtilityItems.openPublicPage.title}
-                    </SidebarMenuButton>
-                    <SidebarMenuButton
-                      onClick={handleCopyLink}
-                      className="text-foreground"
-                    >
-                      <Copy />
-                      {adminUtilityItems.copyPageLink.title}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ) : null}
-                {data.navBottom.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      size={'default'}
-                      render={<Link to={item.url as any} />}
-                      isActive={location.pathname === item.url}
-                      className="text-foreground"
-                    >
-                      <item.icon className=" h-4 w-4" />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-                <SidebarMenuItem >
-                  <Credits />
-                </SidebarMenuItem>
-              </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
 
