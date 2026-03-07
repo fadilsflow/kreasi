@@ -26,7 +26,6 @@ import { Route as AdminBalanceRouteRouteImport } from './routes/admin/balance/ro
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
 import { Route as AdminOrdersIndexRouteImport } from './routes/admin/orders/index'
 import { Route as AdminBalanceIndexRouteImport } from './routes/admin/balance/index'
-import { Route as AdminAnalyticsIndexRouteImport } from './routes/admin/analytics/index'
 import { Route as UsernameProductIdIndexRouteImport } from './routes/$username/$productId/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -121,11 +120,6 @@ const AdminBalanceIndexRoute = AdminBalanceIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminBalanceRouteRoute,
 } as any)
-const AdminAnalyticsIndexRoute = AdminAnalyticsIndexRouteImport.update({
-  id: '/analytics/',
-  path: '/analytics/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
 const UsernameProductIdIndexRoute = UsernameProductIdIndexRouteImport.update({
   id: '/$username/$productId/',
   path: '/$username/$productId/',
@@ -191,7 +185,6 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/$username/$productId/': typeof UsernameProductIdIndexRoute
-  '/admin/analytics/': typeof AdminAnalyticsIndexRoute
   '/admin/balance/': typeof AdminBalanceIndexRoute
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
@@ -215,7 +208,6 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/$username/$productId': typeof UsernameProductIdIndexRoute
-  '/admin/analytics': typeof AdminAnalyticsIndexRoute
   '/admin/balance': typeof AdminBalanceIndexRoute
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
@@ -244,7 +236,6 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/$username/$productId/': typeof UsernameProductIdIndexRoute
-  '/admin/analytics/': typeof AdminAnalyticsIndexRoute
   '/admin/balance/': typeof AdminBalanceIndexRoute
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
@@ -274,7 +265,6 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/$username/$productId/'
-    | '/admin/analytics/'
     | '/admin/balance/'
     | '/admin/orders/'
     | '/admin/products/'
@@ -298,7 +288,6 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/$username/$productId'
-    | '/admin/analytics'
     | '/admin/balance'
     | '/admin/orders'
     | '/admin/products'
@@ -326,7 +315,6 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/$username/$productId/'
-    | '/admin/analytics/'
     | '/admin/balance/'
     | '/admin/orders/'
     | '/admin/products/'
@@ -468,13 +456,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBalanceIndexRouteImport
       parentRoute: typeof AdminBalanceRouteRoute
     }
-    '/admin/analytics/': {
-      id: '/admin/analytics/'
-      path: '/analytics'
-      fullPath: '/admin/analytics/'
-      preLoaderRoute: typeof AdminAnalyticsIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
     '/$username/$productId/': {
       id: '/$username/$productId/'
       path: '/$username/$productId'
@@ -591,7 +572,6 @@ interface AdminRouteRouteChildren {
   AdminProductsRouteRoute: typeof AdminProductsRouteRouteWithChildren
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
-  AdminAnalyticsIndexRoute: typeof AdminAnalyticsIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
@@ -601,7 +581,6 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminProductsRouteRoute: AdminProductsRouteRouteWithChildren,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
-  AdminAnalyticsIndexRoute: AdminAnalyticsIndexRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(

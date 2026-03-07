@@ -1,15 +1,7 @@
 import {
   ChevronDown,
   Copy,
-  Home,
-  Package,
-  Paintbrush,
   Search,
-  Settings,
-  ShoppingBag,
-  User as UserIcon,
-  Wallet,
-  ExternalLink,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useRouter, useRouterState } from '@tanstack/react-router'
@@ -30,6 +22,7 @@ import {
 } from '@/components/ui/sidebar'
 import { authClient } from '@/lib/auth-client'
 import { adminAuthQueryKey, useAdminAuthContext } from '@/lib/admin-auth'
+import { adminNavigationItems, adminUtilityItems } from '@/lib/admin-navigation'
 import { BASE_URL } from '@/lib/constans'
 import { cn } from '@/lib/utils'
 import DashboardSearchCommand from '../dashboard-search-command'
@@ -39,48 +32,9 @@ import { Popover, PopoverPopup, PopoverTrigger } from '../ui/popover'
 import { Button } from '../ui/button'
 
 const data = {
-  navBottom: [
-    {
-      icon: Settings,
-      title: 'Settings',
-      url: '/admin/settings',
-    },
-  ],
-  navMain: [
-    {
-      title: 'Home',
-      url: '/admin',
-      icon: Home,
-    },
-    {
-      title: 'Kreasi Page',
-      url: '/admin/editor/profiles',
-      icon: UserIcon,
-    },
-    {
-      title: 'Appearance',
-      url: '/admin/editor/appearance',
-      icon: Paintbrush,
-    },
-    {
-      title: 'Balance',
-      url: '/admin/balance',
-      icon: Wallet,
-    },
-
-  ],
-  navMonetize: [
-    {
-      title: 'Products',
-      url: '/admin/products',
-      icon: Package,
-    },
-    {
-      title: 'Orders',
-      url: '/admin/orders',
-      icon: ShoppingBag,
-    },
-  ]
+  navBottom: adminNavigationItems.filter((item) => item.section === 'other'),
+  navMain: adminNavigationItems.filter((item) => item.section === 'main'),
+  navMonetize: adminNavigationItems.filter((item) => item.section === 'monetize'),
 }
 
 const isAdminPage = (path: string, currentPath: string) => {
@@ -136,8 +90,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <DashboardSearchCommand >
-                      <SidebarMenuButton variant={'outline'}>
-                        <Search /> <span> Search...</span>
+                      <SidebarMenuButton variant={'outline'} className='flex justify-between'>
+                        <Search />
+                        <span> Search...</span>
                         <KbdGroup  >
                           <Kbd>⌘</Kbd>
                           <Kbd>J</Kbd>
@@ -233,15 +188,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       }
                       className="text-foreground"
                     >
-                      <ExternalLink />
-                      View page
+                      <adminUtilityItems.openPublicPage.icon />
+                      {adminUtilityItems.openPublicPage.title}
                     </SidebarMenuButton>
                     <SidebarMenuButton
                       onClick={handleCopyLink}
                       className="text-foreground"
                     >
                       <Copy />
-                      Copy page link
+                      {adminUtilityItems.copyPageLink.title}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ) : null}
