@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-import { Field, FieldLabel } from '@/components/ui/field'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 
 interface ProfileData {
   name: string
@@ -183,6 +183,7 @@ export function ProfileEditor({ user, onSave }: ProfileEditorProps) {
                   onChange={(e) => handleFieldChange('name', e.target.value)}
                   required
                 />
+                <FieldError />
               </Field>
 
               <Field>
@@ -193,6 +194,7 @@ export function ProfileEditor({ user, onSave }: ProfileEditorProps) {
                   placeholder="Software Engineer"
                   onChange={(e) => handleFieldChange('title', e.target.value)}
                 />
+                <FieldError />
               </Field>
 
               <Field>
@@ -202,6 +204,7 @@ export function ProfileEditor({ user, onSave }: ProfileEditorProps) {
                   placeholder="Tell us about yourself..."
                   onChange={(e) => handleFieldChange('bio', e.target.value)}
                 />
+                <FieldError />
               </Field>
             </DialogPanel>
 
