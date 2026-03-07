@@ -1,6 +1,5 @@
 import { Resend } from 'resend'
 import {
-  getDeleteAccountVerificationEmailHtml,
   getOrderConfirmationEmailHtml,
 } from './emails/templates'
 import { generateInvoicePdf } from './invoice'
@@ -42,12 +41,6 @@ type SendConsolidatedCheckoutEmailParams = {
   }>
 }
 
-type SendDeleteAccountVerificationEmailParams = {
-  to: string
-  name?: string | null
-  token: string
-}
-
 function getLineItems(order: any) {
   return order.items?.length > 0
     ? order.items.map((item: any) => ({
@@ -70,7 +63,7 @@ export async function sendOrderEmail({
   order,
   creators,
 }: SendOrderEmailParams) {
-  const from = 'onboarding@webtron.biz.id'
+  const from = 'onboarding@kreeasi.web.id'
   const lineItems = getLineItems(order)
   const productLabel =
     lineItems.length === 1 ? lineItems[0].title : `${lineItems.length} products`
@@ -124,7 +117,7 @@ export async function sendConsolidatedCheckoutEmail({
   createdAt,
   orders,
 }: SendConsolidatedCheckoutEmailParams) {
-  const from = 'onboarding@webtron.biz.id'
+  const from = 'onboarding@kreeasi.web.id'
   const flattenedItems = orders.flatMap((order) => order.items)
   const totalAmountPaid = orders.reduce(
     (acc, order) => acc + order.amountPaid,
@@ -193,31 +186,6 @@ export async function sendConsolidatedCheckoutEmail({
     return { success: true, id: data.data?.id }
   } catch (error) {
     console.error('Failed to send email:', error)
-    return { success: false, error }
-  }
-}
-
-export async function sendDeleteAccountVerificationEmail({
-  to,
-  name,
-  token,
-}: SendDeleteAccountVerificationEmailParams) {
-  const from = 'onboarding@webtron.biz.id'
-  const html = getDeleteAccountVerificationEmailHtml({
-    name,
-    token,
-  })
-
-  try {
-    const data = await resend.emails.send({
-      from,
-      to,
-      subject: 'Confirm your account deletion',
-      html,
-    })
-    return { success: true, id: data.data?.id }
-  } catch (error) {
-    console.error('Failed to send delete account verification email:', error)
     return { success: false, error }
   }
 }

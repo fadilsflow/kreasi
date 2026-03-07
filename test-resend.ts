@@ -18,7 +18,7 @@ async function testEmail() {
   console.log('Using API Key:', process.env.RESEND_API_KEY?.slice(0, 10), '...')
 
   // Replace this with your verified domain email
-  const from = 'onboarding@webtron.biz.id'
+  const from = 'onboarding@kreeasi.web.id'
 
   const to = 'wahyufadil1140@gmail.com' // Resend testing address
 

@@ -68,7 +68,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { toastManager } from '@/components/ui/toast'
 import { trpcClient } from '@/integrations/tanstack-query/root-provider'
 import { adminAuthQueryKey, useAdminAuthContext } from '@/lib/admin-auth'
-import { authClient } from '@/lib/auth-client'
 import { BASE_URL } from '@/lib/constans'
 import { getReservedUsernameError } from '@/lib/reserved-usernames'
 
@@ -126,14 +125,6 @@ type UsernameFormValues = {
 
 type UsernameFieldErrors = Partial<Record<keyof UsernameFormValues, string>>
 
-type DeleteAccountFormValues = {
-  token: string
-}
-
-type DeleteAccountFieldErrors = Partial<
-  Record<keyof DeleteAccountFormValues, string>
->
-
 const DEFAULT_FORM_VALUES: BankAccountFormValues = {
   bankCode: '',
   accountName: '',
@@ -156,10 +147,6 @@ const DEFAULT_TRACKING_FORM_VALUES: TrackingIntegrationFormValues = {
 
 const DEFAULT_USERNAME_FORM_VALUES: UsernameFormValues = {
   username: '',
-}
-
-const DEFAULT_DELETE_ACCOUNT_FORM_VALUES: DeleteAccountFormValues = {
-  token: '',
 }
 
 const DEFAULT_TRACKING_INTEGRATIONS: Array<TrackingIntegration> = [
@@ -258,12 +245,6 @@ function SettingsPage() {
   const [usernameFormErrors, setUsernameFormErrors] =
     React.useState<UsernameFieldErrors>({})
   const [debouncedUsername, setDebouncedUsername] = React.useState('')
-  const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] =
-    React.useState(false)
-  const [deleteAccountFormValues, setDeleteAccountFormValues] =
-    React.useState<DeleteAccountFormValues>(DEFAULT_DELETE_ACCOUNT_FORM_VALUES)
-  const [deleteAccountFormErrors, setDeleteAccountFormErrors] =
-    React.useState<DeleteAccountFieldErrors>({})
   const usernameInputRef = React.useRef<HTMLInputElement>(null)
 
   const editingAccount = React.useMemo(
@@ -334,51 +315,6 @@ function SettingsPage() {
       toastManager.add({
         title: 'Unable to update username',
         description: message,
-        type: 'error',
-      })
-    },
-  })
-  const requestDeleteAccountTokenMutation = useMutation({
-    mutationFn: async () => {
-      await authClient.deleteUser({
-        callbackURL: '/',
-      })
-    },
-    onSuccess: () => {
-      setDeleteAccountFormErrors({})
-      toastManager.add({
-        title: 'Delete token sent',
-        description: 'Check your email and paste the token below to continue.',
-      })
-    },
-    onError: () => {
-      toastManager.add({
-        title: 'Unable to send delete token',
-        description: 'Please try again in a moment.',
-        type: 'error',
-      })
-    },
-  })
-  const confirmDeleteAccountMutation = useMutation({
-    mutationFn: async (token: string) => {
-      await authClient.deleteUser({
-        token,
-      })
-    },
-    onSuccess: () => {
-      toastManager.add({
-        title: 'Account deleted',
-        description: 'Your account has been deleted.',
-      })
-      window.location.href = '/'
-    },
-    onError: () => {
-      setDeleteAccountFormErrors({
-        token: 'Invalid token. Check the latest email and try again.',
-      })
-      toastManager.add({
-        title: 'Unable to delete account',
-        description: 'The token is invalid or expired.',
         type: 'error',
       })
     },
@@ -478,14 +414,6 @@ function SettingsPage() {
     setIsUsernameDialogOpen(open)
     if (!open) {
       setUsernameFormErrors({})
-    }
-  }, [])
-
-  const handleDeleteAccountDialogChange = React.useCallback((open: boolean) => {
-    setIsDeleteAccountDialogOpen(open)
-    if (!open) {
-      setDeleteAccountFormValues(DEFAULT_DELETE_ACCOUNT_FORM_VALUES)
-      setDeleteAccountFormErrors({})
     }
   }, [])
 
@@ -656,16 +584,6 @@ function SettingsPage() {
     })
   }, [])
 
-  const handleDeleteAccountTokenChange = React.useCallback((value: string) => {
-    setDeleteAccountFormValues({
-      token: value.trim(),
-    })
-    setDeleteAccountFormErrors((previous) => {
-      if (!previous.token) return previous
-      return {}
-    })
-  }, [])
-
   const handleSubmitUsername = React.useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault()
@@ -772,26 +690,6 @@ function SettingsPage() {
     if (!usernameInputRef.current) return
     usernameInputRef.current.setCustomValidity(usernameFailedMessage ?? '')
   }, [usernameFailedMessage])
-
-  const handleSubmitDeleteAccount = React.useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
-
-      const token = deleteAccountFormValues.token.trim()
-      if (!token) {
-        setDeleteAccountFormErrors({ token: 'Delete token is required.' })
-        toastManager.add({
-          title: 'Enter delete token',
-          description: 'Paste the token sent to your email before continuing.',
-          type: 'error',
-        })
-        return
-      }
-
-      confirmDeleteAccountMutation.mutate(token)
-    },
-    [confirmDeleteAccountMutation, deleteAccountFormValues.token],
-  )
 
   return (
     <div className="px-6 py-20">
@@ -974,28 +872,6 @@ function SettingsPage() {
           </FramePanel>
         </Frame>
 
-        <Frame>
-          <FrameHeader>
-            <FrameTitle className="text-lg text-destructive">Danger Zone</FrameTitle>
-            <FrameDescription>
-              Permanently delete your account after confirming through email.
-            </FrameDescription>
-          </FrameHeader>
-          <FramePanel className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-1">
-              <p className="font-medium text-sm">Delete account</p>
-              <p className="text-sm text-muted-foreground">
-                We will send a delete token to {adminAuth?.email ?? 'your email'}.
-              </p>
-            </div>
-            <Button
-              variant="destructive"
-              onClick={() => setIsDeleteAccountDialogOpen(true)}
-            >
-              Delete account
-            </Button>
-          </FramePanel>
-        </Frame>
       </div>
 
       <Dialog
@@ -1227,66 +1103,6 @@ function SettingsPage() {
         </DialogPopup>
       </Dialog>
 
-      <Dialog
-        open={isDeleteAccountDialogOpen}
-        onOpenChange={handleDeleteAccountDialogChange}
-      >
-        <DialogPopup className="sm:max-w-md">
-          <Form
-            className="contents"
-            errors={deleteAccountFormErrors}
-            onSubmit={handleSubmitDeleteAccount}
-          >
-            <DialogHeader>
-              <DialogTitle>Delete your account</DialogTitle>
-              <DialogDescription>
-                Send a verification token to {adminAuth?.email ?? 'your email'},
-                then paste it here to permanently delete your account.
-              </DialogDescription>
-            </DialogHeader>
-
-            <DialogPanel className="space-y-4">
-              <Field name="token">
-                <FieldLabel>Delete token</FieldLabel>
-                <Input
-                  value={deleteAccountFormValues.token}
-                  onChange={(event) =>
-                    handleDeleteAccountTokenChange(event.target.value)
-                  }
-                  placeholder="Paste token from email"
-                />
-                <FieldDescription>
-                  Use the latest token from the delete account email.
-                </FieldDescription>
-                <FieldError>{deleteAccountFormErrors.token}</FieldError>
-              </Field>
-            </DialogPanel>
-
-            <DialogFooter className="sm:justify-between">
-              <Button
-                type="button"
-                variant="outline"
-                loading={requestDeleteAccountTokenMutation.isPending}
-                onClick={() => requestDeleteAccountTokenMutation.mutate()}
-              >
-                Send token
-              </Button>
-              <div className="flex flex-col-reverse gap-2 sm:flex-row">
-                <DialogClose render={<Button variant="ghost" />}>
-                  Cancel
-                </DialogClose>
-                <Button
-                  type="submit"
-                  variant="destructive"
-                  loading={confirmDeleteAccountMutation.isPending}
-                >
-                  Delete account
-                </Button>
-              </div>
-            </DialogFooter>
-          </Form>
-        </DialogPopup>
-      </Dialog>
     </div>
   )
 }
