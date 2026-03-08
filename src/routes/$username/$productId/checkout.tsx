@@ -1,20 +1,23 @@
 import * as React from 'react'
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
 import { ShoppingBag } from 'lucide-react'
-import type { CheckoutPaymentMethod } from '@/components/checkout/checkout-form'
 import { CheckoutForm } from '@/components/checkout/checkout-form'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { getPublicProduct } from '@/lib/profile-server'
+import {
+  CHECKOUT_PAYMENT_METHOD,
+  type CheckoutPaymentMethod,
+} from '@/lib/payment-methods'
 import { formatPrice, formatPriceInput, parsePriceInput } from '@/lib/utils'
 import { trpcClient } from '@/integrations/tanstack-query/root-provider'
 import { toastManager } from '@/components/ui/toast'
 import LiteYouTube from '@/components/LiteYouTube'
 import { extractYouTubeVideoIdFromText } from '@/lib/lite-youtube'
 import {
-  consumePendingMetaPurchase,
   createMetaEventId,
   getMetaAttributionData,
   MetaPixel,
@@ -116,7 +119,9 @@ function CheckoutPage() {
   const [answers, setAnswers] = React.useState<Record<string, string>>({})
   const [note, setNote] = React.useState('')
   const [paymentMethod, setPaymentMethod] =
-    React.useState<CheckoutPaymentMethod>('qris')
+    React.useState<CheckoutPaymentMethod>(
+      CHECKOUT_PAYMENT_METHOD.GOPAY_DYNAMIC_QRIS,
+    )
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [isRedirecting, setIsRedirecting] = React.useState(false)
 
@@ -124,6 +129,15 @@ function CheckoutPage() {
     product,
     customAmount ? parsePriceInput(customAmount) : null,
   )
+  const paymentQuoteQuery = useQuery({
+    queryKey: ['payment-quote', product.id, unitPrice, paymentMethod],
+    queryFn: () =>
+      trpcClient.order.quotePayment.query({
+        subtotalAmount: unitPrice,
+        paymentMethod,
+      }),
+    staleTime: 30_000,
+  })
 
   const handleSubmit: React.FormEventHandler = async (e) => {
     e.preventDefault()
@@ -157,6 +171,7 @@ function CheckoutPage() {
       buyerEmail: email,
       buyerName: name,
       amountPaid: unitPrice,
+      paymentMethod,
       answers,
       note,
       purchaseEventId: createMetaEventId('purchase'),
@@ -198,7 +213,6 @@ function CheckoutPage() {
 
       const data = await trpcClient.order.create.mutate(payload)
 
-      consumePendingMetaPurchase(data.id)
       savePendingMetaPurchase({
         orderId: data.id,
         eventId: payload.purchaseEventId,
@@ -208,7 +222,7 @@ function CheckoutPage() {
         value: unitPrice,
       })
       setIsRedirecting(true)
-      window.location.href = data.deliveryUrl
+      window.location.href = `/pay/${data.payment.checkoutGroupId}`
     } catch (error: any) {
       toastManager.add({
         title: 'Checkout Failed',
@@ -362,17 +376,37 @@ function CheckoutPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Subtotal</span>
-                  <span>{formatPrice(unitPrice)}</span>
+                  <span>Product Price</span>
+                  <span>
+                    {formatPrice(
+                      paymentQuoteQuery.data?.subtotalAmount ?? unitPrice,
+                    )}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>Fees</span>
-                  <span>{formatPrice(0)}</span>
+                  <span>Transaction Fee (Service Fee)</span>
+                  <span>
+                    {formatPrice(
+                      paymentQuoteQuery.data?.serviceFeeAmount ?? 0,
+                    )}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>Payment Gateway Fee</span>
+                  <span>
+                    {formatPrice(
+                      paymentQuoteQuery.data?.gatewayFeeAmount ?? 0,
+                    )}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between text-base font-semibold">
-                  <span>Total</span>
-                  <span>{formatPrice(unitPrice)}</span>
+                  <span>Total Payment</span>
+                  <span>
+                    {formatPrice(
+                      paymentQuoteQuery.data?.totalAmount ?? unitPrice,
+                    )}
+                  </span>
                 </div>
               </div>
             </CardContent>
