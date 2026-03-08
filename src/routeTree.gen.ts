@@ -16,6 +16,7 @@ import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UsernameIndexRouteImport } from './routes/$username/index'
+import { Route as PayCheckoutGroupIdRouteImport } from './routes/pay/$checkoutGroupId'
 import { Route as DTokenRouteImport } from './routes/d/$token'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -34,6 +35,7 @@ import { Route as AdminProductsProductIdRouteImport } from './routes/admin/produ
 import { Route as AdminEditorProfilesRouteImport } from './routes/admin/editor/profiles'
 import { Route as AdminEditorAppearanceRouteImport } from './routes/admin/editor/appearance'
 import { Route as UsernameProductIdCheckoutRouteImport } from './routes/$username/$productId/checkout'
+import { Route as ApiPaymentsMidtransWebhookRouteImport } from './routes/api/payments/midtrans/webhook'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -68,6 +70,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const UsernameIndexRoute = UsernameIndexRouteImport.update({
   id: '/$username/',
   path: '/$username/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayCheckoutGroupIdRoute = PayCheckoutGroupIdRouteImport.update({
+  id: '/pay/$checkoutGroupId',
+  path: '/pay/$checkoutGroupId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DTokenRoute = DTokenRouteImport.update({
@@ -161,6 +168,12 @@ const UsernameProductIdCheckoutRoute =
     path: '/$username/$productId/checkout',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPaymentsMidtransWebhookRoute =
+  ApiPaymentsMidtransWebhookRouteImport.update({
+    id: '/api/payments/midtrans/webhook',
+    path: '/api/payments/midtrans/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -175,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/d/$token': typeof DTokenRoute
+  '/pay/$checkoutGroupId': typeof PayCheckoutGroupIdRoute
   '/$username/': typeof UsernameIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$username/$productId/checkout': typeof UsernameProductIdCheckoutRoute
@@ -188,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/admin/balance/': typeof AdminBalanceIndexRoute
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/api/payments/midtrans/webhook': typeof ApiPaymentsMidtransWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -198,6 +213,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/d/$token': typeof DTokenRoute
+  '/pay/$checkoutGroupId': typeof PayCheckoutGroupIdRoute
   '/$username': typeof UsernameIndexRoute
   '/admin': typeof AdminIndexRoute
   '/$username/$productId/checkout': typeof UsernameProductIdCheckoutRoute
@@ -211,6 +227,7 @@ export interface FileRoutesByTo {
   '/admin/balance': typeof AdminBalanceIndexRoute
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
+  '/api/payments/midtrans/webhook': typeof ApiPaymentsMidtransWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -226,6 +243,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/d/$token': typeof DTokenRoute
+  '/pay/$checkoutGroupId': typeof PayCheckoutGroupIdRoute
   '/$username/': typeof UsernameIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/$username/$productId/checkout': typeof UsernameProductIdCheckoutRoute
@@ -239,6 +257,7 @@ export interface FileRoutesById {
   '/admin/balance/': typeof AdminBalanceIndexRoute
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/api/payments/midtrans/webhook': typeof ApiPaymentsMidtransWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -255,6 +274,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/callback'
     | '/d/$token'
+    | '/pay/$checkoutGroupId'
     | '/$username/'
     | '/admin/'
     | '/$username/$productId/checkout'
@@ -268,6 +288,7 @@ export interface FileRouteTypes {
     | '/admin/balance/'
     | '/admin/orders/'
     | '/admin/products/'
+    | '/api/payments/midtrans/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -278,6 +299,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/callback'
     | '/d/$token'
+    | '/pay/$checkoutGroupId'
     | '/$username'
     | '/admin'
     | '/$username/$productId/checkout'
@@ -291,6 +313,7 @@ export interface FileRouteTypes {
     | '/admin/balance'
     | '/admin/orders'
     | '/admin/products'
+    | '/api/payments/midtrans/webhook'
   id:
     | '__root__'
     | '/'
@@ -305,6 +328,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/callback'
     | '/d/$token'
+    | '/pay/$checkoutGroupId'
     | '/$username/'
     | '/admin/'
     | '/$username/$productId/checkout'
@@ -318,6 +342,7 @@ export interface FileRouteTypes {
     | '/admin/balance/'
     | '/admin/orders/'
     | '/admin/products/'
+    | '/api/payments/midtrans/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -328,11 +353,13 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   DTokenRoute: typeof DTokenRoute
+  PayCheckoutGroupIdRoute: typeof PayCheckoutGroupIdRoute
   UsernameIndexRoute: typeof UsernameIndexRoute
   UsernameProductIdCheckoutRoute: typeof UsernameProductIdCheckoutRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   UsernameProductIdIndexRoute: typeof UsernameProductIdIndexRoute
+  ApiPaymentsMidtransWebhookRoute: typeof ApiPaymentsMidtransWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -384,6 +411,13 @@ declare module '@tanstack/react-router' {
       path: '/$username'
       fullPath: '/$username/'
       preLoaderRoute: typeof UsernameIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pay/$checkoutGroupId': {
+      id: '/pay/$checkoutGroupId'
+      path: '/pay/$checkoutGroupId'
+      fullPath: '/pay/$checkoutGroupId'
+      preLoaderRoute: typeof PayCheckoutGroupIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/d/$token': {
@@ -512,6 +546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsernameProductIdCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/payments/midtrans/webhook': {
+      id: '/api/payments/midtrans/webhook'
+      path: '/api/payments/midtrans/webhook'
+      fullPath: '/api/payments/midtrans/webhook'
+      preLoaderRoute: typeof ApiPaymentsMidtransWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -595,11 +636,13 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   DTokenRoute: DTokenRoute,
+  PayCheckoutGroupIdRoute: PayCheckoutGroupIdRoute,
   UsernameIndexRoute: UsernameIndexRoute,
   UsernameProductIdCheckoutRoute: UsernameProductIdCheckoutRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   UsernameProductIdIndexRoute: UsernameProductIdIndexRoute,
+  ApiPaymentsMidtransWebhookRoute: ApiPaymentsMidtransWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
