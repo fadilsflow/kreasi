@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { and, asc, desc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm'
-import { createHash } from 'node:crypto'
 import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure, publicProcedure } from './init'
 import type { TRPCRouterRecord } from '@trpc/server'
@@ -22,25 +21,40 @@ import {
   user,
 } from '@/db/schema'
 import { StorageService } from '@/lib/storage'
-import { sendConsolidatedCheckoutEmail, sendOrderEmail } from '@/lib/email'
+import { sendOrderEmail } from '@/lib/email'
 import { BASE_URL } from '@/lib/constans'
+import { sendMetaPurchaseEvent } from '@/lib/meta-events'
+import {
+  createMultiProductPayment,
+  createSingleProductPayment,
+  getPaymentSessionByCheckoutGroup,
+  refreshPaymentSessionStatus,
+} from '@/lib/payment-service'
 import {
   blockCreateInputSchema,
   blockUpdateInputSchema,
 } from '@/lib/block-form'
+import {
+  CHECKOUT_PAYMENT_METHOD,
+  calculatePaymentGatewayFee,
+  calculatePlatformServiceFee,
+} from '@/lib/payment-methods'
 import { isReservedUsername } from '@/lib/reserved-usernames'
 
 // ─── Hold period for funds (in days) ─────────────────────────────────────────
 const HOLD_PERIOD_DAYS = 7
-const PLATFORM_FEE_PERCENT = 5 // 5% fee
 const HEX_COLOR_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 const PRODUCT_ID_LENGTH = 8
-
-function getAvailableAt(): Date {
-  const d = new Date()
-  d.setDate(d.getDate() + HOLD_PERIOD_DAYS)
-  return d
-}
+const checkoutPaymentMethodOptions = [
+  CHECKOUT_PAYMENT_METHOD.GOPAY_DYNAMIC_QRIS,
+  CHECKOUT_PAYMENT_METHOD.SEABANK,
+  CHECKOUT_PAYMENT_METHOD.CIMB,
+  CHECKOUT_PAYMENT_METHOD.BNI,
+  CHECKOUT_PAYMENT_METHOD.BRI,
+  CHECKOUT_PAYMENT_METHOD.MANDIRI,
+  CHECKOUT_PAYMENT_METHOD.PERMATA,
+  CHECKOUT_PAYMENT_METHOD.CARD,
+] as const
 
 function generateProductId(): string {
   return crypto.randomUUID().replace(/-/g, '').slice(0, PRODUCT_ID_LENGTH)
@@ -140,85 +154,6 @@ const metaPixelConfigInputSchema = z.object({
   accessToken: z.string().trim().min(1).max(500),
 })
 
-async function sendMetaPurchaseEvent(params: {
-  pixelId: string
-  accessToken: string
-  eventName?: 'ViewContent' | 'InitiateCheckout' | 'Purchase'
-  eventId: string
-  eventSourceUrl?: string | null
-  value: number
-  currency?: string
-  buyerEmail?: string
-  productId?: string | null
-  productTitle?: string
-  contentType?: string
-  orderId?: string
-  paymentMethod?: string | null
-  clientIpAddress?: string | null
-  clientUserAgent?: string | null
-  fbp?: string | null
-  fbc?: string | null
-}): Promise<void> {
-  const normalizedEmail = params.buyerEmail?.trim().toLowerCase()
-  const userData: Record<string, unknown> = normalizedEmail
-    ? {
-        em: [createHash('sha256').update(normalizedEmail).digest('hex')],
-      }
-    : {}
-
-  if (params.clientIpAddress) {
-    userData.client_ip_address = params.clientIpAddress
-  }
-
-  if (params.clientUserAgent) {
-    userData.client_user_agent = params.clientUserAgent
-  }
-
-  if (params.fbp) {
-    userData.fbp = params.fbp
-  }
-
-  if (params.fbc) {
-    userData.fbc = params.fbc
-  }
-
-  const response = await fetch(
-    `https://graph.facebook.com/v21.0/${encodeURIComponent(params.pixelId)}/events?access_token=${encodeURIComponent(params.accessToken)}`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        data: [
-          {
-            event_name: params.eventName ?? 'Purchase',
-            event_time: Math.floor(Date.now() / 1000),
-            action_source: 'website',
-            event_id: params.eventId,
-            event_source_url: params.eventSourceUrl ?? BASE_URL,
-            user_data: userData,
-            custom_data: {
-              currency: params.currency ?? 'IDR',
-              value: params.value,
-              content_type: params.contentType ?? 'product',
-              content_name: params.productTitle ?? 'Product',
-              content_ids: params.productId ? [params.productId] : undefined,
-              order_id: params.orderId,
-              payment_method: params.paymentMethod ?? undefined,
-            },
-          },
-        ],
-      }),
-    },
-  )
-
-  if (!response.ok) {
-    const text = await response.text()
-    console.error('Meta CAPI event failed', text)
-  }
-}
-
 const metaTrackingRouter = {
   track: publicProcedure
     .input(
@@ -284,14 +219,6 @@ const metaTrackingRouter = {
     }),
 } satisfies TRPCRouterRecord
 
-function calculateFee(amount: number): {
-  feeAmount: number
-  netAmount: number
-} {
-  const feeAmount = Math.round((amount * PLATFORM_FEE_PERCENT) / 100)
-  return { feeAmount, netAmount: amount - feeAmount }
-}
-
 function getTransactionNetAmount(txn: {
   amount: number
   platformFeeAmount: number
@@ -326,17 +253,6 @@ function parseCustomerQuestions(raw: unknown): Array<CheckoutQuestion> {
   } catch {
     return []
   }
-}
-
-function getEffectiveUnitPrice(
-  product: any,
-  amountPaidPerUnit: number,
-): number {
-  if (product.payWhatYouWant) return amountPaidPerUnit
-  if (product.salePrice && product.price && product.salePrice < product.price) {
-    return product.salePrice
-  }
-  return product.price ?? 0
 }
 
 // ─── User Router ─────────────────────────────────────────────────────────────
@@ -1323,6 +1239,7 @@ const orderRouter = {
         buyerEmail: z.string().email(),
         buyerName: z.string().optional(),
         amountPaid: z.number().int().nonnegative(),
+        paymentMethod: z.enum(checkoutPaymentMethodOptions),
         answers: z.any().optional(),
         note: z.string().optional(),
         purchaseEventId: z.string().trim().min(1).max(120).optional(),
@@ -1332,156 +1249,71 @@ const orderRouter = {
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // 1. Get product and creator
-      const product = await db.query.products.findFirst({
-        where: and(
-          eq(products.id, input.productId),
-          eq(products.isDeleted, false),
-        ),
-        with: {
-          user: true, // creator
-        },
+      const result = await createSingleProductPayment({
+        productId: input.productId,
+        buyerEmail: input.buyerEmail,
+        buyerName: input.buyerName,
+        amountPaid: input.amountPaid,
+        paymentMethod: input.paymentMethod,
+        answers: input.answers ?? {},
+        note: input.note,
+        purchaseEventId: input.purchaseEventId,
+        sourceUrl: input.sourceUrl,
+        fbp: input.fbp,
+        fbc: input.fbc,
+        clientIpAddress: ctx.requestMeta.clientIp,
+        clientUserAgent: ctx.requestMeta.userAgent,
       })
-
-      if (!product) {
-        throw new Error('Product not found')
-      }
-
-      if (!product.isActive) {
-        throw new Error('Product is not active')
-      }
-
-      // Check quantity limits
-      if (product.totalQuantity !== null && product.totalQuantity <= 0) {
-        throw new Error('Product sold out')
-      }
-
-      const creator = product.user
-
-      // 2. Snapshot product data at checkout
-      const productImage = product.images?.[0] ?? null
-      const effectivePrice = product.payWhatYouWant
-        ? input.amountPaid
-        : product.salePrice &&
-            product.price &&
-            product.salePrice < product.price
-          ? product.salePrice
-          : (product.price ?? 0)
-
-      // 3. Create Order with snapshot
-      const deliveryToken = crypto.randomUUID()
-      const orderId = crypto.randomUUID()
-
-      const [newOrder] = await db
-        .insert(orders)
-        .values({
-          id: orderId,
-          creatorId: creator.id,
-          productId: product.id,
-          // Snapshot fields
-          productTitle: product.title,
-          productPrice: effectivePrice,
-          productImage,
-          // Buyer info
-          buyerEmail: input.buyerEmail,
-          buyerName: input.buyerName ?? '',
-          amountPaid: input.amountPaid,
-          checkoutAnswers: input.answers ?? {},
-          note: input.note ?? null,
-          status: 'completed',
-          deliveryToken,
-          emailSent: false,
-          checkoutGroupId: orderId,
-        })
-        .returning()
-
-      // 4. Create SALE transaction (append-only ledger entry)
-      const { feeAmount, netAmount } = calculateFee(input.amountPaid)
-      const txnId = crypto.randomUUID()
-
-      await db.insert(transactions).values({
-        id: txnId,
-        creatorId: creator.id,
-        orderId: orderId,
-        type: TRANSACTION_TYPE.SALE,
-        amount: input.amountPaid,
-        netAmount,
-        platformFeePercent: PLATFORM_FEE_PERCENT,
-        platformFeeAmount: feeAmount,
-        description: `Sale: ${product.title}`,
-        availableAt: getAvailableAt(),
-        metadata: {
-          productId: product.id,
-          buyerEmail: input.buyerEmail,
-        },
-      })
-
-      // 5. Update cached analytics counters (denormalized, not source of truth)
-      await db
-        .update(products)
-        .set({
-          salesCount: sql`${products.salesCount} + 1`,
-          totalRevenue: sql`${products.totalRevenue} + ${input.amountPaid}`,
-        })
-        .where(eq(products.id, product.id))
-
-      await db
-        .update(user)
-        .set({
-          totalSalesCount: sql`${user.totalSalesCount} + 1`,
-          totalRevenue: sql`${user.totalRevenue} + ${input.amountPaid}`,
-        })
-        .where(eq(user.id, creator.id))
-
-      // 6. Send Email
-      const deliveryUrl = `${BASE_URL}/d/${deliveryToken}`
-      const emailResult = await sendOrderEmail({
-        to: input.buyerEmail,
-        deliveryUrl,
-        order: newOrder,
-        creators: [creator],
-      })
-
-      if (emailResult.success) {
-        await db
-          .update(orders)
-          .set({ emailSent: true, emailSentAt: new Date() })
-          .where(eq(orders.id, newOrder.id))
-      } else {
-        console.error(
-          'Email failed to send for order:',
-          newOrder.id,
-          emailResult.error,
-        )
-      }
-
-      const metaPixelConfig = await db.query.metaPixelConfigs.findFirst({
-        where: eq(metaPixelConfigs.userId, creator.id),
-      })
-
-      if (metaPixelConfig && newOrder.status === 'completed') {
-        await sendMetaPurchaseEvent({
-          pixelId: metaPixelConfig.pixelId,
-          accessToken: metaPixelConfig.accessToken,
-          eventId: input.purchaseEventId ?? orderId,
-          eventSourceUrl: input.sourceUrl ?? null,
-          value: input.amountPaid,
-          currency: 'IDR',
-          buyerEmail: input.buyerEmail,
-          productId: product.id,
-          productTitle: product.title,
-          orderId,
-          clientIpAddress: ctx.requestMeta.clientIp,
-          clientUserAgent: ctx.requestMeta.userAgent,
-          fbp: input.fbp ?? null,
-          fbc: input.fbc ?? null,
-        })
-      }
 
       return {
-        ...newOrder,
-        deliveryUrl,
+        ...result.order,
+        payment: result.payment,
       }
+    }),
+
+  getPaymentStatus: publicProcedure
+    .input(z.object({ checkoutGroupId: z.string().trim().min(1) }))
+    .query(async ({ input }) => {
+      const payment = await getPaymentSessionByCheckoutGroup(input.checkoutGroupId)
+      if (!payment) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Payment not found' })
+      }
+
+      return payment
+    }),
+
+  quotePayment: publicProcedure
+    .input(
+      z.object({
+        subtotalAmount: z.number().int().nonnegative(),
+        paymentMethod: z.enum(checkoutPaymentMethodOptions),
+      }),
+    )
+    .query(async ({ input }) => {
+      const serviceFeeAmount = calculatePlatformServiceFee(input.subtotalAmount)
+      const gatewayFeeAmount = calculatePaymentGatewayFee(
+        input.subtotalAmount,
+        input.paymentMethod,
+      )
+
+      return {
+        subtotalAmount: input.subtotalAmount,
+        serviceFeeAmount,
+        gatewayFeeAmount,
+        totalAmount:
+          input.subtotalAmount + serviceFeeAmount + gatewayFeeAmount,
+      }
+    }),
+
+  refreshPaymentStatus: publicProcedure
+    .input(z.object({ checkoutGroupId: z.string().trim().min(1) }))
+    .mutation(async ({ input }) => {
+      const payment = await refreshPaymentSessionStatus(input.checkoutGroupId)
+      if (!payment) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Payment not found' })
+      }
+
+      return payment
     }),
 
   getCheckoutProducts: publicProcedure
@@ -1537,240 +1369,27 @@ const orderRouter = {
         buyerEmail: z.string().email(),
         buyerName: z.string().optional(),
         note: z.string().optional(),
+        paymentMethod: z.enum(checkoutPaymentMethodOptions),
       }),
     )
     .mutation(async ({ input }) => {
-      if (input.items.length === 0) {
-        throw new Error('No items selected for checkout')
-      }
-
-      const checkoutGroupId = crypto.randomUUID()
-      const productIds = [...new Set(input.items.map((i) => i.productId))]
-      const productsList = await db.query.products.findMany({
-        where: and(
-          inArray(products.id, productIds),
-          eq(products.isDeleted, false),
-        ),
-        with: { user: true },
-      })
-
-      const productMap = new Map(productsList.map((p) => [p.id, p]))
-      const normalizedItems: Array<any> = []
-
-      for (const item of input.items) {
-        const product = productMap.get(item.productId)
-        if (!product) {
-          throw new Error('One or more selected products no longer exist')
-        }
-        if (!product.isActive) {
-          throw new Error(`${product.title} is no longer available`)
-        }
-
-        if (
-          product.totalQuantity !== null &&
-          product.totalQuantity < item.quantity
-        ) {
-          throw new Error(
-            `Product ${product.title} sold out or not enough stock`,
-          )
-        }
-
-        if (
-          product.limitPerCheckout !== null &&
-          item.quantity > product.limitPerCheckout
-        ) {
-          throw new Error(`Product ${product.title} exceeds per-checkout limit`)
-        }
-
-        const questions = parseCustomerQuestions(product.customerQuestions)
-        for (const question of questions) {
-          if (
-            question.required &&
-            !(item.answers?.[question.id] || '').trim()
-          ) {
-            throw new Error(
-              `Please answer required question for ${product.title}: ${question.label}`,
-            )
-          }
-        }
-
-        const effectivePrice = getEffectiveUnitPrice(
-          product,
-          item.amountPaidPerUnit,
-        )
-
-        if (product.payWhatYouWant && product.minimumPrice) {
-          if (item.amountPaidPerUnit < product.minimumPrice) {
-            throw new Error(
-              `${product.title} requires at least ${product.minimumPrice}`,
-            )
-          }
-        }
-
-        normalizedItems.push({
-          product,
-          quantity: item.quantity,
-          amountPaidPerUnit: item.amountPaidPerUnit,
-          effectivePrice,
-          totalAmount: item.amountPaidPerUnit * item.quantity,
-          answers: item.answers ?? {},
-          creatorId: product.user.id,
-        })
-      }
-
-      const itemsByCreator = new Map<string, Array<any>>()
-      for (const item of normalizedItems) {
-        const existing = itemsByCreator.get(item.creatorId) ?? []
-        existing.push(item)
-        itemsByCreator.set(item.creatorId, existing)
-      }
-
-      const createdOrders: Array<any> = []
-
-      for (const [creatorId, creatorItems] of itemsByCreator.entries()) {
-        const orderId = crypto.randomUUID()
-        const deliveryToken = crypto.randomUUID()
-        const orderAmount = creatorItems.reduce(
-          (acc, item) => acc + item.totalAmount,
-          0,
-        )
-        const totalQuantity = creatorItems.reduce(
-          (acc, item) => acc + item.quantity,
-          0,
-        )
-        const primaryItem = creatorItems[0]
-
-        const [newOrder] = await db
-          .insert(orders)
-          .values({
-            id: orderId,
-            creatorId,
-            productId:
-              creatorItems.length === 1 ? primaryItem.product.id : null,
-            productTitle:
-              creatorItems.length === 1
-                ? primaryItem.product.title
-                : `${creatorItems.length} products`,
-            productPrice:
-              creatorItems.length === 1
-                ? primaryItem.effectivePrice
-                : orderAmount,
-            productImage: primaryItem.product.images?.[0] ?? null,
-            buyerEmail: input.buyerEmail,
-            buyerName: input.buyerName ?? '',
-            amountPaid: orderAmount,
-            quantity: totalQuantity,
-            checkoutAnswers: null,
-            note: input.note ?? null,
-            status: 'completed',
-            deliveryToken,
-            emailSent: false,
-            checkoutGroupId,
-          })
-          .returning()
-
-        await db.insert(orderItems).values(
-          creatorItems.map((item) => ({
-            id: crypto.randomUUID(),
-            orderId,
-            creatorId,
-            productId: item.product.id,
-            productTitle: item.product.title,
-            productPrice: item.effectivePrice,
-            productImage: item.product.images?.[0] ?? null,
-            quantity: item.quantity,
-            amountPaid: item.totalAmount,
-            checkoutAnswers: item.answers,
-          })),
-        )
-
-        for (const item of creatorItems) {
-          const { feeAmount, netAmount } = calculateFee(item.totalAmount)
-
-          await db.insert(transactions).values({
-            id: crypto.randomUUID(),
-            creatorId,
-            orderId,
-            type: TRANSACTION_TYPE.SALE,
-            amount: item.totalAmount,
-            netAmount,
-            platformFeePercent: PLATFORM_FEE_PERCENT,
-            platformFeeAmount: feeAmount,
-            description: `Sale: ${item.product.title} x${item.quantity}`,
-            availableAt: getAvailableAt(),
-            metadata: {
-              productId: item.product.id,
-              buyerEmail: input.buyerEmail,
-              quantity: item.quantity,
-              checkoutGroupId,
-            },
-          })
-
-          await db
-            .update(products)
-            .set({
-              salesCount: sql`${products.salesCount} + ${item.quantity}`,
-              totalRevenue: sql`${products.totalRevenue} + ${item.totalAmount}`,
-            })
-            .where(eq(products.id, item.product.id))
-
-          await db
-            .update(user)
-            .set({
-              totalSalesCount: sql`${user.totalSalesCount} + ${item.quantity}`,
-              totalRevenue: sql`${user.totalRevenue} + ${item.totalAmount}`,
-            })
-            .where(eq(user.id, creatorId))
-        }
-
-        createdOrders.push({
-          ...newOrder,
-          items: creatorItems.map((item) => ({
-            productTitle: item.product.title,
-            quantity: item.quantity,
-            productPrice: item.effectivePrice,
-            amountPaid: item.totalAmount,
-          })),
-          creator: primaryItem.product.user,
-        })
-      }
-
-      const emailResult = await sendConsolidatedCheckoutEmail({
-        to: input.buyerEmail,
-        checkoutGroupId,
-        buyerName: input.buyerName ?? null,
+      const result = await createMultiProductPayment({
+        items: input.items,
         buyerEmail: input.buyerEmail,
-        createdAt: new Date(),
-        orders: createdOrders.map((order) => ({
-          id: order.id,
-          deliveryToken: order.deliveryToken,
-          amountPaid: order.amountPaid,
-          creatorName: order.creator?.name ?? 'Creator',
-          creatorEmail: order.creator?.email ?? null,
-          items: order.items,
-        })),
+        buyerName: input.buyerName,
+        note: input.note,
+        paymentMethod: input.paymentMethod,
       })
 
-      if (emailResult.success) {
-        await db
-          .update(orders)
-          .set({ emailSent: true, emailSentAt: new Date() })
-          .where(
-            inArray(
-              orders.id,
-              createdOrders.map((order) => order.id),
-            ),
-          )
-      }
-
-      const firstOrder = createdOrders[0]
+      const firstOrder = result.orders[0]
       return {
-        checkoutGroupId,
+        checkoutGroupId: result.checkoutGroupId,
         deliveryUrl: `${BASE_URL}/d/${firstOrder.deliveryToken}`,
-        deliveryUrls: createdOrders.map(
+        deliveryUrls: result.orders.map(
           (order) => `${BASE_URL}/d/${order.deliveryToken}`,
         ),
-        orders: createdOrders,
+        orders: result.orders,
+        payment: result.payment,
       }
     }),
 
