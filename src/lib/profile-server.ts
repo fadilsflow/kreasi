@@ -118,7 +118,16 @@ export const getPublicProduct = createServerFn({ method: 'GET' })
 export const getOrderByToken = createServerFn({ method: 'GET' })
   .inputValidator(z.object({ token: z.string() }))
   .handler(async ({ data }) => {
-    const { orders } = await import('@/db/schema')
+    const {
+      ORDER_STATUS,
+      orders,
+      paymentSessions,
+    } = await import('@/db/schema')
+    const {
+      calculatePaymentGatewayFee,
+      calculatePlatformServiceFee,
+      getPaymentMethodCatalogEntry,
+    } = await import('@/lib/payment-methods')
 
     const order = await db.query.orders.findFirst({
       where: eq(orders.deliveryToken, data.token),
@@ -134,7 +143,7 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
       },
     })
 
-    if (!order) return null
+    if (!order || order.status !== ORDER_STATUS.COMPLETED) return null
 
     const itemSnapshots =
       order.items.length > 0
@@ -215,6 +224,45 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
       username: null,
     }
 
+    const groupOrders = order.checkoutGroupId
+      ? await db.query.orders.findMany({
+          where: eq(orders.checkoutGroupId, order.checkoutGroupId),
+          columns: {
+            id: true,
+            productTitle: true,
+            amountPaid: true,
+            quantity: true,
+            deliveryToken: true,
+            status: true,
+            createdAt: true,
+          },
+        })
+      : [order]
+
+    const subtotalAmount = groupOrders.reduce(
+      (total, groupOrder) => total + groupOrder.amountPaid,
+      0,
+    )
+
+    const paymentSession = order.checkoutGroupId
+      ? await db.query.paymentSessions.findFirst({
+          where: eq(paymentSessions.checkoutGroupId, order.checkoutGroupId),
+        })
+      : null
+
+    const requestedMethod = paymentSession?.requestedPaymentMethod
+    const selectedPaymentMethod = requestedMethod
+      ? getPaymentMethodCatalogEntry(requestedMethod as any)
+      : null
+    const serviceFeeAmount =
+      requestedMethod
+        ? calculatePlatformServiceFee(subtotalAmount)
+        : 0
+    const gatewayFeeAmount =
+      requestedMethod
+        ? calculatePaymentGatewayFee(subtotalAmount, requestedMethod as any)
+        : 0
+
     const metaPixelConfig = order.creatorId
       ? await db.query.metaPixelConfigs.findFirst({
           where: eq(metaPixelConfigs.userId, order.creatorId),
@@ -224,7 +272,25 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
     return {
       order,
       items: deliveryItems,
+      groupOrders,
       creator: primaryCreator,
+      paymentSummary: paymentSession
+        ? {
+            status: paymentSession.status,
+            paymentType: paymentSession.paymentType,
+            requestedPaymentMethod: paymentSession.requestedPaymentMethod,
+            selectedPaymentMethod,
+            paidAt: paymentSession.paidAt?.toISOString() ?? null,
+            expiresAt: paymentSession.expiresAt?.toISOString() ?? null,
+            amountBreakdown: {
+              subtotalAmount,
+              serviceFeeAmount,
+              gatewayFeeAmount,
+              totalAmount:
+                subtotalAmount + serviceFeeAmount + gatewayFeeAmount,
+            },
+          }
+        : null,
       metaPixelConfig: metaPixelConfig ?? null,
     }
   })
