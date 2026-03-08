@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import {
   CheckCircle2,
@@ -18,6 +19,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { getOrderByToken } from '@/lib/profile-server'
+import {
+  consumePendingMetaPurchase,
+  MetaPixel,
+  trackMetaPixelEvent,
+} from '@/lib/meta-pixel'
 import { formatPrice } from '@/lib/utils'
 
 type DeliveredFile = {
@@ -36,118 +42,141 @@ export const Route = createFileRoute('/d/$token')({
 })
 
 function OrderDeliveryPage() {
-  const { order, items, creator } = Route.useLoaderData()
+  const { order, items, creator, metaPixelConfig } = Route.useLoaderData()
+
+  React.useEffect(() => {
+    if (!metaPixelConfig?.pixelId) return
+
+    const pendingPurchase = consumePendingMetaPurchase(order.id)
+    if (!pendingPurchase) return
+
+    trackMetaPixelEvent(
+      'Purchase',
+      {
+        content_ids: pendingPurchase.contentIds,
+        content_type: 'product',
+        content_name: pendingPurchase.contentName,
+        currency: pendingPurchase.currency,
+        order_id: pendingPurchase.orderId,
+        value: pendingPurchase.value,
+      },
+      pendingPurchase.eventId,
+    )
+  }, [metaPixelConfig?.pixelId, order.id])
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4 sm:items-center">
-              <div className="inline-flex items-center justify-center size-12 rounded-full bg-emerald-100 shrink-0">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
-              </div>
-              <div className="space-y-1">
-                <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-                  Thanks for your order!
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Your checkout includes <strong>{items.length}</strong> product
-                  {items.length > 1 ? 's' : ''}. We sent your receipt to{' '}
-                  <strong>{order.buyerEmail}</strong>.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-start">
+    <>
+      <MetaPixel pixelId={metaPixelConfig?.pixelId} />
+      <div className="min-h-screen bg-background py-8 px-4">
+        <div className="max-w-6xl mx-auto space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-xl">Your Purchased Content</CardTitle>
-              <CardDescription>
-                Access links, files, and checkout responses for every item in
-                this order.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {items.map((item: any) => (
-                <div key={item.id} className="space-y-4 border rounded-xl p-4">
-                  <div className="flex items-start gap-4">
-                    {item.image ? (
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted shrink-0">
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                        <ShoppingBag className="h-8 w-8 text-slate-300" />
-                      </div>
-                    )}
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4 sm:items-center">
+                <div className="inline-flex items-center justify-center size-12 rounded-full bg-emerald-100 shrink-0">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div className="space-y-1">
+                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+                    Thanks for your order!
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    Your checkout includes <strong>{items.length}</strong>{' '}
+                    product
+                    {items.length > 1 ? 's' : ''}. We sent your receipt to{' '}
+                    <strong>{order.buyerEmail}</strong>.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                    <div className="space-y-2 min-w-0 flex-1">
-                      <Badge variant="secondary" className="w-fit">
-                        Purchased
-                      </Badge>
-                      <h3 className="text-lg font-semibold leading-tight">
-                        {item.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Avatar className="h-5 w-5">
-                          <AvatarImage
-                            src={
-                              item.creator.image || '/avatar-placeholder.png'
-                            }
+          <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-start">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Your Purchased Content</CardTitle>
+                <CardDescription>
+                  Access links, files, and checkout responses for every item in
+                  this order.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {items.map((item: any) => (
+                  <div key={item.id} className="space-y-4 border rounded-xl p-4">
+                    <div className="flex items-start gap-4">
+                      {item.image ? (
+                        <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted shrink-0">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
                           />
-                          <AvatarFallback className="text-[9px]">
-                            {(item.creator.name || 'C')
-                              .slice(0, 2)
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        by {item.creator.name || 'Creator'}
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                          <ShoppingBag className="h-8 w-8 text-slate-300" />
+                        </div>
+                      )}
+
+                      <div className="space-y-2 min-w-0 flex-1">
+                        <Badge variant="secondary" className="w-fit">
+                          Purchased
+                        </Badge>
+                        <h3 className="text-lg font-semibold leading-tight">
+                          {item.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage
+                              src={
+                                item.creator.image || '/avatar-placeholder.png'
+                              }
+                            />
+                            <AvatarFallback className="text-[9px]">
+                              {(item.creator.name || 'C')
+                                .slice(0, 2)
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          by {item.creator.name || 'Creator'}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold">
+                          {formatPrice(item.amountPaid)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Qty {item.quantity}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold">
-                        {formatPrice(item.amountPaid)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Qty {item.quantity}
-                      </p>
-                    </div>
-                  </div>
 
-                  {item.productUrl && (
-                    <Card>
-                      <CardContent className="pt-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium">Access link</p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {item.productUrl}
-                            </p>
+                    {item.productUrl && (
+                      <Card>
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium">Access link</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {item.productUrl}
+                              </p>
+                            </div>
+                            <Button
+                              render={
+                                <a
+                                  href={item.productUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                />
+                              }
+                              size="sm"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Open
+                            </Button>
                           </div>
-                          <Button
-                            render={
-                              <a
-                                href={item.productUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                              />
-                            }
-                            size="sm"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Open
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
+                        </CardContent>
+                      </Card>
+                    )}
 
                   {item.productFiles.length > 0 && (
                     <div className="space-y-3">
@@ -291,6 +320,6 @@ function OrderDeliveryPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </>
   )
 }

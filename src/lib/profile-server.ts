@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/db'
-import { user } from '@/db/schema'
+import { metaPixelConfigs, user } from '@/db/schema'
 
 export const getPublicProfile = createServerFn({ method: 'GET' })
   .inputValidator(z.string())
@@ -215,9 +215,16 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
       username: null,
     }
 
+    const metaPixelConfig = order.creatorId
+      ? await db.query.metaPixelConfigs.findFirst({
+          where: eq(metaPixelConfigs.userId, order.creatorId),
+        })
+      : null
+
     return {
       order,
       items: deliveryItems,
       creator: primaryCreator,
+      metaPixelConfig: metaPixelConfig ?? null,
     }
   })

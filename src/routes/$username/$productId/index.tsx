@@ -30,7 +30,13 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { SimpleTooltip } from '@/components/ui/tooltip'
-import { MetaPixel, trackMetaPixelEvent } from '@/lib/meta-pixel'
+import {
+  createMetaEventId,
+  getMetaAttributionData,
+  MetaPixel,
+  trackMetaPixelEvent,
+} from '@/lib/meta-pixel'
+import { trpcClient } from '@/integrations/tanstack-query/root-provider'
 
 export const Route = createFileRoute('/$username/$productId/')({
   component: ProductDetailPage,
@@ -203,6 +209,7 @@ function ProductDetailPage() {
   const [isSavedOpen, setIsSavedOpen] = React.useState(false)
   const [isSubmittingBuy, setIsSubmittingBuy] = React.useState(false)
   const { toggleItem, isSaved } = useSavedStore()
+  const hasTrackedViewContent = React.useRef(false)
 
   const productHref = `${BASE_URL.replace(/\/$/, '')}/${username}/${productId}`
   const productImages = product.images || []
@@ -213,14 +220,33 @@ function ProductDetailPage() {
   const creatorInitial = creatorName.charAt(0).toUpperCase()
 
   React.useEffect(() => {
-    if (!metaPixelConfig?.pixelId) return
+    if (!metaPixelConfig?.pixelId || hasTrackedViewContent.current) return
 
-    trackMetaPixelEvent('ViewContent', {
-      content_ids: [product.id],
-      content_name: product.title,
-      content_type: 'product',
-      currency: 'IDR',
+    hasTrackedViewContent.current = true
+    const eventId = createMetaEventId('view_content')
+    const attribution = getMetaAttributionData()
+
+    trackMetaPixelEvent(
+      'ViewContent',
+      {
+        content_ids: [product.id],
+        content_name: product.title,
+        content_type: 'product',
+        currency: 'IDR',
+        value: product.salePrice ?? product.price ?? 0,
+      },
+      eventId,
+    )
+
+    void trpcClient.metaTracking.track.mutate({
+      productId: product.id,
+      eventName: 'ViewContent',
+      eventId,
+      sourceUrl: attribution.sourceUrl,
+      fbp: attribution.fbp,
+      fbc: attribution.fbc,
       value: product.salePrice ?? product.price ?? 0,
+      currency: 'IDR',
     })
   }, [
     metaPixelConfig?.pixelId,

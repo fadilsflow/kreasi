@@ -143,6 +143,7 @@ const metaPixelConfigInputSchema = z.object({
 async function sendMetaPurchaseEvent(params: {
   pixelId: string
   accessToken: string
+  eventName?: 'ViewContent' | 'InitiateCheckout' | 'Purchase'
   eventId: string
   eventSourceUrl?: string | null
   value: number
@@ -150,7 +151,9 @@ async function sendMetaPurchaseEvent(params: {
   buyerEmail?: string
   productId?: string | null
   productTitle?: string
+  contentType?: string
   orderId?: string
+  paymentMethod?: string | null
   clientIpAddress?: string | null
   clientUserAgent?: string | null
   fbp?: string | null
@@ -189,7 +192,7 @@ async function sendMetaPurchaseEvent(params: {
       body: JSON.stringify({
         data: [
           {
-            event_name: 'Purchase',
+            event_name: params.eventName ?? 'Purchase',
             event_time: Math.floor(Date.now() / 1000),
             action_source: 'website',
             event_id: params.eventId,
@@ -198,10 +201,11 @@ async function sendMetaPurchaseEvent(params: {
             custom_data: {
               currency: params.currency ?? 'IDR',
               value: params.value,
-              content_type: 'product',
+              content_type: params.contentType ?? 'product',
               content_name: params.productTitle ?? 'Product',
               content_ids: params.productId ? [params.productId] : undefined,
               order_id: params.orderId,
+              payment_method: params.paymentMethod ?? undefined,
             },
           },
         ],
@@ -211,9 +215,74 @@ async function sendMetaPurchaseEvent(params: {
 
   if (!response.ok) {
     const text = await response.text()
-    console.error('Meta CAPI purchase event failed', text)
+    console.error('Meta CAPI event failed', text)
   }
 }
+
+const metaTrackingRouter = {
+  track: publicProcedure
+    .input(
+      z.object({
+        productId: z.string(),
+        eventName: z.enum(['ViewContent', 'InitiateCheckout']),
+        eventId: z.string().trim().min(1).max(120),
+        sourceUrl: z.string().url().max(2048).optional(),
+        fbp: z.string().trim().min(1).max(256).optional(),
+        fbc: z.string().trim().min(1).max(256).optional(),
+        buyerEmail: z.string().email().optional(),
+        value: z.number().int().nonnegative().optional(),
+        currency: z.string().trim().min(3).max(8).optional(),
+        paymentMethod: z.string().trim().min(1).max(50).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const product = await db.query.products.findFirst({
+        where: and(
+          eq(products.id, input.productId),
+          eq(products.isDeleted, false),
+          eq(products.isActive, true),
+        ),
+        with: {
+          user: true,
+        },
+      })
+
+      if (!product) return { success: false }
+
+      const metaPixelConfig = await db.query.metaPixelConfigs.findFirst({
+        where: eq(metaPixelConfigs.userId, product.user.id),
+      })
+
+      if (!metaPixelConfig) return { success: false }
+
+      const fallbackValue = product.payWhatYouWant
+        ? (product.suggestedPrice ?? product.minimumPrice ?? 0)
+        : (product.salePrice && product.price && product.salePrice < product.price
+            ? product.salePrice
+            : (product.price ?? 0))
+
+      await sendMetaPurchaseEvent({
+        pixelId: metaPixelConfig.pixelId,
+        accessToken: metaPixelConfig.accessToken,
+        eventName: input.eventName,
+        eventId: input.eventId,
+        eventSourceUrl: input.sourceUrl ?? null,
+        value: input.value ?? fallbackValue,
+        currency: input.currency ?? 'IDR',
+        buyerEmail: input.buyerEmail,
+        productId: product.id,
+        productTitle: product.title,
+        contentType: 'product',
+        paymentMethod: input.paymentMethod ?? null,
+        clientIpAddress: ctx.requestMeta.clientIp,
+        clientUserAgent: ctx.requestMeta.userAgent,
+        fbp: input.fbp ?? null,
+        fbc: input.fbc ?? null,
+      })
+
+      return { success: true }
+    }),
+} satisfies TRPCRouterRecord
 
 function calculateFee(amount: number): {
   feeAmount: number
@@ -2402,6 +2471,7 @@ export const trpcRouter = createTRPCRouter({
   bankAccount: bankAccountRouter,
   connectedAccount: connectedAccountRouter,
   trackingIntegration: trackingIntegrationRouter,
+  metaTracking: metaTrackingRouter,
   block: blockRouter,
   product: productRouter,
   socialLink: socialLinkRouter,

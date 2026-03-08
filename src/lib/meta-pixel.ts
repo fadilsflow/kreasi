@@ -88,6 +88,44 @@ export function getMetaAttributionData(): {
   }
 }
 
+const META_PENDING_PURCHASE_KEY = 'meta_pending_purchase'
+
+type PendingMetaPurchase = {
+  orderId: string
+  eventId: string
+  contentIds: Array<string>
+  contentName: string
+  currency: string
+  value: number
+}
+
+export function savePendingMetaPurchase(payload: PendingMetaPurchase) {
+  if (typeof window === 'undefined') return
+  window.sessionStorage.setItem(
+    META_PENDING_PURCHASE_KEY,
+    JSON.stringify(payload),
+  )
+}
+
+export function consumePendingMetaPurchase(
+  orderId: string,
+): PendingMetaPurchase | null {
+  if (typeof window === 'undefined') return null
+
+  const raw = window.sessionStorage.getItem(META_PENDING_PURCHASE_KEY)
+  if (!raw) return null
+
+  try {
+    const parsed = JSON.parse(raw) as PendingMetaPurchase
+    if (parsed.orderId !== orderId) return null
+    window.sessionStorage.removeItem(META_PENDING_PURCHASE_KEY)
+    return parsed
+  } catch {
+    window.sessionStorage.removeItem(META_PENDING_PURCHASE_KEY)
+    return null
+  }
+}
+
 export function createMetaEventId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 }

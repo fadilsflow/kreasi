@@ -14,9 +14,11 @@ import { toastManager } from '@/components/ui/toast'
 import LiteYouTube from '@/components/LiteYouTube'
 import { extractYouTubeVideoIdFromText } from '@/lib/lite-youtube'
 import {
+  consumePendingMetaPurchase,
   createMetaEventId,
   getMetaAttributionData,
   MetaPixel,
+  savePendingMetaPurchase,
   trackMetaPixelEvent,
 } from '@/lib/meta-pixel'
 
@@ -164,33 +166,47 @@ function CheckoutPage() {
     try {
       setIsSubmitting(true)
       if (metaPixelConfig?.pixelId) {
-        trackMetaPixelEvent('InitiateCheckout', {
-          content_ids: [product.id],
-          content_type: 'product',
-          content_name: product.title,
-          currency: 'IDR',
-          value: unitPrice,
-          payment_method: paymentMethod,
-        })
-      }
+        const eventId = createMetaEventId('initiate_checkout')
+        const attribution = getMetaAttributionData()
 
-      const data = await trpcClient.order.create.mutate(payload)
-
-      if (metaPixelConfig?.pixelId) {
         trackMetaPixelEvent(
-          'Purchase',
+          'InitiateCheckout',
           {
             content_ids: [product.id],
             content_type: 'product',
             content_name: product.title,
             currency: 'IDR',
-            order_id: data.id,
             value: unitPrice,
+            payment_method: paymentMethod,
           },
-          payload.purchaseEventId,
+          eventId,
         )
+
+        void trpcClient.metaTracking.track.mutate({
+          productId: product.id,
+          eventName: 'InitiateCheckout',
+          eventId,
+          sourceUrl: attribution.sourceUrl,
+          fbp: attribution.fbp,
+          fbc: attribution.fbc,
+          buyerEmail: email || undefined,
+          value: unitPrice,
+          currency: 'IDR',
+          paymentMethod: paymentMethod,
+        })
       }
 
+      const data = await trpcClient.order.create.mutate(payload)
+
+      consumePendingMetaPurchase(data.id)
+      savePendingMetaPurchase({
+        orderId: data.id,
+        eventId: payload.purchaseEventId,
+        contentIds: [product.id],
+        contentName: product.title,
+        currency: 'IDR',
+        value: unitPrice,
+      })
       setIsRedirecting(true)
       window.location.href = data.deliveryUrl
     } catch (error: any) {
