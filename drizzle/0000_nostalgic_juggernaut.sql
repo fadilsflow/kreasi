@@ -47,6 +47,15 @@ CREATE TABLE "block" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "meta_pixel_config" (
+	"id" text PRIMARY KEY NOT NULL,
+	"user_id" text NOT NULL,
+	"pixel_id" text NOT NULL,
+	"access_token" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "order_item" (
 	"id" text PRIMARY KEY NOT NULL,
 	"order_id" text NOT NULL,
@@ -217,6 +226,7 @@ ALTER TABLE "bank_account" ADD CONSTRAINT "bank_account_user_id_user_id_fk" FORE
 ALTER TABLE "block_click" ADD CONSTRAINT "block_click_block_id_block_id_fk" FOREIGN KEY ("block_id") REFERENCES "public"."block"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "block_click" ADD CONSTRAINT "block_click_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "block" ADD CONSTRAINT "block_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "meta_pixel_config" ADD CONSTRAINT "meta_pixel_config_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_item" ADD CONSTRAINT "order_item_order_id_order_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."order"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_item" ADD CONSTRAINT "order_item_creator_id_user_id_fk" FOREIGN KEY ("creator_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_item" ADD CONSTRAINT "order_item_product_id_product_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."product"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
@@ -236,6 +246,8 @@ CREATE UNIQUE INDEX "bank_account_user_bank_number_idx" ON "bank_account" USING 
 CREATE INDEX "block_click_block_id_idx" ON "block_click" USING btree ("block_id");--> statement-breakpoint
 CREATE INDEX "block_click_user_id_idx" ON "block_click" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "block_click_created_at_idx" ON "block_click" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "meta_pixel_config_user_id_idx" ON "meta_pixel_config" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "meta_pixel_config_user_id_idx_unique" ON "meta_pixel_config" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "order_item_order_id_idx" ON "order_item" USING btree ("order_id");--> statement-breakpoint
 CREATE INDEX "order_item_creator_id_idx" ON "order_item" USING btree ("creator_id");--> statement-breakpoint
 CREATE INDEX "order_item_product_id_idx" ON "order_item" USING btree ("product_id");--> statement-breakpoint

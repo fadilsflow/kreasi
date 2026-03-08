@@ -56,6 +56,38 @@ export function trackMetaPixelEvent(
   window.fbq('track', eventName, payload ?? {})
 }
 
+function readCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null
+
+  const cookie = document.cookie
+    .split('; ')
+    .find((entry) => entry.startsWith(`${name}=`))
+
+  if (!cookie) return null
+  return decodeURIComponent(cookie.slice(name.length + 1))
+}
+
+export function getMetaAttributionData(): {
+  fbp?: string
+  fbc?: string
+  sourceUrl?: string
+} {
+  if (typeof window === 'undefined') return {}
+
+  const fbp = readCookie('_fbp') ?? undefined
+  const cookieFbc = readCookie('_fbc') ?? undefined
+  const fbclid = new URLSearchParams(window.location.search).get('fbclid')
+  const fbc =
+    cookieFbc ??
+    (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined)
+
+  return {
+    fbp,
+    fbc,
+    sourceUrl: window.location.href,
+  }
+}
+
 export function createMetaEventId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 }

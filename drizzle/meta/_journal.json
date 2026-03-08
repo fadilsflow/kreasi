@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1772888679450,
-      "tag": "0000_spotty_matthew_murdock",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1772888679451,
-      "tag": "0001_tracking_integrations",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1772899197634,
-      "tag": "0002_meta_pixel_config",
+      "when": 1772901547719,
+      "tag": "0000_nostalgic_juggernaut",
       "breakpoints": true
     }
   ]

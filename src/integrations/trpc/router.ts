@@ -144,14 +144,17 @@ async function sendMetaPurchaseEvent(params: {
   pixelId: string
   accessToken: string
   eventId: string
-  deliveryToken: string
+  eventSourceUrl?: string | null
   value: number
   currency?: string
   buyerEmail?: string
   productId?: string | null
   productTitle?: string
+  orderId?: string
   clientIpAddress?: string | null
   clientUserAgent?: string | null
+  fbp?: string | null
+  fbc?: string | null
 }): Promise<void> {
   const normalizedEmail = params.buyerEmail?.trim().toLowerCase()
   const userData: Record<string, unknown> = normalizedEmail
@@ -168,6 +171,14 @@ async function sendMetaPurchaseEvent(params: {
     userData.client_user_agent = params.clientUserAgent
   }
 
+  if (params.fbp) {
+    userData.fbp = params.fbp
+  }
+
+  if (params.fbc) {
+    userData.fbc = params.fbc
+  }
+
   const response = await fetch(
     `https://graph.facebook.com/v21.0/${encodeURIComponent(params.pixelId)}/events?access_token=${encodeURIComponent(params.accessToken)}`,
     {
@@ -182,13 +193,15 @@ async function sendMetaPurchaseEvent(params: {
             event_time: Math.floor(Date.now() / 1000),
             action_source: 'website',
             event_id: params.eventId,
-            event_source_url: `${BASE_URL}/d/${params.deliveryToken}`,
+            event_source_url: params.eventSourceUrl ?? BASE_URL,
             user_data: userData,
             custom_data: {
               currency: params.currency ?? 'IDR',
               value: params.value,
+              content_type: 'product',
               content_name: params.productTitle ?? 'Product',
               content_ids: params.productId ? [params.productId] : undefined,
+              order_id: params.orderId,
             },
           },
         ],
@@ -1244,6 +1257,9 @@ const orderRouter = {
         answers: z.any().optional(),
         note: z.string().optional(),
         purchaseEventId: z.string().trim().min(1).max(120).optional(),
+        sourceUrl: z.string().url().max(2048).optional(),
+        fbp: z.string().trim().min(1).max(256).optional(),
+        fbc: z.string().trim().min(1).max(256).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -1379,14 +1395,17 @@ const orderRouter = {
           pixelId: metaPixelConfig.pixelId,
           accessToken: metaPixelConfig.accessToken,
           eventId: input.purchaseEventId ?? orderId,
-          deliveryToken,
+          eventSourceUrl: input.sourceUrl ?? null,
           value: input.amountPaid,
           currency: 'IDR',
           buyerEmail: input.buyerEmail,
           productId: product.id,
           productTitle: product.title,
+          orderId,
           clientIpAddress: ctx.requestMeta.clientIp,
           clientUserAgent: ctx.requestMeta.userAgent,
+          fbp: input.fbp ?? null,
+          fbc: input.fbc ?? null,
         })
       }
 

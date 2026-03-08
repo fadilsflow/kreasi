@@ -15,6 +15,7 @@ import LiteYouTube from '@/components/LiteYouTube'
 import { extractYouTubeVideoIdFromText } from '@/lib/lite-youtube'
 import {
   createMetaEventId,
+  getMetaAttributionData,
   MetaPixel,
   trackMetaPixelEvent,
 } from '@/lib/meta-pixel'
@@ -157,6 +158,7 @@ function CheckoutPage() {
       answers,
       note,
       purchaseEventId: createMetaEventId('purchase'),
+      ...getMetaAttributionData(),
     }
 
     try {
@@ -164,6 +166,7 @@ function CheckoutPage() {
       if (metaPixelConfig?.pixelId) {
         trackMetaPixelEvent('InitiateCheckout', {
           content_ids: [product.id],
+          content_type: 'product',
           content_name: product.title,
           currency: 'IDR',
           value: unitPrice,
@@ -178,8 +181,10 @@ function CheckoutPage() {
           'Purchase',
           {
             content_ids: [product.id],
+            content_type: 'product',
             content_name: product.title,
             currency: 'IDR',
+            order_id: data.id,
             value: unitPrice,
           },
           payload.purchaseEventId,
