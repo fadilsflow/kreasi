@@ -24,6 +24,7 @@ import {
   savePendingMetaPurchase,
   trackMetaPixelEvent,
 } from '@/lib/meta-pixel'
+import { Spinner } from '@/components/ui/spinner'
 
 export const Route = createFileRoute('/$username/$productId/checkout')({
   component: CheckoutPage,
@@ -48,12 +49,12 @@ export const Route = createFileRoute('/$username/$productId/checkout')({
     return {
       links: lcpImage
         ? [
-            {
-              rel: 'preload',
-              as: 'image',
-              href: lcpImage,
-            },
-          ]
+          {
+            rel: 'preload',
+            as: 'image',
+            href: lcpImage,
+          },
+        ]
         : [],
     }
   },
@@ -238,7 +239,7 @@ function CheckoutPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <Spinner />
           <p className="text-slate-500">Redirecting to your order...</p>
         </div>
       </div>
@@ -386,17 +387,13 @@ function CheckoutPage() {
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Transaction Fee (Service Fee)</span>
                   <span>
-                    {formatPrice(
-                      paymentQuoteQuery.data?.serviceFeeAmount ?? 0,
-                    )}
+                    {formatPrice(paymentQuoteQuery.data?.serviceFeeAmount ?? 0)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Payment Gateway Fee</span>
                   <span>
-                    {formatPrice(
-                      paymentQuoteQuery.data?.gatewayFeeAmount ?? 0,
-                    )}
+                    {formatPrice(paymentQuoteQuery.data?.gatewayFeeAmount ?? 0)}
                   </span>
                 </div>
                 <Separator />
@@ -434,6 +431,7 @@ function CheckoutPage() {
         onSubmit={handleSubmit}
         paymentMethod={paymentMethod}
         onPaymentMethodChange={setPaymentMethod}
+        subtotalAmount={unitPrice}
         paymentOptionsName="product-checkout-payment"
       />
     </>

@@ -1,6 +1,4 @@
 export const CHECKOUT_PAYMENT_METHOD = {
-  QRIS: 'qris',
-  GOPAY: 'gopay',
   GOPAY_DYNAMIC_QRIS: 'gopay_dynamic_qris',
   SEABANK: 'seabank',
   CIMB: 'cimb',
@@ -26,23 +24,6 @@ export type PaymentMethodCatalogEntry = {
   tone: string
   gatewayFeeRule: PaymentFeeRule
 }
-
-const LEGACY_PAYMENT_METHOD_CATALOG: Array<PaymentMethodCatalogEntry> = [
-  {
-    id: CHECKOUT_PAYMENT_METHOD.QRIS,
-    title: 'QRIS',
-    subtitle: 'Scan from any QRIS-enabled banking or wallet app',
-    tone: 'Universal QR payment',
-    gatewayFeeRule: { fixedAmount: 0, percentBps: 70 },
-  },
-  {
-    id: CHECKOUT_PAYMENT_METHOD.GOPAY,
-    title: 'GoPay',
-    subtitle: 'Pay with GoPay app or GoJek deeplink',
-    tone: 'Wallet checkout',
-    gatewayFeeRule: { fixedAmount: 0, percentBps: 200 },
-  },
-]
 
 export const PAYMENT_METHOD_CATALOG: Array<PaymentMethodCatalogEntry> = [
   {
@@ -106,9 +87,7 @@ export const PAYMENT_METHOD_CATALOG: Array<PaymentMethodCatalogEntry> = [
 export const PLATFORM_SERVICE_FEE_BPS = 500
 
 export function getPaymentMethodCatalogEntry(method: CheckoutPaymentMethod) {
-  const found = [...PAYMENT_METHOD_CATALOG, ...LEGACY_PAYMENT_METHOD_CATALOG].find(
-    (entry) => entry.id === method,
-  )
+  const found = PAYMENT_METHOD_CATALOG.find((entry) => entry.id === method)
   if (!found) {
     throw new Error(`Unsupported payment method: ${method}`)
   }
@@ -120,7 +99,9 @@ export function calculatePaymentGatewayFee(
   method: CheckoutPaymentMethod,
 ): number {
   const rule = getPaymentMethodCatalogEntry(method).gatewayFeeRule
-  return rule.fixedAmount + Math.round((subtotalAmount * rule.percentBps) / 10000)
+  return (
+    rule.fixedAmount + Math.round((subtotalAmount * rule.percentBps) / 10000)
+  )
 }
 
 export function calculatePlatformServiceFee(subtotalAmount: number): number {

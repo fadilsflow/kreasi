@@ -167,7 +167,9 @@ export function buildMidtransChargeRequest(params: {
     const lastItem = itemDetails[itemDetails.length - 1]
     const nextPrice = lastItem.price + grossAmountDelta
     if (nextPrice <= 0) {
-      throw new Error('Invalid Midtrans payload: item details exceed gross amount')
+      throw new Error(
+        'Invalid Midtrans payload: item details exceed gross amount',
+      )
     }
     itemDetails[itemDetails.length - 1] = {
       ...lastItem,
@@ -191,19 +193,6 @@ export function buildMidtransChargeRequest(params: {
   }
 
   switch (params.requestedMethod) {
-    case CHECKOUT_PAYMENT_METHOD.QRIS:
-      return {
-        ...baseRequest,
-        payment_type: 'qris',
-      }
-    case CHECKOUT_PAYMENT_METHOD.GOPAY:
-      return {
-        ...baseRequest,
-        payment_type: 'gopay',
-        gopay: {
-          enable_callback: true,
-        },
-      }
     case CHECKOUT_PAYMENT_METHOD.GOPAY_DYNAMIC_QRIS:
       return {
         ...baseRequest,
@@ -273,15 +262,18 @@ export async function createMidtransCharge(
   payload: MidtransChargeRequest,
 ): Promise<MidtransChargeResponse> {
   const config = getMidtransConfig()
-  const response = await fetch(`${getMidtransBaseUrl(config.isProduction)}/v2/charge`, {
-    method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-      authorization: getMidtransAuthHeader(config.serverKey),
+  const response = await fetch(
+    `${getMidtransBaseUrl(config.isProduction)}/v2/charge`,
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        authorization: getMidtransAuthHeader(config.serverKey),
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  })
+  )
 
   const text = await response.text()
   const parsed = text ? (JSON.parse(text) as MidtransChargeResponse) : {}
@@ -387,20 +379,27 @@ export function normalizeMidtransInstructions(
   response: MidtransChargeResponse | Record<string, any> | null | undefined,
 ): NormalizedMidtransPaymentInstructions {
   const actions = Array.isArray(response?.actions) ? response.actions : []
-  const vaNumbers = Array.isArray(response?.va_numbers) ? response.va_numbers : []
+  const vaNumbers = Array.isArray(response?.va_numbers)
+    ? response.va_numbers
+    : []
 
   return {
-    paymentType: typeof response?.payment_type === 'string' ? response.payment_type : null,
+    paymentType:
+      typeof response?.payment_type === 'string' ? response.payment_type : null,
     transactionStatus:
       typeof response?.transaction_status === 'string'
         ? response.transaction_status
         : null,
-    expiresAt: typeof response?.expiry_time === 'string' ? response.expiry_time : null,
-    qrString: typeof response?.qr_string === 'string' ? response.qr_string : null,
+    expiresAt:
+      typeof response?.expiry_time === 'string' ? response.expiry_time : null,
+    qrString:
+      typeof response?.qr_string === 'string' ? response.qr_string : null,
     qrCodeUrl:
-      actions.find((action) => action?.name === 'generate-qr-code')?.url ?? null,
+      actions.find((action) => action?.name === 'generate-qr-code')?.url ??
+      null,
     deeplinkUrl:
-      actions.find((action) => action?.name === 'deeplink-redirect')?.url ?? null,
+      actions.find((action) => action?.name === 'deeplink-redirect')?.url ??
+      null,
     permataVaNumber:
       typeof response?.permata_va_number === 'string'
         ? response.permata_va_number

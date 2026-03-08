@@ -4,11 +4,20 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import {
   PAYMENT_METHOD_CATALOG,
+  calculatePaymentGatewayFee,
   type CheckoutPaymentMethod,
 } from '@/lib/payment-methods'
+import { formatPrice } from '@/lib/utils'
 
 type CheckoutFormProps = {
   email: string
@@ -27,6 +36,7 @@ type CheckoutFormProps = {
   paymentMethod: CheckoutPaymentMethod
   onPaymentMethodChange: (value: CheckoutPaymentMethod) => void
   paymentOptionsName?: string
+  subtotalAmount: number
 }
 
 export function CheckoutForm({
@@ -46,7 +56,28 @@ export function CheckoutForm({
   paymentMethod,
   onPaymentMethodChange,
   paymentOptionsName = 'checkout-payment-method',
+  subtotalAmount,
 }: CheckoutFormProps) {
+  const selectedPaymentMethod =
+    PAYMENT_METHOD_CATALOG.find((option) => option.id === paymentMethod) ??
+    PAYMENT_METHOD_CATALOG[0]
+  const formatGatewayFeeLabel = (method: CheckoutPaymentMethod) => {
+    const option = PAYMENT_METHOD_CATALOG.find((entry) => entry.id === method)
+    if (!option) return ''
+
+    const percentageLabel =
+      option.gatewayFeeRule.percentBps > 0
+        ? `${(option.gatewayFeeRule.percentBps / 100)
+            .toFixed(2)
+            .replace(/\.?0+$/, '')}%`
+        : null
+    if (percentageLabel) return percentageLabel
+    if (option.gatewayFeeRule.fixedAmount > 0) {
+      return formatPrice(option.gatewayFeeRule.fixedAmount)
+    }
+    return formatPrice(calculatePaymentGatewayFee(subtotalAmount, method))
+  }
+
   return (
     <form onSubmit={onSubmit}>
       <div className="min-h-screen bg-background">
@@ -76,7 +107,10 @@ export function CheckoutForm({
                 <CardContent className="space-y-5">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-xs font-medium text-slate-600">
+                      <Label
+                        htmlFor="email"
+                        className="text-xs font-medium text-slate-600"
+                      >
                         Email address
                       </Label>
                       <Input
@@ -89,7 +123,10 @@ export function CheckoutForm({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-xs font-medium text-slate-600">
+                      <Label
+                        htmlFor="name"
+                        className="text-xs font-medium text-slate-600"
+                      >
                         Full name
                       </Label>
                       <Input
@@ -105,8 +142,12 @@ export function CheckoutForm({
                   {additionalContactFields}
 
                   <div className="space-y-2 pt-2">
-                    <Label htmlFor="note" className="text-xs font-medium text-slate-600">
-                      Note to seller <span className="text-slate-400">(optional)</span>
+                    <Label
+                      htmlFor="note"
+                      className="text-xs font-medium text-slate-600"
+                    >
+                      Note to seller{' '}
+                      <span className="text-slate-400">(optional)</span>
                     </Label>
                     <Textarea
                       id="note"
@@ -132,41 +173,59 @@ export function CheckoutForm({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {PAYMENT_METHOD_CATALOG.map((option) => {
-                      const id = `${paymentOptionsName}-${option.id}`
-                      const isActive = paymentMethod === option.id
-
-                      return (
-                        <label
-                          key={option.id}
-                          htmlFor={id}
-                          className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3"
-                        >
-                          <input
-                            id={id}
-                            type="radio"
-                            name={paymentOptionsName}
-                            className="mt-1"
-                            checked={isActive}
-                            onChange={() => onPaymentMethodChange(option.id)}
-                          />
-                          <div className="flex-1">
-                            <Label
-                              htmlFor={id}
-                              className="cursor-pointer text-sm font-medium text-slate-900"
-                            >
-                              {option.title}
-                            </Label>
-                            <p className="text-xs text-slate-500">{option.subtitle}</p>
+                    <Label
+                      htmlFor={paymentOptionsName}
+                      className="text-xs font-medium text-slate-600"
+                    >
+                      Payment method
+                    </Label>
+                    <Select
+                      value={paymentMethod}
+                      onValueChange={(value) =>
+                        onPaymentMethodChange(value as CheckoutPaymentMethod)
+                      }
+                    >
+                      <SelectTrigger
+                        id={paymentOptionsName}
+                        className="justify-between px-3"
+                      >
+                        <SelectValue>
+                          <div className="flex w-full items-center justify-between gap-3 text-left">
+                            <span className="truncate font-medium text-slate-900">
+                              {selectedPaymentMethod.title}
+                            </span>
+                            <span className="shrink-0 text-xs text-slate-500">
+                              Fee{' '}
+                              {formatGatewayFeeLabel(selectedPaymentMethod.id)}
+                            </span>
                           </div>
-                        </label>
-                      )
-                    })}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PAYMENT_METHOD_CATALOG.map((option) => (
+                          <SelectItem key={option.id} value={option.id}>
+                            <div className="flex w-full items-center justify-between gap-3">
+                              <span className="truncate font-medium text-slate-900">
+                                {option.title}
+                              </span>
+                              <span className="shrink-0 text-xs text-slate-500">
+                                {formatGatewayFeeLabel(option.id)}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>
 
-              <Button type="submit" size="xl" className="w-full" loading={isSubmitting}>
+              <Button
+                type="submit"
+                size="xl"
+                className="w-full"
+                loading={isSubmitting}
+              >
                 {payLabel}
               </Button>
             </div>
