@@ -1,6 +1,8 @@
 import {
   ChevronDown,
   Search,
+  ExternalLink,
+  Copy
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useRouter, useRouterState } from '@tanstack/react-router'
@@ -159,6 +161,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
+                  {username ? (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        render={
+                          <Link
+                            to={'/$username'}
+                            params={{ username }}
+                          />
+                        }
+                        className="text-foreground"
+                      >
+                        <ExternalLink />
+                        View page
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ) : null}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>

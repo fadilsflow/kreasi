@@ -50,7 +50,10 @@ export default function UserButton() {
             Produk
           </Button>
           <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/admin/editor/profiles' />}>
-            Edit Profile
+            Edit my page
+          </Button>
+          <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/$username' params={{ username }} />}>
+            View page
           </Button>
 
           <div className='my-1 border-t border-dashed' />
