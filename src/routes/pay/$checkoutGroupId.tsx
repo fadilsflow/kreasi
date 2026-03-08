@@ -2,17 +2,23 @@ import * as React from 'react'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
+  ArrowLeft,
   CheckCircle2,
   Copy,
+  Download,
   ExternalLink,
+  Hourglass,
   QrCode,
   RefreshCcw,
-  TimerReset,
   XCircle,
 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import {
+  Accordion,
+  AccordionItem,
+  AccordionPanel,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogDescription,
@@ -21,12 +27,14 @@ import {
   DialogPopup,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
 import { toastManager } from '@/components/ui/toast'
 import { trpcClient } from '@/integrations/tanstack-query/root-provider'
 import { getPaymentByCheckoutGroup } from '@/lib/payment-server'
 import { formatPrice } from '@/lib/utils'
 import { Spinner } from '@/components/ui/spinner'
+import { Card, CardHeader, CardPanel, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { LogoType } from '@/components/kreasi-logo'
 
 export const Route = createFileRoute('/pay/$checkoutGroupId')({
   component: PaymentPage,
@@ -52,21 +60,6 @@ async function copyToClipboard(value: string) {
       description: 'Unable to copy payment detail.',
       type: 'error',
     })
-  }
-}
-
-function getStatusTone(
-  status: string,
-): React.ComponentProps<typeof Badge>['variant'] {
-  switch (status) {
-    case 'paid':
-      return 'default'
-    case 'failed':
-    case 'cancelled':
-    case 'expired':
-      return 'destructive'
-    default:
-      return 'secondary'
   }
 }
 
@@ -129,10 +122,21 @@ function formatPaymentDeadline(value: string | null) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return null
 
-  return new Intl.DateTimeFormat('id-ID', {
-    dateStyle: 'full',
-    timeStyle: 'short',
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
   }).format(date)
+}
+
+function formatStatusLabel(status: string) {
+  return status
+    .split('_')
+    .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+    .join(' ')
 }
 
 function formatCountdown(targetTime: string | null, now: number) {
@@ -164,6 +168,7 @@ function formatCountdown(targetTime: string | null, now: number) {
 
 function PaymentPage() {
   const { checkoutGroupId } = Route.useParams()
+  const navigate = Route.useNavigate()
   const [statusDialogOpen, setStatusDialogOpen] = React.useState(false)
   const [now, setNow] = React.useState(() => Date.now())
 
@@ -228,6 +233,41 @@ function PaymentPage() {
   const countdown = formatCountdown(payment.expiresAt, now)
   const showPaymentTiming =
     !isTerminalPaymentStatus(payment.status) && !!paymentDeadline && !!countdown
+  const paymentStatusLabel = formatStatusLabel(payment.status)
+  const instructionBlocks = [
+    payment.instructions.permataVaNumber
+      ? {
+        label: 'Permata virtual account',
+        value: payment.instructions.permataVaNumber,
+      }
+      : null,
+    ...payment.instructions.vaNumbers.map((va) => ({
+      label: `${va.bank.toUpperCase()} virtual account`,
+      value: va.vaNumber,
+    })),
+    payment.instructions.billKey
+      ? {
+        label: 'Bill key',
+        value: payment.instructions.billKey,
+      }
+      : null,
+    payment.instructions.billerCode
+      ? {
+        label: 'Biller code',
+        value: payment.instructions.billerCode,
+      }
+      : null,
+  ].filter((item): item is { label: string; value: string } => Boolean(item))
+  const showInstructionFallback =
+    !qrCodeUrl &&
+    !showQrFallback &&
+    instructionBlocks.length === 0 &&
+    !payment.instructions.deeplinkUrl
+  const isPaid = payment.status === 'paid'
+  const isFailedState =
+    payment.status === 'failed' ||
+    payment.status === 'cancelled' ||
+    payment.status === 'expired'
 
   return (
     <>
@@ -235,11 +275,10 @@ function PaymentPage() {
         <DialogPopup className="sm:max-w-md">
           <DialogHeader>
             <div
-              className={`flex size-12 items-center justify-center rounded-full ${
-                payment.status === 'paid'
-                  ? 'bg-emerald-500/12 text-emerald-600'
-                  : 'bg-rose-500/12 text-rose-600'
-              }`}
+              className={`flex size-12 items-center justify-center rounded-full ${payment.status === 'paid'
+                ? 'bg-emerald-500/12 text-emerald-600'
+                : 'bg-rose-500/12 text-rose-600'
+                }`}
             >
               <StatusDialogIcon className="size-6" />
             </div>
@@ -265,367 +304,349 @@ function PaymentPage() {
         </DialogPopup>
       </Dialog>
 
-      <div className="min-h-screen bg-background py-8">
-        <div className="container max-w-5xl space-y-6">
-          <Card>
-            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-2">
-                <CardTitle>Pay your order</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Complete the payment with the selected method. Status updates
-                  automatically while payment is still pending, and you can
-                  still refresh manually if needed.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant={getStatusTone(payment.status)}>
-                  {payment.status.replace(/_/g, ' ')}
-                </Badge>
-                {!isTerminalPaymentStatus(payment.status) ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => refreshMutation.mutate()}
-                    loading={refreshMutation.isPending}
-                  >
-                    <RefreshCcw className="h-4 w-4" />
-                    Refresh status
-                  </Button>
-                ) : null}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div
-                className={`grid gap-3 ${
-                  showPaymentTiming
-                    ? 'md:grid-cols-[1.1fr_0.9fr_0.8fr]'
-                    : 'md:grid-cols-1'
-                }`}
-              >
-                <div className="rounded-2xl border bg-muted/30 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    Payment method
-                  </p>
-                  <p className="mt-2 text-base font-medium">
-                    {payment.selectedPaymentMethod.title}
-                  </p>
-                </div>
-
-                {showPaymentTiming ? (
-                  <>
-                    <div className="rounded-2xl border bg-muted/30 px-4 py-3">
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                        Expired at
-                      </p>
-                      <p className="mt-2 text-base font-medium">
-                        {paymentDeadline}
-                      </p>
-                    </div>
-
-                    <div
-                      className={`rounded-2xl border px-4 py-3 ${
-                        countdown.isExpired
-                          ? 'border-rose-200 bg-rose-50/80'
-                          : 'border-amber-200 bg-amber-50/80'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                        <TimerReset className="size-3.5" />
-                        Countdown
-                      </div>
-                      <p
-                        className={`mt-2 font-mono text-3xl font-semibold tracking-[0.12em] ${
-                          countdown.isExpired
-                            ? 'text-rose-600'
-                            : 'text-amber-700'
-                        }`}
-                      >
-                        {countdown.label}
-                      </p>
-                    </div>
-                  </>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment instructions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {payment.status === 'paid' ? (
-                    <div className="flex flex-col items-center justify-center rounded-3xl border border-emerald-200 bg-linear-to-br from-emerald-50 via-background to-emerald-100 px-6 py-12 text-center">
-                      <div className="relative mb-6 flex size-36 items-center justify-center rounded-full bg-emerald-500/12 shadow-[0_0_0_18px_rgba(34,197,94,0.08)]">
-                        <CheckCircle2 className="size-24 text-emerald-600" />
-                      </div>
-                      <div className="space-y-3">
-                        <p className="text-3xl font-semibold tracking-tight text-emerald-700">
-                          Purchase successful
-                        </p>
-                        <p className="mx-auto max-w-md text-sm text-emerald-800/80">
-                          Payment kamu sudah berhasil dikonfirmasi. Product siap
-                          diakses sekarang.
-                        </p>
-                      </div>
-                      {payment.deliveryUrl ? (
-                        <Button
-                          className="mt-8"
-                          size="lg"
-                          render={<a href={payment.deliveryUrl} />}
-                        >
-                          Access product
-                        </Button>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">
-                          {payment.selectedPaymentMethod.title}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {payment.selectedPaymentMethod.subtitle}
-                        </p>
-                      </div>
-
-                      {qrCodeUrl || showQrFallback ? (
-                        <div className="space-y-4">
-                          <div className="flex justify-center rounded-lg border p-4">
-                            {qrCodeUrl ? (
-                              <img
-                                src={qrCodeUrl}
-                                alt="Payment QR"
-                                className="aspect-square w-full max-w-64 rounded-md"
-                              />
-                            ) : (
-                              <div className="flex aspect-square w-full max-w-64 items-center justify-center rounded-md bg-muted">
-                                <QrCode className="h-10 w-10 text-muted-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          {payment.instructions.deeplinkUrl ? (
-                            <Button
-                              render={
-                                <a
-                                  href={payment.instructions.deeplinkUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                />
-                              }
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Open payment app
-                            </Button>
-                          ) : null}
-                        </div>
-                      ) : null}
-
-                      {payment.instructions.permataVaNumber ? (
-                        <div className="space-y-3 rounded-lg border p-4">
-                          <div>
-                            <p className="text-sm font-medium">
-                              Permata virtual account
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Copy the number below and complete the transfer
-                              from your banking app.
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-between gap-3">
-                            <code className="text-sm font-semibold">
-                              {payment.instructions.permataVaNumber}
-                            </code>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                copyToClipboard(
-                                  payment.instructions.permataVaNumber!,
-                                )
-                              }
-                            >
-                              <Copy className="h-4 w-4" />
-                              Copy
-                            </Button>
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {payment.instructions.vaNumbers.map((va) => (
-                        <div
-                          key={`${va.bank}-${va.vaNumber}`}
-                          className="space-y-3 rounded-lg border p-4"
-                        >
-                          <div>
-                            <p className="text-sm font-medium">
-                              {va.bank.toUpperCase()} virtual account
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Copy the number below and complete the transfer
-                              from your banking app.
-                            </p>
-                          </div>
-                          <div className="flex items-center justify-between gap-3">
-                            <code className="text-sm font-semibold">
-                              {va.vaNumber}
-                            </code>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => copyToClipboard(va.vaNumber)}
-                            >
-                              <Copy className="h-4 w-4" />
-                              Copy
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-
-                      {payment.instructions.billKey &&
-                      payment.instructions.billerCode ? (
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div className="space-y-3 rounded-lg border p-4">
-                            <p className="text-sm font-medium">Bill key</p>
-                            <div className="flex items-center justify-between gap-3">
-                              <code className="text-sm font-semibold">
-                                {payment.instructions.billKey}
-                              </code>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  copyToClipboard(payment.instructions.billKey!)
-                                }
-                              >
-                                <Copy className="h-4 w-4" />
-                                Copy
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="space-y-3 rounded-lg border p-4">
-                            <p className="text-sm font-medium">Biller code</p>
-                            <div className="flex items-center justify-between gap-3">
-                              <code className="text-sm font-semibold">
-                                {payment.instructions.billerCode}
-                              </code>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  copyToClipboard(
-                                    payment.instructions.billerCode!,
-                                  )
-                                }
-                              >
-                                <Copy className="h-4 w-4" />
-                                Copy
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {!qrCodeUrl &&
-                      !showQrFallback &&
-                      !payment.instructions.permataVaNumber &&
-                      payment.instructions.vaNumbers.length === 0 &&
-                      !payment.instructions.billKey ? (
-                        <p className="text-sm text-muted-foreground">
-                          Use the selected payment method to complete payment,
-                          then refresh the status on this page.
-                        </p>
-                      ) : null}
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    {payment.orders.map((order) => (
-                      <div
-                        key={order.id}
-                        className="flex items-start justify-between gap-3 text-sm"
-                      >
-                        <div>
-                          <p className="font-medium">{order.productTitle}</p>
-                          <p className="text-muted-foreground">
-                            Qty {order.quantity}
-                          </p>
-                        </div>
-                        <span>{formatPrice(order.amountPaid)}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <Separator />
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">
-                        Product price
-                      </span>
-                      <span>
-                        {formatPrice(payment.amountBreakdown.subtotalAmount)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Service fee</span>
-                      <span>
-                        {formatPrice(payment.amountBreakdown.serviceFeeAmount)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Gateway fee</span>
-                      <span>
-                        {formatPrice(payment.amountBreakdown.gatewayFeeAmount)}
-                      </span>
-                    </div>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center justify-between font-medium">
-                    <span>Total payment</span>
-                    <span>
-                      {formatPrice(payment.amountBreakdown.totalAmount)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment link</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Keep this link if you want to return later and check the
-                    payment status again.
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => copyToClipboard(payment.paymentPageUrl)}
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy payment link
-                  </Button>
-                </CardContent>
-              </Card>
+      <div className="relative min-h-screen bg-muted">
+        <header className="sticky top-0 z-40 px-2 bg-primary">
+          <div className="flex h-14 items-center justify-between px-3">
+            <div className="-mt-0.5 flex shrink-0 items-center ">
+              <LogoType className='text-white' />
             </div>
           </div>
+        </header >
+
+        <div className="hidden md:block absolute inset-x-0 top-0 h-[420px] bg-primary" />
+        <div className="hidden md:block absolute inset-x-0 top-[300px] h-[240px] bg-muted [clip-path:polygon(0_28%,100%_0,100%_100%,0_100%)]" />
+
+
+        <div className="relative flex w-full max-w-6xl mx-auto flex-col px-4 pb-40 pt-5 sm:px-6 lg:px-10 lg:pb-8">
+          <div className="md:block hidden pb-6">
+            <Button
+              type="button"
+              size='lg'
+              className='rounded-full'
+              variant="outline"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  window.history.back()
+                  return
+                }
+
+                navigate({ to: '/' })
+              }}
+            >
+              <ArrowLeft className="size-5" />
+              Back
+            </Button>
+          </div>
+
+          <div className="grid flex-1 gap-6 md:grid-cols-[minmax(0,1.7fr)_minmax(360px,1fr)] xl:mt-8 xl:gap-8">
+            <Card className="p-3">
+              <CardHeader className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+                <div className="flex flex-col gap-5 w-full">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <CardTitle className="text-2xl font-heading">
+                        Product Purchase
+                      </CardTitle>
+                      <p className="text-2xl font-heading">
+                        {formatPrice(payment.amountBreakdown.totalAmount)}
+                      </p>
+                    </div>
+
+                    <Badge
+                      size="lg"
+                      variant={
+                        isPaid
+                          ? "success"
+                          : isFailedState
+                            ? "error"
+                            : "warning"
+                      }
+                      className="rounded-full px-5 py-3 text-lg font-semibold"
+                    >
+                      {paymentStatusLabel}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    {paymentDeadline && (
+                      <div className="space-y-1">
+                        <p className="text-base font-medium">
+                          Pay Before
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {paymentDeadline}
+                        </p>
+                      </div>
+                    )}
+
+                    {showPaymentTiming && (
+                      <div
+                        className={`inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold ${countdown.isExpired
+                          ? "bg-rose-100 text-rose-700"
+                          : "bg-muted text-foreground"
+                          }`}
+                      >
+                        <span className="font-mono">
+                          {countdown.label}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              </CardHeader>
+
+              <CardPanel className="mt-3 flex flex-col items-center">
+                {isPaid ? (
+                  <div className="flex w-full max-w-xl flex-col items-center rounded-[2rem] border border-success/20 bg-gradient-to-b from-background to-success/5 px-6 py-12 text-center">
+                    <div className="flex size-28 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-[0_0_0_18px_rgba(16,185,129,0.10)]">
+                      <CheckCircle2 className="size-16" />
+                    </div>
+                    <h2 className="mt-8 text-3xl font-black tracking-tight text-emerald-700">
+                      Purchase successful
+                    </h2>
+                    <p className="mt-3 max-w-md text-base leading-7 text-emerald-900/70">
+                      Payment kamu sudah berhasil dikonfirmasi. Product siap
+                      diakses sekarang.
+                    </p>
+                    {payment.deliveryUrl ? (
+                      <Button
+                        className="mt-8 rounded-full px-8"
+                        size="lg"
+                        render={<a href={payment.deliveryUrl} />}
+                      >
+                        Access product
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="w-full space-y-6">
+                    <div className="mx-auto flex w-full max-w-[250px] flex-col items-center">
+                      <div className="flex w-full  items-center justify-center rounded-md border border-input sm:min-h-[250px]">
+                        {qrCodeUrl ? (
+                          <img
+                            src={qrCodeUrl}
+                            alt="Payment QR"
+                            className="aspect-square w-full  rounded-md object-contain w-full h-full"
+                          />
+                        ) : showQrFallback ? (
+                          <div className="flex aspect-square w-full flex-col items-center justify-center rounded-xl border border-dashed border-input bg-background px-6 text-center">
+                            <QrCode className="size-14 text-muted-foreground" />
+                            <p className="mt-4 text-sm text-muted-foreground">
+                              QR code is generated by the provider. Open your
+                              payment app if it does not appear automatically.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex aspect-square w-full flex-col items-center justify-center rounded-xl border border-dashed border-input bg-background px-6 text-center">
+                            <QrCode className="size-14 text-muted-foreground" />
+                            <p className="mt-4 text-sm text-muted-foreground">
+                              Payment details are shown below. Complete the
+                              transfer and refresh the status afterwards.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-center gap-3">
+                        {qrCodeUrl ? (
+                          <Button
+                            variant="outline"
+                            className="rounded-full border-input bg-background px-5 shadow-none hover:bg-background"
+                            render={<a href={qrCodeUrl} download />}
+                          >
+                            <Download className="size-4" />
+                            Download QR
+                          </Button>
+
+                        ) : null}
+                        {payment.instructions.deeplinkUrl ? (
+                          <Button
+                            variant="outline"
+                            className="rounded-full border-input bg-background px-5 shadow-none hover:bg-background"
+                            render={
+                              <a
+                                href={payment.instructions.deeplinkUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              />
+                            }
+                          >
+                            <ExternalLink className="size-4" />
+                            Open payment app
+                          </Button>
+                        ) : null}
+
+                      </div>
+                    </div>
+
+                    {instructionBlocks.length > 0 ? (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {instructionBlocks.map((item) => (
+                          <div
+                            key={`${item.label}-${item.value}`}
+                            className="rounded-[1.2rem] border border-input bg-background px-4 py-4"
+                          >
+                            <p className="text-sm font-semibold text-foreground">
+                              {item.label}
+                            </p>
+                            <div className="mt-3 flex items-center justify-between gap-3">
+                              <code className="truncate text-sm font-semibold text-foreground">
+                                {item.value}
+                              </code>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="rounded-full border-input bg-background shadow-none hover:bg-background"
+                                onClick={() => copyToClipboard(item.value)}
+                              >
+                                <Copy className="size-4" />
+                                Copy
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {showInstructionFallback ? (
+                      <p className="text-center text-sm text-muted-foreground">
+                        Use the selected payment method to complete payment,
+                        then refresh the status on this page.
+                      </p>
+                    ) : null}
+                  </div>
+                )}
+                <div className="mt-4 border-t border-dashed w-full">
+                  <Accordion className="w-full">
+                    <AccordionItem value="product-detail" className="border-none">
+                      <AccordionTrigger className="text-md font-medium">
+                        Product Detail
+                      </AccordionTrigger>
+                      <AccordionPanel className="space-y-4 pb-2">
+                        {payment.orders.map((order) => (
+                          <div
+                            key={order.id}
+                            className="flex items-start justify-between gap-4 rounded-[1.2rem] border border-input bg-background px-4 py-4"
+                          >
+                            <div>
+                              <p className="font-semibold text-foreground">
+                                {order.productTitle}
+                              </p>
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                Qty {order.quantity}
+                              </p>
+                            </div>
+                            <span className="text-sm font-semibold text-foreground">
+                              {formatPrice(order.amountPaid)}
+                            </span>
+                          </div>
+                        ))}
+                      </AccordionPanel>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
+
+                {!isTerminalPaymentStatus(payment.status) ? (
+                  <div className="w-full fixed bottom-0 left-0 right-0 z-20 bg-background p-4 md:static md:bg-transparent md:p-0">
+                    <Button
+                      size="xl"
+                      className="w-full py-6 rounded-full text-xl font-semibold md:mt-2"
+                      onClick={() => refreshMutation.mutate()}
+                      loading={refreshMutation.isPending}
+                    >
+                      Refresh to Check Status
+                    </Button>
+                  </div>
+                ) : null}
+              </CardPanel>
+
+            </Card>
+
+            <Card className='p-3'>
+              <CardPanel className='flex flex-col gap-4'>
+                <h4 className="text-md font-medium">
+                  Payment Method
+                </h4>
+                <div className="rounded-full border px-3 py-2">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-full bg-primary px-3 py-1 text-xs font-bold uppercase text-primary-foreground">
+                      QRIS
+                    </div>
+                    <p className="text-sm font-medium">
+                      {payment.selectedPaymentMethod.title}
+                    </p>
+                  </div>
+                </div>
+                <Accordion
+                  defaultValue={["transactions"]}
+                  className="w-full"
+                >
+                  <AccordionItem value="transactions" className="border-none">
+                    <AccordionTrigger className={'font-medium text-md'}>
+                      Detail Transactions
+                    </AccordionTrigger>
+                    <AccordionPanel>
+                      <div className="space-y-3">
+                        <div className="space-y-3 text-sm">
+                          {payment.orders.map((order) => (
+                            <div
+                              key={`summary-${order.id}`}
+                              className="flex items-start justify-between gap-4 "
+                            >
+                              <div>
+                                <p>{order.productTitle}</p>
+                                {order.quantity > 1 &&
+                                  <p className="mt-1">
+
+                                    x {order.quantity}
+                                  </p>
+                                }
+                              </div>
+                              <span>{formatPrice(order.amountPaid)}</span>
+                            </div>
+                          ))}
+                          <div className="flex items-center justify-between font-medium text-foreground">
+                            <span>Subtotal</span>
+                            <span>
+                              {formatPrice(
+                                payment.amountBreakdown.subtotalAmount,
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between ">
+                            <span>Transaction Fee</span>
+                            <span>
+                              {formatPrice(
+                                payment.amountBreakdown.serviceFeeAmount,
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between ">
+                            <span>Payment Gateway Fee</span>
+                            <span>
+                              {formatPrice(
+                                payment.amountBreakdown.gatewayFeeAmount,
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-base font-medium text-foreground">
+                          <span>Total</span>
+                          <span>
+                            {formatPrice(payment.amountBreakdown.totalAmount)}
+                          </span>
+                        </div>
+                      </div>
+                    </AccordionPanel>
+                  </AccordionItem>
+                </Accordion>
+              </CardPanel>
+            </Card>
+          </div>
         </div>
-      </div>
+      </div >
     </>
   )
 }
