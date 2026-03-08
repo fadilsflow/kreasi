@@ -318,26 +318,6 @@ function PaymentPage() {
 
 
         <div className="relative flex w-full max-w-6xl mx-auto flex-col px-4 pb-40 pt-5 sm:px-6 lg:px-10 lg:pb-8">
-          <div className="md:block hidden pb-6">
-            <Button
-              type="button"
-              size='lg'
-              className='rounded-full'
-              variant="outline"
-              onClick={() => {
-                if (window.history.length > 1) {
-                  window.history.back()
-                  return
-                }
-
-                navigate({ to: '/' })
-              }}
-            >
-              <ArrowLeft className="size-5" />
-              Back
-            </Button>
-          </div>
-
           <div className="grid flex-1 gap-6 md:grid-cols-[minmax(0,1.7fr)_minmax(360px,1fr)] xl:mt-8 xl:gap-8">
             <Card className="p-3">
               <CardHeader className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
