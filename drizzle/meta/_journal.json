@@ -8,6 +8,13 @@
       "when": 1772901547719,
       "tag": "0000_nostalgic_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772941992693,
+      "tag": "0001_midtrans_payments",
+      "breakpoints": true
     }
   ]
 }
