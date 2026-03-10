@@ -573,13 +573,7 @@ function PaymentPage() {
                               className="flex items-start justify-between gap-4 "
                             >
                               <div>
-                                <p>{order.productTitle}</p>
-                                {order.quantity > 1 &&
-                                  <p className="mt-1">
-
-                                    x {order.quantity}
-                                  </p>
-                                }
+                                <p>Product</p>
                               </div>
                               <span>{formatPrice(order.amountPaid)}</span>
                             </div>
