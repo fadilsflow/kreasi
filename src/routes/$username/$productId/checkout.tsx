@@ -386,7 +386,7 @@ function CheckoutPage() {
                   Price: {formatPrice(unitPrice)}
                 </p>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  <span>Qty: {quantity}</span>
+                  <span>x {quantity}</span>
                   {quantity > 1 ? (
                     <span>Total: {formatPrice(subtotalAmount)}</span>
                   ) : null}
@@ -401,7 +401,7 @@ function CheckoutPage() {
               </div>
             </div>
             {canAdjustQuantity ? (
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Quantity</span>
                 <div className="flex items-center gap-2 rounded-full border border-input bg-background px-2 py-1">
                   <Button
@@ -446,13 +446,12 @@ function CheckoutPage() {
                 <div className="space-y-3 text-sm">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p>{product.title}</p>
-                      <p className="mt-1 text-muted-foreground">x {quantity}</p>
+                      <p>Product</p>
                     </div>
                     <span>
                       {formatPrice(
                         paymentQuoteQuery.data?.subtotalAmount ??
-                          subtotalAmount,
+                        subtotalAmount,
                       )}
                     </span>
                   </div>
@@ -461,7 +460,7 @@ function CheckoutPage() {
                     <span>
                       {formatPrice(
                         paymentQuoteQuery.data?.subtotalAmount ??
-                          subtotalAmount,
+                        subtotalAmount,
                       )}
                     </span>
                   </div>
