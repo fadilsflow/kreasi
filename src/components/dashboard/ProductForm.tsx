@@ -173,15 +173,15 @@ function SectionHeader({ title, description }: {
   return (
     <div className="flex flex-col items-start gap-3">
       <div>
-        <p className="text-lg font-medium">{title}</p>
+        <p className="text-lg font-sans">{title}</p>
         {description && <p className="text-sm leading-snug text-muted-foreground mt-0.5">{description}</p>}
       </div>
     </div>
   )
 }
 
-function FieldWrapper({ label, error, hint, children, required }: {
-  label: string
+function FieldWrapper({ label, error, children, required }: {
+  label?: string
   error?: string
   hint?: string
   children: React.ReactNode
@@ -189,10 +189,11 @@ function FieldWrapper({ label, error, hint, children, required }: {
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-sm font-medium">
+      {label && <Label className="text-sm font-medium">
         {label}
-        {required && <span className="text-destructive ml-1">*</span>}
+        {required && <span className="text-destructive">*</span>}
       </Label>
+      }
       {children}
       {error && <p className="text-[11px] text-destructive font-medium">{error}</p>}
     </div>
@@ -408,7 +409,7 @@ export function ProductForm({
   return (
     <>
       <form id={formId} onSubmit={handleSubmit} className="w-full min-w-0">
-        <div className="rounded-2xl border">
+        <div className="rounded-4xl border">
 
           {/* ── Basic Info ─────────────────────────────────────────────── */}
           <section className="space-y-5 p-4 md:p-10">
@@ -625,76 +626,64 @@ export function ProductForm({
           <section className="space-y-5 p-4 md:p-10">
             <SectionHeader title="Inventory & Limits" description="Control quantity and stock" />
 
-            <div className="space-y-2">
+            <div className="space-y-2 ">
               {/* Quantity choice */}
-              <div className="rounded-lg border">
-                <div className="flex items-center justify-between px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium">Customer chooses quantity</p>
-                    <p className="text-xs text-muted-foreground">Let buyers order more than one.</p>
-                  </div>
-                  <Switch
-                    checked={enableQuantityChoice}
-                    onCheckedChange={(checked) => {
-                      setEnableQuantityChoice(checked)
+              <div className="flex items-center gap-4 pb-3">
+                <Switch
+                  checked={enableQuantityChoice}
+                  onCheckedChange={(checked) => {
+                    setEnableQuantityChoice(checked)
+                    clearError('limitPerCheckout')
+                    update({ limitPerCheckout: checked ? (value.limitPerCheckout && value.limitPerCheckout > 1 ? value.limitPerCheckout : 10) : 1 })
+                  }}
+                />
+                <p className="text-sm font-medium">Customer chooses quantity</p>
+              </div>
+              {enableQuantityChoice && (
+                <FieldWrapper error={errors.limitPerCheckout}>
+                  <Input
+                    inputMode="numeric"
+                    placeholder="10000"
+                    className="w-full"
+                    value={value.limitPerCheckout?.toString() ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      update({ limitPerCheckout: v ? Number(v) : null })
                       clearError('limitPerCheckout')
-                      update({ limitPerCheckout: checked ? (value.limitPerCheckout && value.limitPerCheckout > 1 ? value.limitPerCheckout : 10) : 1 })
                     }}
                   />
-                </div>
-                {enableQuantityChoice && (
-                  <div className="border-t px-4 py-3">
-                    <FieldWrapper label="Max per checkout" error={errors.limitPerCheckout}>
-                      <Input
-                        inputMode="numeric"
-                        placeholder="10"
-                        className="w-32"
-                        value={value.limitPerCheckout?.toString() ?? ''}
-                        onChange={(e) => {
-                          const v = e.target.value
-                          update({ limitPerCheckout: v ? Number(v) : null })
-                          clearError('limitPerCheckout')
-                        }}
-                      />
-                    </FieldWrapper>
-                  </div>
-                )}
-              </div>
+                </FieldWrapper>
+              )}
 
+              <div className="border-t border-dashed border-input my-6" />
               {/* Sales limit */}
-              <div className="rounded-lg border">
-                <div className="flex items-center justify-between px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium">Limit total sales</p>
-                    <p className="text-xs text-muted-foreground">Set maximum units available.</p>
-                  </div>
-                  <Switch
-                    checked={enableSalesLimit}
-                    onCheckedChange={(checked) => {
-                      setEnableSalesLimit(checked)
+
+              <div className="flex items-center gap-4 pb-3">
+                <Switch
+                  checked={enableSalesLimit}
+                  onCheckedChange={(checked) => {
+                    setEnableSalesLimit(checked)
+                    clearError('totalQuantity')
+                    update({ totalQuantity: checked ? (value.totalQuantity && value.totalQuantity > 0 ? value.totalQuantity : 100) : null })
+                  }}
+                />
+                <p className="text-sm font-medium">Limit Product Sales</p>
+              </div>
+              {enableSalesLimit && (
+                <FieldWrapper error={errors.totalQuantity}>
+                  <Input
+                    inputMode="numeric"
+                    placeholder="100"
+                    className="w-full"
+                    value={value.totalQuantity?.toString() ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      update({ totalQuantity: v ? Number(v) : null })
                       clearError('totalQuantity')
-                      update({ totalQuantity: checked ? (value.totalQuantity && value.totalQuantity > 0 ? value.totalQuantity : 100) : null })
                     }}
                   />
-                </div>
-                {enableSalesLimit && (
-                  <div className="border-t px-4 py-3">
-                    <FieldWrapper label="Total stock" error={errors.totalQuantity}>
-                      <Input
-                        inputMode="numeric"
-                        placeholder="100"
-                        className="w-32"
-                        value={value.totalQuantity?.toString() ?? ''}
-                        onChange={(e) => {
-                          const v = e.target.value
-                          update({ totalQuantity: v ? Number(v) : null })
-                          clearError('totalQuantity')
-                        }}
-                      />
-                    </FieldWrapper>
-                  </div>
-                )}
-              </div>
+                </FieldWrapper>
+              )}
             </div>
           </section>
 
@@ -706,10 +695,8 @@ export function ProductForm({
 
             <FieldWrapper label="URL" error={errors.productUrl}>
               <div className="relative">
-                <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   type="url"
-                  className="pl-9"
                   value={value.productUrl}
                   onChange={(e) => { update({ productUrl: e.target.value }); clearError('productUrl') }}
                   placeholder="https://your-download-link.com"
@@ -722,11 +709,8 @@ export function ProductForm({
 
           {/* ── Checkout Questions ─────────────────────────────────────── */}
           <section className="space-y-5 p-4 md:p-10">
-            <div className="flex flex-wrap items-start gap-3 pb-4 sm:flex-nowrap">
-              <div className="flex-1">
-                <p className="text-sm font-medium">Checkout Questions</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Collect extra info after name & email.</p>
-              </div>
+            <div className="flex  pb-4 justify-between">
+              <SectionHeader title="Buyer form" description="Collect extra info after name & email." />
               <Button
                 type="button"
                 variant="outline"
@@ -743,7 +727,20 @@ export function ProductForm({
                 Add question
               </Button>
             </div>
-
+            <div >
+              <div className="flex gap-2">
+                <p className='text-sm'>Your Name</p>
+                <Badge variant={'secondary'}>Mandatory</Badge>
+              </div>
+              <span className='text-xs text-muted-foreground'>Name</span>
+            </div>
+            <div >
+              <div className="flex gap-2">
+                <p className='text-sm'>Email</p>
+                <Badge variant={'secondary'}>Mandatory</Badge>
+              </div>
+              <span className='text-xs text-muted-foreground'>Name</span>
+            </div>
             {value.customerQuestions.length === 0 ? (
               <p className="text-xs text-muted-foreground py-2">
                 No questions added. Customers only enter name and email.
@@ -806,49 +803,48 @@ export function ProductForm({
 
         </div >
         {/* ── Footer ─────────────────────────────────────────────────── */}
-        {!hideFooter && (
-          <div className="grid w-full min-w-0 gap-3  py-20 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-            <div className="flex min-w-0 items-center gap-2">
-              <Switch
-                checked={value.isActive}
-                onCheckedChange={(checked) => update({ isActive: checked })}
-              />
-              <span className="shrink-0 text-sm font-medium">
-                {value.isActive ? 'Active' : 'Hidden'}
-              </span>
-              <span className="hidden min-w-0 truncate text-xs text-muted-foreground sm:inline">
-                {value.isActive ? '— visible on your profile' : '— not shown publicly'}
-              </span>
-            </div>
+        {
+          !hideFooter && (
+            <div className="grid w-full min-w-0 gap-3  py-20 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+              <div className="flex min-w-0 items-center gap-2">
+                <Switch
+                  checked={value.isActive}
+                  onCheckedChange={(checked) => update({ isActive: checked })}
+                />
+                <span className="shrink-0 text-sm font-medium">
+                  {value.isActive ? 'Active' : 'Hidden'}
+                </span>
+              </div>
 
-            <div className="flex shrink-0 items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="destructive-outline"
-                size="lg"
-                className={cn(
-                  ' text-xs  hover:text-destructive',
-                  !(value.id && onDelete) && 'pointer-events-none invisible',
-                )}
-                onClick={() => {
-                  if (value.id && onDelete) onDelete(value.id)
-                }}
-              >
-                Delete product
-              </Button>
-              <Button
-                type="submit"
-                size="lg"
-                className="min-w-[124px] justify-center px-5"
-                disabled={submitting || isUploading}
-                loading={submitting || isUploading}
-              >
-                {submitting || isUploading ? 'Saving…' : value.id ? 'Update Product' : 'Create product'}
-              </Button>
+              <div className="flex shrink-0 items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="destructive-outline"
+                  size="lg"
+                  className={cn(
+                    ' text-xs  hover:text-destructive',
+                    !(value.id && onDelete) && 'pointer-events-none invisible',
+                  )}
+                  onClick={() => {
+                    if (value.id && onDelete) onDelete(value.id)
+                  }}
+                >
+                  Delete product
+                </Button>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="min-w-[124px] justify-center px-5"
+                  disabled={submitting || isUploading}
+                  loading={submitting || isUploading}
+                >
+                  {submitting || isUploading ? 'Saving…' : value.id ? 'Update Product' : 'Create product'}
+                </Button>
+              </div>
             </div>
-          </div>
-        )}
-      </form>
+          )
+        }
+      </form >
     </>
   )
 }
