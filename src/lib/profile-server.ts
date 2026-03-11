@@ -164,16 +164,12 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
             },
           ]
 
-    const { StorageService } = await import('@/lib/storage')
-
     const deliveryItems = await Promise.all(
       itemSnapshots.map(async (item: any) => {
         const productData = item.product ?? {
           title: item.productTitle,
           images: item.productImage ? [item.productImage] : [],
           productContent: null,
-          productUrl: null,
-          productFiles: [],
         }
 
         const creatorData = item.creator ?? {
@@ -182,26 +178,6 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
           image: null,
           username: null,
         }
-
-        const productFiles = Array.isArray(productData.productFiles)
-          ? productData.productFiles
-          : []
-        const filesWithDownloadUrls = await Promise.all(
-          productFiles.map(async (file: { name: string; url: string }) => {
-            const key = StorageService.getKeyFromUrl(file.url)
-            if (!key) return file
-            try {
-              const downloadUrl = await StorageService.getDownloadUrl(
-                key,
-                file.name,
-              )
-              return { ...file, url: downloadUrl }
-            } catch (e) {
-              console.error('Failed to sign url', e)
-              return file
-            }
-          }),
-        )
 
         return {
           id: item.id,
@@ -212,8 +188,6 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
           amountPaid: item.amountPaid ?? 0,
           checkoutAnswers: item.checkoutAnswers ?? {},
           productContent: productData.productContent ?? null,
-          productUrl: productData.productUrl,
-          productFiles: filesWithDownloadUrls,
           creator: creatorData,
         }
       }),

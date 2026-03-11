@@ -2,9 +2,6 @@ import * as React from 'react'
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import {
   CheckCircle2,
-  Download,
-  ExternalLink,
-  FileIcon,
   ReceiptText,
   ShoppingBag,
 } from 'lucide-react'
@@ -28,12 +25,6 @@ import {
 import { formatPrice } from '@/lib/utils'
 import NotFound from '@/components/not-found'
 import { ProductContentRenderer } from '@/components/products/ProductContentRenderer'
-
-type DeliveredFile = {
-  name: string
-  size?: number | null
-  url: string
-}
 
 export const Route = createFileRoute('/d/$token')({
   component: OrderDeliveryPage,
@@ -104,8 +95,8 @@ function OrderDeliveryPage() {
             <CardHeader>
               <CardTitle className="text-xl">Your Purchased Content</CardTitle>
               <CardDescription>
-                Access links, files, and checkout responses for every item in
-                this order.
+                Access your purchased content and checkout responses for every
+                item in this order.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -113,7 +104,6 @@ function OrderDeliveryPage() {
                 const checkoutAnswers = Object.entries(
                   item.checkoutAnswers ?? {},
                 )
-                const productFiles = item.productFiles as Array<DeliveredFile>
                 const productContent = item.productContent
                 const hasContent =
                   productContent &&
@@ -177,78 +167,7 @@ function OrderDeliveryPage() {
                         </CardContent>
                       </Card>
                     ) : (
-                      <>
-                        {item.productUrl ? (
-                          <Card>
-                            <CardContent className="pt-4">
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="min-w-0">
-                                  <p className="text-sm font-medium">Access link</p>
-                                  <p className="text-xs text-muted-foreground truncate">
-                                    {item.productUrl}
-                                  </p>
-                                </div>
-                                <Button
-                                  render={
-                                    <a
-                                      href={item.productUrl}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                    />
-                                  }
-                                  size="sm"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                  Open
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ) : null}
-
-                        {productFiles.length > 0 ? (
-                          <div className="space-y-3">
-                            {productFiles.map((file, index) => (
-                              <Card key={index}>
-                                <CardContent className="pt-4">
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                      <div className="size-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                                        <FileIcon className="h-4 w-4 text-muted-foreground" />
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="text-sm font-medium truncate">
-                                          {file.name}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                          {file.size
-                                            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
-                                            : 'Download file'}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <Button
-                                      render={
-                                        <a
-                                          href={file.url}
-                                          download
-                                          target="_blank"
-                                          rel="noreferrer"
-                                        />
-                                      }
-                                      variant="outline"
-                                      size="sm"
-                                    >
-                                      <Download className="h-4 w-4" />
-                                      Download
-                                    </Button>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        ) : null}
-                      </>
+                      null
                     )}
 
                     {checkoutAnswers.length > 0 ? (
@@ -269,7 +188,7 @@ function OrderDeliveryPage() {
                       </Card>
                     ) : null}
 
-                    {!hasContent && !item.productUrl && productFiles.length === 0 ? (
+                    {!hasContent ? (
                       <Card>
                         <CardContent className="pt-6 text-center space-y-1">
                           <p className="text-sm text-muted-foreground">

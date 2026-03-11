@@ -14,6 +14,7 @@ import type {
   AppearanceBackgroundType,
   AppearanceTextFont,
 } from '@/lib/appearance'
+import type { Content } from '@tiptap/react'
 
 // ─── Status Enums ────────────────────────────────────────────────────────────
 
@@ -124,17 +125,7 @@ export const products = pgTable('product', {
   totalQuantity: integer('total_quantity'),
   limitPerCheckout: integer('limit_per_checkout'),
   // Delivery
-  productUrl: text('product_url'),
-  productFiles: json('product_files').$type<
-    Array<{
-      id: string
-      name: string
-      size: number
-      type: string
-      url: string
-    }>
-  >(), // Array of file objects
-  productContent: json('product_content'),
+  productContent: json('product_content').$type<Content | null>(),
   images: text('images').array(), // Array of image URLs
   // Custom checkout questions (JSON string for simple, extendable schema)
   customerQuestions: text('customer_questions'),

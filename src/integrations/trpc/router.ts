@@ -890,9 +890,7 @@ const productBaseInput = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   productContent: z.any().optional(),
-  productUrl: z.string().url().optional().or(z.literal('')),
   images: z.array(z.string()).optional(),
-  productFiles: z.array(z.any()).optional(), // JSON content
   isActive: z.boolean().optional(),
   totalQuantity: z.number().int().positive().optional(),
   limitPerCheckout: z.number().int().positive().optional(),
@@ -964,9 +962,7 @@ const productRouter = {
           title: input.title,
           description: input.description ?? null,
           productContent: input.productContent ?? null,
-          productUrl: input.productUrl || null,
           images: input.images || null,
-          productFiles: input.productFiles || null,
           isActive: input.isActive ?? true,
           totalQuantity: input.totalQuantity ?? null,
           limitPerCheckout: input.limitPerCheckout ?? null,
@@ -1015,14 +1011,6 @@ const productRouter = {
           : null,
       }
 
-      if (input.productUrl !== undefined) {
-        updatePayload.productUrl = input.productUrl || null
-      }
-
-      if (input.productFiles !== undefined) {
-        updatePayload.productFiles = input.productFiles || null
-      }
-
       const [row] = await db
         .update(products)
         .set(updatePayload)
@@ -1066,8 +1054,6 @@ const productRouter = {
           suggestedPrice: product.suggestedPrice,
           totalQuantity: product.totalQuantity,
           limitPerCheckout: product.limitPerCheckout,
-          productUrl: product.productUrl,
-          productFiles: product.productFiles,
           images: product.images,
           customerQuestions: product.customerQuestions,
           isActive: false, // Default to inactive
