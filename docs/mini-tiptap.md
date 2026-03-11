@@ -59,10 +59,10 @@ export const App = () => {
 
 ## Tailwind CSS Setup
 
-Ensure you reference your Tailwind CSS entry point in `/minimal-tiptap/styles/index.css`:
+Ensure the editor styles are imported by your Tailwind entry point (for example in `src/styles.css`):
 
 ```
-@reference "path-to-your-entry-point-tailwind.css";
+@import './components/ui/minimal-tiptap/styles/index.css';
 ```
 
 ## Dependencies
