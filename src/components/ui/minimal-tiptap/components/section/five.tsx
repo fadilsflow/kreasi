@@ -12,6 +12,8 @@ import {
 } from "@radix-ui/react-icons"
 import { LinkEditPopover } from "../link/link-edit-popover"
 import { ImageEditDialog } from "../image/image-edit-dialog"
+import { ButtonEditPopover } from "../button/button-edit-popover"
+import { FileInsertDialog } from "../file/file-insert-dialog"
 import { ToolbarSection } from "../toolbar-section"
 
 type InsertElementAction = "codeBlock" | "blockquote" | "horizontalRule"
@@ -69,6 +71,8 @@ export const SectionFive: React.FC<SectionFiveProps> = ({
     <>
       <LinkEditPopover editor={editor} size={size} variant={variant} />
       <ImageEditDialog editor={editor} size={size} variant={variant} />
+      <ButtonEditPopover editor={editor} size={size} variant={variant} />
+      <FileInsertDialog editor={editor} size={size} variant={variant} />
       <ToolbarSection
         editor={editor}
         actions={formatActions}

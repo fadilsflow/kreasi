@@ -11,6 +11,8 @@ import { SectionThree } from "./components/section/three"
 import { SectionFour } from "./components/section/four"
 import { SectionFive } from "./components/section/five"
 import { LinkBubbleMenu } from "./components/bubble-menu/link-bubble-menu"
+import { FileBubbleMenu } from "./components/bubble-menu/file-bubble-menu"
+import { ButtonBubbleMenu } from "./components/bubble-menu/button-bubble-menu"
 import { useMinimalTiptapEditor } from "./hooks/use-minimal-tiptap"
 import { MeasuredContainer } from "./components/measured-container"
 import { useTiptapEditor } from "./hooks/use-tiptap-editor"
@@ -127,6 +129,8 @@ export const MainMinimalTiptapEditor = ({
         className={cn("minimal-tiptap-editor", editorContentClassName)}
       />
       <LinkBubbleMenu editor={editor} />
+      <FileBubbleMenu editor={editor} />
+      <ButtonBubbleMenu editor={editor} />
     </MeasuredContainer>
   )
 }

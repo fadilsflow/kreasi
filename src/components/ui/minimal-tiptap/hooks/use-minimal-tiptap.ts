@@ -14,7 +14,8 @@ import {
   UnsetAllMarks,
   ResetMarksOnEnter,
   FileHandler,
-  Embed,
+  File as FileExtension,
+  ButtonExtension,
 } from "../extensions"
 import { cn } from "@/lib/utils"
 import { fileToBase64, getOutput, randomId } from "../utils"
@@ -191,7 +192,15 @@ const createExtensions = ({
   HorizontalRule,
   ResetMarksOnEnter,
   CodeBlockLowlight,
-  Embed,
+  FileExtension.configure({
+    uploadFn: async (file) => {
+      return uploader ? await uploader(file) : await fakeuploader(file)
+    },
+    onFileRemoved(attrs) {
+      console.log("File removed", attrs)
+    },
+  }),
+  ButtonExtension,
   Placeholder.configure({ placeholder: () => placeholder }),
 ]
 

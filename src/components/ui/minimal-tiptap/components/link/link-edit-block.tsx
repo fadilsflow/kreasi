@@ -46,8 +46,18 @@ export const LinkEditBlock = ({
     [onSave, url, text, isNewTab]
   )
 
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === "Enter") {
+        event.preventDefault()
+        handleSave(event)
+      }
+    },
+    [handleSave]
+  )
+
   return (
-    <div ref={formRef}>
+    <div ref={formRef} onKeyDown={handleKeyDown}>
       <div className={cn("space-y-4", className)}>
         <div className="space-y-1">
           <Label>URL</Label>

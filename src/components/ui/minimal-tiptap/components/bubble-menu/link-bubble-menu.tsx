@@ -38,7 +38,12 @@ export const LinkBubbleMenu: React.FC<LinkBubbleMenuProps> = ({ editor }) => {
       }
       const { href } = editor.getAttributes("link")
 
-      if (!editor.isActive("link") || !editor.isEditable) {
+      if (
+        !editor.isActive("link") ||
+        !editor.isEditable ||
+        editor.isActive("file") ||
+        editor.isActive("button")
+      ) {
         return false
       }
 
@@ -91,6 +96,7 @@ export const LinkBubbleMenu: React.FC<LinkBubbleMenuProps> = ({ editor }) => {
   return (
     <BubbleMenu
       editor={editor}
+      pluginKey="linkBubbleMenu"
       shouldShow={shouldShow}
       options={{
         placement: "bottom-start",
