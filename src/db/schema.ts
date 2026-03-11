@@ -134,6 +134,7 @@ export const products = pgTable('product', {
       url: string
     }>
   >(), // Array of file objects
+  productContent: json('product_content'),
   images: text('images').array(), // Array of image URLs
   // Custom checkout questions (JSON string for simple, extendable schema)
   customerQuestions: text('customer_questions'),

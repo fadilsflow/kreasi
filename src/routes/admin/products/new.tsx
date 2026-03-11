@@ -16,9 +16,8 @@ function buildProductPayload(values: ProductFormValues) {
   return {
     title: values.title,
     description: values.description || undefined,
-    productUrl: values.productUrl || undefined,
+    productContent: values.productContent ?? undefined,
     images: values.images,
-    productFiles: values.productFiles,
     isActive: values.isActive,
     totalQuantity: values.totalQuantity ?? undefined,
     limitPerCheckout: values.limitPerCheckout ?? undefined,

@@ -14,6 +14,7 @@ import {
   UnsetAllMarks,
   ResetMarksOnEnter,
   FileHandler,
+  Embed,
 } from "../extensions"
 import { cn } from "@/lib/utils"
 import { fileToBase64, getOutput, randomId } from "../utils"
@@ -142,24 +143,34 @@ const createExtensions = ({
     },
   }),
   FileHandler.configure({
-    allowBase64: true,
+    allowBase64: false,
     allowedMimeTypes: ["image/*"],
     maxFileSize: 5 * 1024 * 1024,
     onDrop: (editor, files, pos) => {
       files.forEach(async (file) => {
-        const src = await fileToBase64(file)
+        const src = URL.createObjectURL(file)
         editor.commands.insertContentAt(pos, {
           type: "image",
-          attrs: { src },
+          attrs: {
+            src,
+            alt: file.name,
+            title: file.name,
+            fileName: file.name,
+          },
         })
       })
     },
     onPaste: (editor, files) => {
       files.forEach(async (file) => {
-        const src = await fileToBase64(file)
+        const src = URL.createObjectURL(file)
         editor.commands.insertContent({
           type: "image",
-          attrs: { src },
+          attrs: {
+            src,
+            alt: file.name,
+            title: file.name,
+            fileName: file.name,
+          },
         })
       })
     },
@@ -180,6 +191,7 @@ const createExtensions = ({
   HorizontalRule,
   ResetMarksOnEnter,
   CodeBlockLowlight,
+  Embed,
   Placeholder.configure({ placeholder: () => placeholder }),
 ]
 

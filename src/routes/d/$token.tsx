@@ -27,6 +27,7 @@ import {
 } from '@/lib/meta-pixel'
 import { formatPrice } from '@/lib/utils'
 import NotFound from '@/components/not-found'
+import { ProductContentRenderer } from '@/components/products/ProductContentRenderer'
 
 type DeliveredFile = {
   name: string
@@ -113,6 +114,11 @@ function OrderDeliveryPage() {
                   item.checkoutAnswers ?? {},
                 )
                 const productFiles = item.productFiles as Array<DeliveredFile>
+                const productContent = item.productContent
+                const hasContent =
+                  productContent &&
+                  typeof productContent === 'object' &&
+                  Object.keys(productContent).length > 0
 
                 return (
                   <div key={item.id} className="space-y-4 border rounded-xl p-4">
@@ -164,76 +170,86 @@ function OrderDeliveryPage() {
                       </div>
                     </div>
 
-                    {item.productUrl ? (
+                    {hasContent ? (
                       <Card>
                         <CardContent className="pt-4">
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium">Access link</p>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {item.productUrl}
-                              </p>
-                            </div>
-                            <Button
-                              render={
-                                <a
-                                  href={item.productUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                />
-                              }
-                              size="sm"
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                              Open
-                            </Button>
-                          </div>
+                          <ProductContentRenderer content={productContent} />
                         </CardContent>
                       </Card>
-                    ) : null}
-
-                    {productFiles.length > 0 ? (
-                      <div className="space-y-3">
-                        {productFiles.map((file, index) => (
-                          <Card key={index}>
+                    ) : (
+                      <>
+                        {item.productUrl ? (
+                          <Card>
                             <CardContent className="pt-4">
                               <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <div className="size-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                                    <FileIcon className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-medium truncate">
-                                      {file.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {file.size
-                                        ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
-                                        : 'Download file'}
-                                    </p>
-                                  </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium">Access link</p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {item.productUrl}
+                                  </p>
                                 </div>
                                 <Button
                                   render={
                                     <a
-                                      href={file.url}
-                                      download
+                                      href={item.productUrl}
                                       target="_blank"
                                       rel="noreferrer"
                                     />
                                   }
-                                  variant="outline"
                                   size="sm"
                                 >
-                                  <Download className="h-4 w-4" />
-                                  Download
+                                  <ExternalLink className="h-4 w-4" />
+                                  Open
                                 </Button>
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
-                      </div>
-                    ) : null}
+                        ) : null}
+
+                        {productFiles.length > 0 ? (
+                          <div className="space-y-3">
+                            {productFiles.map((file, index) => (
+                              <Card key={index}>
+                                <CardContent className="pt-4">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="size-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                                        <FileIcon className="h-4 w-4 text-muted-foreground" />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-medium truncate">
+                                          {file.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {file.size
+                                            ? `${(file.size / 1024 / 1024).toFixed(2)} MB`
+                                            : 'Download file'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <Button
+                                      render={
+                                        <a
+                                          href={file.url}
+                                          download
+                                          target="_blank"
+                                          rel="noreferrer"
+                                        />
+                                      }
+                                      variant="outline"
+                                      size="sm"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                      Download
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        ) : null}
+                      </>
+                    )}
 
                     {checkoutAnswers.length > 0 ? (
                       <Card>
@@ -253,7 +269,7 @@ function OrderDeliveryPage() {
                       </Card>
                     ) : null}
 
-                    {!item.productUrl && productFiles.length === 0 ? (
+                    {!hasContent && !item.productUrl && productFiles.length === 0 ? (
                       <Card>
                         <CardContent className="pt-6 text-center space-y-1">
                           <p className="text-sm text-muted-foreground">

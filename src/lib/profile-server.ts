@@ -171,6 +171,7 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
         const productData = item.product ?? {
           title: item.productTitle,
           images: item.productImage ? [item.productImage] : [],
+          productContent: null,
           productUrl: null,
           productFiles: [],
         }
@@ -210,6 +211,7 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
           quantity: item.quantity ?? 1,
           amountPaid: item.amountPaid ?? 0,
           checkoutAnswers: item.checkoutAnswers ?? {},
+          productContent: productData.productContent ?? null,
           productUrl: productData.productUrl,
           productFiles: filesWithDownloadUrls,
           creator: creatorData,

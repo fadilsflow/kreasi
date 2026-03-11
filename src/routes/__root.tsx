@@ -82,6 +82,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <style>{`:root{--background:oklch(1 0 0);--card:oklch(1 0 0);--border:hsla(220,14%,94%,1);--input:oklch(0.922 0 0);}`}</style>
         <HeadContent />
       </head>
       <body>

@@ -1,18 +1,6 @@
 import * as React from 'react'
-import { z } from 'zod'
-import {
-  FileText,
-  ImageIcon,
-  Link2,
-  Plus,
-  Trash2,
-  Upload,
-  X,
-  Package,
-  Tag,
-  Users,
-  Settings2,
-} from 'lucide-react'
+import { ImageIcon, Plus, Trash2, X } from 'lucide-react'
+import type { Content } from '@tiptap/react'
 import { useFileUpload } from '@/hooks/use-file-upload'
 import { uploadFile } from '@/lib/upload-client'
 
@@ -26,6 +14,8 @@ import { toastManager } from '@/components/ui/toast'
 import { cn, formatPriceInput, parsePriceInput } from '@/lib/utils'
 import { Separator } from '../ui/separator'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui/input-group'
+import { Tabs, TabsList, TabsPanel, TabsTab } from '@/components/ui/tabs'
+import { ProductContentEditor } from '@/components/dashboard/ProductContentEditor'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,21 +33,12 @@ export type CustomerQuestion = {
   required: boolean
 }
 
-export type ProductFile = {
-  id: string
-  name: string
-  size: number
-  type: string
-  url: string
-}
-
 export type ProductFormValues = {
   id?: string
   title: string
   description: string
-  productUrl: string
+  productContent?: Content | null
   images: string[]
-  productFiles: ProductFile[]
   isActive: boolean
   totalQuantity?: number | null
   limitPerCheckout?: number | null
@@ -82,9 +63,8 @@ export function emptyProductForm(): ProductFormValues {
   return {
     title: '',
     description: '',
-    productUrl: '',
+    productContent: null,
     images: [],
-    productFiles: [],
     isActive: true,
     totalQuantity: null,
     limitPerCheckout: 1,
@@ -116,12 +96,6 @@ export function parseCustomerQuestions(raw: unknown): CustomerQuestion[] {
   }
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
-
 type FormErrors = Record<string, string>
 type PricingType = 'fixed' | 'pay-what-you-want' | 'free'
 
@@ -136,10 +110,6 @@ function validate(
 
   if (!value.title.trim()) errors.title = 'Title is required.'
   if (imageCount === 0) errors.images = 'At least one image is required.'
-
-  if (value.productUrl.trim() && !z.string().url().safeParse(value.productUrl.trim()).success) {
-    errors.productUrl = 'Please enter a valid URL.'
-  }
 
   if (pricingType === 'fixed' && value.priceSettings.price == null) {
     errors['priceSettings.price'] = 'Price is required.'
@@ -299,20 +269,6 @@ export function ProductForm({
   })
 
   // Digital files upload
-  const [{ files: digitalFiles }, {
-    getInputProps: getFileInputProps,
-    openFileDialog: openFileDialog,
-    removeFile: removeDigitalFile,
-    handleDrop: handleFileDrop,
-    handleDragOver: handleFileDragOver,
-    handleDragEnter: handleFileDragEnter,
-    handleDragLeave: handleFileDragLeave,
-  }] = useFileUpload({
-    accept: '*',
-    multiple: true,
-    initialFiles: value.productFiles.map((f) => ({ ...f })),
-  })
-
   React.useEffect(() => {
     if (imageFiles.length > 0) clearError('images')
   }, [imageFiles.length])
@@ -344,26 +300,9 @@ export function ProductForm({
         }
       }
 
-      const finalProductFiles: ProductFile[] = []
-      for (const f of digitalFiles) {
-        if (f.file instanceof File) {
-          const url = await uploadFile(f.file, 'products/files')
-          finalProductFiles.push({
-            id: crypto.randomUUID(),
-            name: f.file.name,
-            size: f.file.size,
-            type: f.file.type,
-            url,
-          })
-        } else {
-          finalProductFiles.push(f.file as ProductFile)
-        }
-      }
-
       onSubmit({
         ...value,
         images: finalImages,
-        productFiles: finalProductFiles,
         priceSettings:
           pricingType === 'fixed'
             ? {
@@ -409,7 +348,14 @@ export function ProductForm({
   return (
     <>
       <form id={formId} onSubmit={handleSubmit} className="w-full min-w-0">
-        <div className="rounded-4xl border">
+        <Tabs defaultValue="product" className="w-full min-w-0">
+          <TabsList className="mb-4">
+            <TabsTab value="product">Product</TabsTab>
+            <TabsTab value="content">Content</TabsTab>
+          </TabsList>
+
+          <TabsPanel value="product">
+            <div className="rounded-4xl border">
 
           {/* ── Basic Info ─────────────────────────────────────────────── */}
           <section className="space-y-5 p-4 md:p-10">
@@ -582,42 +528,6 @@ export function ProductForm({
             {errors.images && (
               <p className="text-[11px] text-destructive font-medium">{errors.images}</p>
             )}
-
-            {/* Digital Files */}
-            <div
-              className="space-y-2 mt-2"
-              onDrop={handleFileDrop}
-              onDragOver={handleFileDragOver}
-              onDragEnter={handleFileDragEnter}
-              onDragLeave={handleFileDragLeave}
-            >
-              <Label className="text-sm font-medium">Digital Files <span className="text-muted-foreground font-normal">(optional)</span></Label>
-
-              {digitalFiles.map((file) => (
-                <div key={file.id} className="flex items-center gap-3 rounded-lg border px-3 py-2 bg-muted/30">
-                  <div className="h-8 w-8 rounded-md border bg-background flex items-center justify-center shrink-0">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium truncate">{file.file.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{formatFileSize(file.file.size ?? 0)}</p>
-                  </div>
-                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeDigitalFile(file.id)}>
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ))}
-
-              <button
-                type="button"
-                onClick={openFileDialog}
-                className="w-full flex items-center justify-center gap-2 rounded-lg border border-dashed py-3 text-xs text-muted-foreground hover:bg-muted/40 transition-colors"
-              >
-                <Upload className="h-4 w-4" />
-                Upload files
-                <input {...getFileInputProps()} className="hidden" />
-              </button>
-            </div>
           </section>
 
           <Separator />
@@ -685,24 +595,6 @@ export function ProductForm({
                 </FieldWrapper>
               )}
             </div>
-          </section>
-
-          <Separator />
-
-          {/* ── Product URL ────────────────────────────────────────────── */}
-          <section className="space-y-5 p-4 md:p-10">
-            <SectionHeader title="External Link" description="Optional — if you host files elsewhere" />
-
-            <FieldWrapper label="URL" error={errors.productUrl}>
-              <div className="relative">
-                <Input
-                  type="url"
-                  value={value.productUrl}
-                  onChange={(e) => { update({ productUrl: e.target.value }); clearError('productUrl') }}
-                  placeholder="https://your-download-link.com"
-                />
-              </div>
-            </FieldWrapper>
           </section>
 
           <Separator />
@@ -800,51 +692,61 @@ export function ProductForm({
               </div>
             )}
           </section>
+        </div>
+      </TabsPanel>
 
-        </div >
+      <TabsPanel value="content">
+        <div className="rounded-4xl border p-4 md:p-10">
+          <ProductContentEditor
+            value={value.productContent ?? null}
+            onChange={(content) => update({ productContent: content })}
+            onUploadingChange={setUploading}
+          />
+        </div>
+      </TabsPanel>
+        </Tabs>
+
         {/* ── Footer ─────────────────────────────────────────────────── */}
-        {
-          !hideFooter && (
-            <div className="grid w-full min-w-0 gap-3  py-20 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-              <div className="flex min-w-0 items-center gap-2">
-                <Switch
-                  checked={value.isActive}
-                  onCheckedChange={(checked) => update({ isActive: checked })}
-                />
-                <span className="shrink-0 text-sm font-medium">
-                  {value.isActive ? 'Active' : 'Hidden'}
-                </span>
-              </div>
-
-              <div className="flex shrink-0 items-center justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="destructive-outline"
-                  size="lg"
-                  className={cn(
-                    ' text-xs  hover:text-destructive',
-                    !(value.id && onDelete) && 'pointer-events-none invisible',
-                  )}
-                  onClick={() => {
-                    if (value.id && onDelete) onDelete(value.id)
-                  }}
-                >
-                  Delete product
-                </Button>
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="min-w-[124px] justify-center px-5"
-                  disabled={submitting || isUploading}
-                  loading={submitting || isUploading}
-                >
-                  {submitting || isUploading ? 'Saving…' : value.id ? 'Update Product' : 'Create product'}
-                </Button>
-              </div>
+        {!hideFooter && (
+          <div className="grid w-full min-w-0 gap-3 py-20 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div className="flex min-w-0 items-center gap-2">
+              <Switch
+                checked={value.isActive}
+                onCheckedChange={(checked) => update({ isActive: checked })}
+              />
+              <span className="shrink-0 text-sm font-medium">
+                {value.isActive ? 'Active' : 'Hidden'}
+              </span>
             </div>
-          )
-        }
-      </form >
+
+            <div className="flex shrink-0 items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="destructive-outline"
+                size="lg"
+                className={cn(
+                  ' text-xs  hover:text-destructive',
+                  !(value.id && onDelete) && 'pointer-events-none invisible',
+                )}
+                onClick={() => {
+                  if (value.id && onDelete) onDelete(value.id)
+                }}
+              >
+                Delete product
+              </Button>
+              <Button
+                type="submit"
+                size="lg"
+                className="min-w-[124px] justify-center px-5"
+                disabled={submitting || isUploading}
+                loading={submitting || isUploading}
+              >
+                {submitting || isUploading ? 'Saving…' : value.id ? 'Update Product' : 'Create product'}
+              </Button>
+            </div>
+          </div>
+        )}
+      </form>
     </>
   )
 }

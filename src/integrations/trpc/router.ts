@@ -889,6 +889,7 @@ const productBaseInput = z.object({
   userId: z.string(),
   title: z.string().min(1),
   description: z.string().optional(),
+  productContent: z.any().optional(),
   productUrl: z.string().url().optional().or(z.literal('')),
   images: z.array(z.string()).optional(),
   productFiles: z.array(z.any()).optional(), // JSON content
@@ -962,6 +963,7 @@ const productRouter = {
           userId: actorUserId,
           title: input.title,
           description: input.description ?? null,
+          productContent: input.productContent ?? null,
           productUrl: input.productUrl || null,
           images: input.images || null,
           productFiles: input.productFiles || null,
@@ -995,26 +997,35 @@ const productRouter = {
         ? null
         : (input.priceSettings.salePrice ?? null)
 
+      const updatePayload: Record<string, unknown> = {
+        title: input.title,
+        description: input.description ?? null,
+        productContent: input.productContent ?? null,
+        images: input.images || null,
+        isActive: input.isActive ?? true,
+        totalQuantity: input.totalQuantity ?? null,
+        limitPerCheckout: input.limitPerCheckout ?? null,
+        payWhatYouWant: input.priceSettings.payWhatYouWant,
+        price,
+        salePrice,
+        minimumPrice: input.priceSettings.minimumPrice ?? null,
+        suggestedPrice: input.priceSettings.suggestedPrice ?? null,
+        customerQuestions: input.customerQuestions
+          ? JSON.stringify(input.customerQuestions)
+          : null,
+      }
+
+      if (input.productUrl !== undefined) {
+        updatePayload.productUrl = input.productUrl || null
+      }
+
+      if (input.productFiles !== undefined) {
+        updatePayload.productFiles = input.productFiles || null
+      }
+
       const [row] = await db
         .update(products)
-        .set({
-          title: input.title,
-          description: input.description ?? null,
-          productUrl: input.productUrl || null,
-          images: input.images || null,
-          productFiles: input.productFiles || null,
-          isActive: input.isActive ?? true,
-          totalQuantity: input.totalQuantity ?? null,
-          limitPerCheckout: input.limitPerCheckout ?? null,
-          payWhatYouWant: input.priceSettings.payWhatYouWant,
-          price,
-          salePrice,
-          minimumPrice: input.priceSettings.minimumPrice ?? null,
-          suggestedPrice: input.priceSettings.suggestedPrice ?? null,
-          customerQuestions: input.customerQuestions
-            ? JSON.stringify(input.customerQuestions)
-            : null,
-        })
+        .set(updatePayload)
         .where(
           and(
             eq(products.id, input.id),
@@ -1047,6 +1058,7 @@ const productRouter = {
           userId: product.userId,
           title: `${product.title} (Copy)`,
           description: product.description,
+          productContent: product.productContent,
           payWhatYouWant: product.payWhatYouWant,
           price: product.price,
           salePrice: product.salePrice,
