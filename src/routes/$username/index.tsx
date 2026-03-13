@@ -580,7 +580,7 @@ function UserProfile() {
         )}
       >
         {isBanner && lcpBannerSrc ? (
-          <div className="h-[120px] overflow-hidden  sm:max-w-2xl md:max-w-3xl sm:mx-auto  px-3 ">
+          <div className="h-[60px] sm:h-[120px] overflow-hidden  sm:max-w-2xl md:max-w-3xl sm:mx-auto px-3">
             <img
               src={lcpBannerSrc}
               alt={`${user.name} banner`}
@@ -593,13 +593,11 @@ function UserProfile() {
             />
           </div>
         ) : (
-          // <div className="h-[160px] w-full " />
           null
         )}
 
         <div
           className={cn(
-            // 'lg:divide-x',
             divideClass,
             hasActiveProducts
               ? 'sm:max-w-2xl md:max-w-3xl  mx-auto grid grid-cols-1 px-5 '
@@ -618,59 +616,61 @@ function UserProfile() {
               </ShareProfileModal>
             </div>
             <div className="flex gap-4">
-              <div className="relative w-24 h-24">
-                <Avatar className="h-24 w-24 rounded-full border-2 border-background ring-1 ring-foreground/10">
+              <div className="relative w-11 h-11 sm:h-24 sm:w-24">
+                <Avatar className="absolute top-0 w-11 h-11 sm:h-24 sm:w-24 border-2 border-background ring-1 ring-foreground/10">
                   <AvatarImage src={user.image || "/avatar-placeholder.png"} />
                   <AvatarFallback className="text-lg font-bold">
                     {user.name}
                   </AvatarFallback>
                 </Avatar>
-
-
-                <div className="absolute bottom-0 right-0 z-20 inline-flex">
-                  <SimpleTooltip content="Verified">
-                    <VerifiedIcon className="size-8 text-blue-500" />
-                  </SimpleTooltip>
-
-                </div>
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col justify-end">
 
                 <h1
                   id="profile-name"
-                  className="text-3xl font-bold"
+                  className=" text-xl sm:text-3xl font-bold flex items-center gap-2"
                   style={{ color: profileTextColor.foreground }}
                 >
                   {user.name}
+                  <SimpleTooltip content="Verified">
+                    <VerifiedIcon className="size-4 sm:size-8 text-blue-500" />
+                  </SimpleTooltip>
                 </h1>
                 {user.title ? (
                   <p
-                    className="text-sm "
+                    className="text-xs sm:text-sm "
                     style={{ color: profileTextColor.mutedForeground }}
                   >
                     {user.title}
                   </p>
                 ) : null}
 
-                {socialItems.length > 0 ? (
+                {/* {socialItems.length > 0 ? (
                   <SocialProfileBlocks
                     links={socialItems}
                     iconColor={profileTextColor.foreground}
-                    className="flex mt-5"
+                    className="flex mt-4"
                   />
-                ) : null}
+                ) : null} */}
               </div>
             </div>
             {user.bio ? (
               <p
-                className="mt-7 mx-auto text-md leading-relaxed "
+                className="mt-3 mx-auto text-md leading-relaxed "
                 style={{ color: profileTextColor.mutedForeground }}
               >
                 {user.bio}
               </p>
             ) : null}
+            {socialItems.length > 0 ? (
+              <SocialProfileBlocks
+                links={socialItems}
+                iconColor={profileTextColor.foreground}
+                className="flex mt-4"
+              />
+            ) : null}
             {/* TODO: MAKE USER CAN SET THIS CTA ON  admin/editor/profiles.tsx */}
-            <Button variant='neutral' className='mt-7 w-full py-6' size='lg'>Join Discord Sekarang!</Button>
+            {/* <Button variant='neutral' className='mt-7 w-full py-6' size='lg'>Join Discord Sekarang!</Button> */}
             {hasActiveProducts && (
               <div className="mt-6">
                 <Tabs

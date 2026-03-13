@@ -7,5 +7,5 @@ export function getSocialBlockButtonClasses(): string {
 }
 
 export function getSocialBlockIconClasses(): string {
-  return 'size-5 text-foreground  group-hover:opacity-80'
+  return 'size-4 md:size-5 text-foreground  group-hover:opacity-80'
 }
