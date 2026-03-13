@@ -4,17 +4,19 @@ import { cn } from "@/lib/utils";
 
 interface LogoMarkProps {
   className?: string;
+  style?: CSSProperties;
   size?: number;
   width?: number;
   height?: number;
 }
 
-const LogoMark = ({ className, size, width, height }: LogoMarkProps) => {
+const LogoMark = ({ className, size, width, height, style }: LogoMarkProps) => {
   return (
     <KreasiLogo
       width={size ?? width ?? 24}
       height={size ?? height ?? 24}
       className={className}
+      style={style}
     />
   );
 };
