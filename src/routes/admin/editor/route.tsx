@@ -45,21 +45,24 @@ function EditorLayout() {
                   className="rounded-full py-6 px-6 font-semibold"
                   variant={'outline'}
                   size={'lg'}
+                  disabled={!user?.username}
                 >
-                  <span className="truncate max-w-[120px] md:max-w-40">
+                  <span className="truncate w-[120px] md:w-40">
                     {user?.username
-                      ? `${PUBLIC_BASE_HOST}/${user.username}`
-                      : `${PUBLIC_BASE_HOST}/loading`}
+                      && `${PUBLIC_BASE_HOST}/${user.username}`
+                    }
                   </span>
                 </Button>
               </ShareProfileModal>
               <GroupSeparator />
-              <SimpleTooltip content='Open Link' render={<Button variant='secondary' className='rounded-full py-6 px-6' render={<a href={`${BASE_URL}/${user?.username}`} target='_blank' rel="noopener noreferrer" />} />}>
-                {status.isSaving ? (
-                  <div className="flex items-center">
-                    <Spinner className="w-4 h-4" />
-                  </div>
-                ) : <ExternalLink />}
+              <SimpleTooltip content='Open Link' render={<Button disabled={!user?.username} variant='secondary' className='rounded-full py-6 px-6' render={<a href={`${BASE_URL}/${user?.username}`} target='_blank' rel="noopener noreferrer" />} />}>
+                {
+                  status.isSaving ? (
+                    <div className="flex items-center">
+                      <Spinner className="w-4 h-4" />
+                    </div>
+                  ) : <ExternalLink />
+                }
               </SimpleTooltip>
             </Group>
           </div>
