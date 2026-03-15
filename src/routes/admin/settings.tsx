@@ -51,7 +51,6 @@ import {
 import { Form } from '@/components/ui/form'
 import {
   Frame,
-  FrameDescription,
   FrameHeader,
   FramePanel,
   FrameTitle,
@@ -228,13 +227,6 @@ function SettingsPage() {
     },
     staleTime: 1000 * 30,
   })
-  const connectedAccountsQuery = useQuery({
-    queryKey: ['connected-accounts'],
-    queryFn: async () => {
-      return await trpcClient.connectedAccount.list.query()
-    },
-    staleTime: 1000 * 60 * 5,
-  })
   const trackingIntegrationsQuery = useQuery({
     queryKey: ['tracking-integrations'],
     queryFn: async () => {
@@ -243,7 +235,6 @@ function SettingsPage() {
     staleTime: 1000 * 30,
   })
   const accounts = bankAccountsQuery.data ?? []
-  const connectedAccounts = connectedAccountsQuery.data ?? []
   const trackingConfig = trackingIntegrationsQuery.data ?? null
 
   const editingAccount = React.useMemo(
@@ -762,107 +753,44 @@ function SettingsPage() {
   }, [usernameFailedMessage])
 
   return (
-    <div>
+    <div className='max-w-3xl mx-auto w-full'>
       <AppHeader>
         <AppHeaderContent title="Settings" />
       </AppHeader>
       <div className="px-4 md:px-10 pb-4 md:pb-10 space-y-6">
         <Tabs defaultValue="tab-1">
-          <TabsList>
+          <TabsList
+            variant='underline'
+            className={'mb-5'}
+          >
             <TabsTab value="tab-1">Accounts</TabsTab>
             <TabsTab value="tab-2">Payment</TabsTab>
             <TabsTab value="tab-3">Integrations</TabsTab>
           </TabsList>
           <TabsPanel value="tab-1" className="space-y-6">
             <Frame>
-              <FrameHeader className="flex flex-row items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <FrameTitle className="text-lg">Profile</FrameTitle>
-                  <FrameDescription>
-                    Manage the username used for your public page.
-                  </FrameDescription>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={openUsernameDialog}
-                >
-                  Edit username
-                </Button>
+              <FrameHeader>
+                <FrameTitle className="text-lg">Username</FrameTitle>
               </FrameHeader>
               <FramePanel>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-lg border bg-muted/48 p-2 text-muted-foreground">
-                        <AtSign className="size-4" />
-                      </div>
-                      <p className="font-medium text-sm">
-                        @{adminAuth?.username ?? 'username'}
-                      </p>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {profileUrl}
-                    </p>
-                  </div>
+                <div className="flex items-center flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                  <p className="text-sm">
+                    {profileUrl}
+                  </p>
+
+                  <Button
+                    size="lg"
+                    className='rounded-full'
+                    variant="outline"
+                    onClick={openUsernameDialog}
+                  >
+                    Change
+                  </Button>
                 </div>
               </FramePanel>
             </Frame>
 
-            <Frame>
-              <FrameHeader>
-                <FrameTitle className="text-lg">Connected Account</FrameTitle>
-                <FrameDescription>
-                  Your sign-in provider connected to this account.
-                </FrameDescription>
-              </FrameHeader>
-              <FramePanel className="space-y-3 min-h-32">
-                {connectedAccountsQuery.isLoading ? (
-                  <div className="h-24 w-full rounded-xl bg-muted/32" />
-                ) : connectedAccounts.length === 0 ? (
-                  <div className="rounded-xl border border-dashed bg-muted/32 p-5">
-                    <p className="font-medium text-sm">
-                      No connected provider found
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      This account has no linked sign-in provider record yet.
-                    </p>
-                  </div>
-                ) : (
-                  connectedAccounts.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-xl border bg-muted/28 p-4"
-                    >
-                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-medium text-sm capitalize">
-                              {item.providerId}
-                            </p>
-                            <Badge size="sm" variant="success">
-                              Connected
-                            </Badge>
-                          </div>
-                          <div className="space-y-1 text-sm">
-                            <p className="text-foreground">
-                              {adminAuth?.email}
-                            </p>
-                            <p className="text-muted-foreground">
-                              Account ID: {item.accountId}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="rounded-lg border bg-background px-3 py-2 text-right text-xs text-muted-foreground">
-                          Sign in with {item.providerId}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </FramePanel>
-            </Frame>
           </TabsPanel>
           <TabsPanel value="tab-2" className="space-y-6">
             <Frame>
@@ -871,9 +799,6 @@ function SettingsPage() {
                   <FrameTitle className="text-lg">
                     Payout Bank Accounts
                   </FrameTitle>
-                  <FrameDescription>
-                    Save one or more bank accounts for withdrawals.
-                  </FrameDescription>
                 </div>
                 <Button size="sm" onClick={openCreateDialog}>
                   <Plus />
@@ -948,10 +873,6 @@ function SettingsPage() {
             <Frame>
               <FrameHeader>
                 <FrameTitle className="text-lg">Growth & Tracking</FrameTitle>
-                <FrameDescription>
-                  Connect Facebook Pixel to measure product views, checkout
-                  starts, and purchases.
-                </FrameDescription>
               </FrameHeader>
               <FramePanel className="space-y-3 min-h-40">
                 {trackingIntegrationsQuery.isLoading ? (
@@ -1039,15 +960,11 @@ function SettingsPage() {
             onSubmit={handleSubmitUsername}
           >
             <DialogHeader>
-              <DialogTitle>Edit username</DialogTitle>
-              <DialogDescription>
-                Use the same username rules as onboarding. This updates your
-                public profile URL.
-              </DialogDescription>
+              <DialogTitle>Change username</DialogTitle>
             </DialogHeader>
 
             <DialogPanel className="space-y-4">
-              <Field name="username">
+              <Field name="username" >
                 <FieldLabel className="sr-only">Username</FieldLabel>
                 <InputGroup>
                   <InputGroupInput
@@ -1079,17 +996,13 @@ function SettingsPage() {
                     ) : null}
                   </InputGroupAddon>
                 </InputGroup>
-                <FieldDescription>
-                  Preview: {BASE_URL.replace(/\/$/, '')}/
-                  {usernameFormValues.username || 'username'}
-                </FieldDescription>
                 <FieldError>
                   {usernameFailedMessage || usernameFormErrors.username}
                 </FieldError>
               </Field>
             </DialogPanel>
 
-            <DialogFooter>
+            <DialogFooter >
               <DialogClose render={<Button variant="ghost" />}>
                 Cancel
               </DialogClose>
@@ -1098,7 +1011,7 @@ function SettingsPage() {
                 loading={usernameMutation.isPending}
                 disabled={isUsernameSaveBlocked}
               >
-                Save username
+                Save
               </Button>
             </DialogFooter>
           </Form>

@@ -6,7 +6,6 @@ import type { TRPCRouterRecord } from '@trpc/server'
 import { db } from '@/db'
 import {
   TRANSACTION_TYPE,
-  account,
   bankAccounts,
   blockClicks,
   blocks,
@@ -649,24 +648,6 @@ const bankAccountRouter = {
 
       return { success: true }
     }),
-} satisfies TRPCRouterRecord
-
-const connectedAccountRouter = {
-  list: protectedProcedure.query(async ({ ctx }) => {
-    const actorUserId = ctx.session.user.id
-
-    return await db.query.account.findMany({
-      where: eq(account.userId, actorUserId),
-      orderBy: [asc(account.createdAt)],
-      columns: {
-        id: true,
-        providerId: true,
-        accountId: true,
-        scope: true,
-        createdAt: true,
-      },
-    })
-  }),
 } satisfies TRPCRouterRecord
 
 const trackingIntegrationRouter = {
@@ -2098,7 +2079,6 @@ export const trpcRouter = createTRPCRouter({
   user: userRouter,
   onboarding: onboardingRouter,
   bankAccount: bankAccountRouter,
-  connectedAccount: connectedAccountRouter,
   trackingIntegration: trackingIntegrationRouter,
   metaTracking: metaTrackingRouter,
   block: blockRouter,
