@@ -15,7 +15,7 @@ export const Route = createFileRoute('/admin/products/new')({
 function buildProductPayload(values: ProductFormValues) {
   return {
     title: values.title,
-    description: values.description || undefined,
+    description: values.description ?? undefined,
     productContent: values.productContent ?? undefined,
     images: values.images,
     isActive: values.isActive,

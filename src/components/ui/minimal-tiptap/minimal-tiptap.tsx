@@ -25,9 +25,19 @@ export interface MinimalTiptapProps extends Omit<
   onChange?: (value: Content) => void
   className?: string
   editorContentClassName?: string
+  allowImageUpload?: boolean
+  allowFileUpload?: boolean
 }
 
-const Toolbar = ({ editor }: { editor: Editor }) => (
+const Toolbar = ({
+  editor,
+  allowImageUpload = true,
+  allowFileUpload = true,
+}: {
+  editor: Editor
+  allowImageUpload?: boolean
+  allowFileUpload?: boolean
+}) => (
   <div className="border-border flex h-12 shrink-0 overflow-x-auto border-b p-2">
     <div className="flex w-max items-center gap-px">
       <SectionOne editor={editor} activeLevels={[1, 2, 3, 4, 5, 6]} />
@@ -64,12 +74,14 @@ const Toolbar = ({ editor }: { editor: Editor }) => (
       <SectionFive
         editor={editor}
         activeActions={[
-          "imageBlock",
+          ...(allowImageUpload ? ["imageBlock"] : []),
           "buttonBlock",
           "codeBlock",
           "blockquote",
           "horizontalRule",
         ]}
+        allowImageUpload={allowImageUpload}
+        allowFileUpload={allowFileUpload}
         mainActionCount={0}
       />
     </div>
@@ -81,11 +93,15 @@ export const MinimalTiptapEditor = ({
   onChange,
   className,
   editorContentClassName,
+  allowImageUpload,
+  allowFileUpload,
   ...props
 }: MinimalTiptapProps) => {
   const editor = useMinimalTiptapEditor({
     value,
     onUpdate: onChange,
+    allowImageUpload,
+    allowFileUpload,
     ...props,
   })
 
@@ -99,6 +115,8 @@ export const MinimalTiptapEditor = ({
         editor={editor}
         className={className}
         editorContentClassName={editorContentClassName}
+        allowImageUpload={allowImageUpload}
+        allowFileUpload={allowFileUpload}
       />
     </EditorContext.Provider>
   )
@@ -112,6 +130,8 @@ export const MainMinimalTiptapEditor = ({
   editor: providedEditor,
   className,
   editorContentClassName,
+  allowImageUpload = true,
+  allowFileUpload = true,
 }: MinimalTiptapProps & { editor: Editor }) => {
   const { editor } = useTiptapEditor(providedEditor)
 
@@ -129,13 +149,17 @@ export const MainMinimalTiptapEditor = ({
         className
       )}
     >
-      <Toolbar editor={editor} />
+      <Toolbar
+        editor={editor}
+        allowImageUpload={allowImageUpload}
+        allowFileUpload={allowFileUpload}
+      />
       <EditorContent
         editor={editor}
         className={cn("minimal-tiptap-editor", editorContentClassName)}
       />
       <LinkBubbleMenu editor={editor} />
-      <FileBubbleMenu editor={editor} />
+      {allowFileUpload ? <FileBubbleMenu editor={editor} /> : null}
       <ButtonBubbleMenu editor={editor} />
     </MeasuredContainer>
   )

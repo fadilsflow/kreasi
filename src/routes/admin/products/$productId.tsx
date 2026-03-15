@@ -7,6 +7,7 @@ import { ProductForm, parseCustomerQuestions } from '@/components/dashboard/Prod
 import { getDashboardData } from '@/lib/profile-server'
 import { trpcClient } from '@/integrations/tanstack-query/root-provider'
 import { toastManager } from '@/components/ui/toast'
+import { normalizeTiptapContent } from '@/lib/rich-text'
 
 export const Route = createFileRoute('/admin/products/$productId')({
   component: ProductEditRoute,
@@ -18,7 +19,7 @@ function buildProductPayload(values: ProductFormValues) {
   return {
     id: values.id!,
     title: values.title,
-    description: values.description || undefined,
+    description: values.description ?? undefined,
     productContent: values.productContent ?? undefined,
     images: values.images,
     isActive: values.isActive,
@@ -41,7 +42,7 @@ function mapProductToForm(product: any): ProductFormValues {
   return {
     id: product.id,
     title: product.title ?? '',
-    description: product.description ?? '',
+    description: normalizeTiptapContent(product.description),
     productContent: product.productContent ?? null,
     images: product.images ?? [],
     isActive: product.isActive,

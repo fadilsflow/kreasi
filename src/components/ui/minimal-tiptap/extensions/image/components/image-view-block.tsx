@@ -220,7 +220,10 @@ export const ImageViewBlock: React.FC<NodeViewProps> = ({
       className="relative text-center leading-none"
     >
       <div
-        className="group/node-image relative mx-auto rounded-md object-contain"
+        className={cn(
+          "group/node-image relative rounded-md object-contain",
+          editor.isEditable ? "mx-auto" : "ml-0 mr-auto"
+        )}
         style={{
           maxWidth: `min(${maxWidth}px, 100%)`,
           width: currentWidth,

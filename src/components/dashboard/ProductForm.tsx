@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { toastManager } from '@/components/ui/toast'
 import { cn, formatPriceInput, parsePriceInput } from '@/lib/utils'
@@ -16,6 +15,7 @@ import { Separator } from '../ui/separator'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui/input-group'
 import { Tabs, TabsList, TabsPanel, TabsTab } from '@/components/ui/tabs'
 import { ProductContentEditor } from '@/components/dashboard/ProductContentEditor'
+import { MinimalTiptapEditor } from '@/components/ui/minimal-tiptap'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ export type CustomerQuestion = {
 export type ProductFormValues = {
   id?: string
   title: string
-  description: string
+  description: Content | null
   productContent?: Content | null
   images: string[]
   isActive: boolean
@@ -62,7 +62,7 @@ export interface ProductFormProps {
 export function emptyProductForm(): ProductFormValues {
   return {
     title: '',
-    description: '',
+    description: null,
     productContent: null,
     images: [],
     isActive: true,
@@ -396,12 +396,23 @@ export function ProductForm({
                 </FieldWrapper>
 
                 <FieldWrapper label="Description" >
-                  <Textarea
-                    value={value.description}
-                    onChange={(e) => update({ description: e.target.value })}
+                  <MinimalTiptapEditor
+                    value={value.description ?? undefined}
+                    onChange={(content) => update({ description: content })}
                     placeholder="Describe what the customer will get..."
-                    rows={3}
-                    className="resize-none"
+                    output="json"
+                    className="w-full"
+                    editorContentClassName="p-4 sm:min-h-[160px]"
+                    allowImageUpload
+                    allowFileUpload={false}
+                    uploader={async (file) => {
+                      setUploading(true)
+                      try {
+                        return await uploadFile(file, 'products/images')
+                      } finally {
+                        setUploading(false)
+                      }
+                    }}
                   />
                 </FieldWrapper>
               </section>

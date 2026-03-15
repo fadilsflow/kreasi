@@ -22,6 +22,7 @@ import { useSavedStore } from '@/store/saved-store'
 import { BASE_URL } from '@/lib/constans'
 import { Separator } from '@/components/ui/separator'
 import PublicProfileFooter from '@/components/public-profile-footer'
+import ProductContentRenderer from '@/components/products/ProductContentRenderer'
 import {
   Carousel,
   CarouselContent,
@@ -38,6 +39,7 @@ import {
 } from '@/lib/meta-pixel'
 import { trpcClient } from '@/integrations/tanstack-query/root-provider'
 import NotFound from '@/components/not-found'
+import { normalizeTiptapContent, tiptapContentToText } from '@/lib/rich-text'
 
 export const Route = createFileRoute('/$username/$productId/')({
   component: ProductDetailPage,
@@ -156,7 +158,7 @@ function ProductImage({ images, title }: ProductImageProps) {
           loop: true,
         }}
       >
-        <CarouselContent className="-ml-0">
+        <CarouselContent className="ml-0">
           {images.map((image, index) => (
             <CarouselItem key={`${image}-${index}`} className="pl-0">
               <div className="flex aspect-video items-center justify-center">
@@ -216,7 +218,13 @@ function ProductDetailPage() {
   const productHref = `${BASE_URL.replace(/\/$/, '')}/${username}/${productId}`
   const productImages = product.images || []
   const originalPrice = getOriginalPrice(product)
-  const productVideoId = extractYouTubeVideoIdFromText(product.description)
+  const descriptionContent = React.useMemo(
+    () => normalizeTiptapContent(product.description),
+    [product.description],
+  )
+  const productVideoId = extractYouTubeVideoIdFromText(
+    tiptapContentToText(descriptionContent),
+  )
   const isCurrentProductSaved = isSaved(product.id)
   const creatorName = user.username || user.name || 'creator'
   const creatorInitial = creatorName.charAt(0).toUpperCase()
@@ -377,10 +385,11 @@ function ProductDetailPage() {
                 </SimpleTooltip>
               </div>
 
-              {product.description ? (
-                <p className="whitespace-pre-line text-muted-foreground">
-                  {product.description}
-                </p>
+              {descriptionContent ? (
+                <ProductContentRenderer
+                  content={descriptionContent}
+                  className="text-muted-foreground"
+                />
               ) : null}
             </div>
 

@@ -31,6 +31,8 @@ export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
   onUpdate?: (content: Content) => void
   onBlur?: (content: Content) => void
   uploader?: (file: File) => Promise<string>
+  allowImageUpload?: boolean
+  allowFileUpload?: boolean
 }
 
 async function fakeuploader(file: File): Promise<string> {
@@ -48,9 +50,13 @@ async function fakeuploader(file: File): Promise<string> {
 const createExtensions = ({
   placeholder,
   uploader,
+  allowImageUpload = true,
+  allowFileUpload = true,
 }: {
   placeholder: string
   uploader?: (file: File) => Promise<string>
+  allowImageUpload?: boolean
+  allowFileUpload?: boolean
 }) => [
   StarterKit.configure({
     blockquote: { HTMLAttributes: { class: "block-node" } },
@@ -82,33 +88,37 @@ const createExtensions = ({
     // underline
     // trailingNode
   }),
-  Image.configure({
+  ...(allowImageUpload
+    ? [
+        Image.configure({
     allowedMimeTypes: ["image/*"],
     maxFileSize: 5 * 1024 * 1024,
     allowBase64: true,
-    uploadFn: async (file) => {
-      return uploader ? await uploader(file) : await fakeuploader(file)
-    },
-    onToggle(editor, files, pos) {
-      editor.commands.insertContentAt(
-        pos,
-        files.map((image) => {
-          const blobUrl = URL.createObjectURL(image)
-          const id = randomId()
+    uploadFn: allowImageUpload
+      ? async (file) => (uploader ? await uploader(file) : await fakeuploader(file))
+      : undefined,
+    onToggle: allowImageUpload
+      ? (editor, files, pos) => {
+          editor.commands.insertContentAt(
+            pos,
+            files.map((image) => {
+              const blobUrl = URL.createObjectURL(image)
+              const id = randomId()
 
-          return {
-            type: "image",
-            attrs: {
-              id,
-              src: blobUrl,
-              alt: image.name,
-              title: image.name,
-              fileName: image.name,
-            },
-          }
-        })
-      )
-    },
+              return {
+                type: "image",
+                attrs: {
+                  id,
+                  src: blobUrl,
+                  alt: image.name,
+                  title: image.name,
+                  fileName: image.name,
+                },
+              }
+            })
+          )
+        }
+      : undefined,
     onImageRemoved({ id, src }) {
       console.log("Image removed", { id, src })
     },
@@ -143,47 +153,53 @@ const createExtensions = ({
       })
     },
   }),
-  FileHandler.configure({
-    allowBase64: false,
-    allowedMimeTypes: ["image/*"],
-    maxFileSize: 5 * 1024 * 1024,
-    onDrop: (editor, files, pos) => {
-      files.forEach(async (file) => {
-        const src = URL.createObjectURL(file)
-        editor.commands.insertContentAt(pos, {
-          type: "image",
-          attrs: {
-            src,
-            alt: file.name,
-            title: file.name,
-            fileName: file.name,
+      ]
+    : []),
+  ...(allowImageUpload
+    ? [
+        FileHandler.configure({
+          allowBase64: false,
+          allowedMimeTypes: ["image/*"],
+          maxFileSize: 5 * 1024 * 1024,
+          onDrop: (editor, files, pos) => {
+            files.forEach(async (file) => {
+              const src = URL.createObjectURL(file)
+              editor.commands.insertContentAt(pos, {
+                type: "image",
+                attrs: {
+                  src,
+                  alt: file.name,
+                  title: file.name,
+                  fileName: file.name,
+                },
+              })
+            })
           },
-        })
-      })
-    },
-    onPaste: (editor, files) => {
-      files.forEach(async (file) => {
-        const src = URL.createObjectURL(file)
-        editor.commands.insertContent({
-          type: "image",
-          attrs: {
-            src,
-            alt: file.name,
-            title: file.name,
-            fileName: file.name,
+          onPaste: (editor, files) => {
+            files.forEach(async (file) => {
+              const src = URL.createObjectURL(file)
+              editor.commands.insertContent({
+                type: "image",
+                attrs: {
+                  src,
+                  alt: file.name,
+                  title: file.name,
+                  fileName: file.name,
+                },
+              })
+            })
           },
-        })
-      })
-    },
-    onValidationError: (errors) => {
-      errors.forEach((error) => {
-        toast.error("Image validation error", {
-          position: "bottom-right",
-          description: error.reason,
-        })
-      })
-    },
-  }),
+          onValidationError: (errors) => {
+            errors.forEach((error) => {
+              toast.error("Image validation error", {
+                position: "bottom-right",
+                description: error.reason,
+              })
+            })
+          },
+        }),
+      ]
+    : []),
   Color,
   TextStyle,
   Selection,
@@ -192,14 +208,18 @@ const createExtensions = ({
   HorizontalRule,
   ResetMarksOnEnter,
   CodeBlockLowlight,
-  FileExtension.configure({
-    uploadFn: async (file) => {
-      return uploader ? await uploader(file) : await fakeuploader(file)
-    },
-    onFileRemoved(attrs) {
-      console.log("File removed", attrs)
-    },
-  }),
+  ...(allowFileUpload
+    ? [
+        FileExtension.configure({
+          uploadFn: async (file) => {
+            return uploader ? await uploader(file) : await fakeuploader(file)
+          },
+          onFileRemoved(attrs) {
+            console.log("File removed", attrs)
+          },
+        }),
+      ]
+    : []),
   ButtonExtension,
   Placeholder.configure({ placeholder: () => placeholder }),
 ]
@@ -213,6 +233,8 @@ export const useMinimalTiptapEditor = ({
   onUpdate,
   onBlur,
   uploader,
+  allowImageUpload = true,
+  allowFileUpload = true,
   ...props
 }: UseMinimalTiptapEditorProps) => {
   const throttledSetValue = useThrottle(
@@ -241,7 +263,12 @@ export const useMinimalTiptapEditor = ({
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: createExtensions({ placeholder, uploader }),
+    extensions: createExtensions({
+      placeholder,
+      uploader,
+      allowImageUpload,
+      allowFileUpload,
+    }),
     editorProps: {
       attributes: {
         autocomplete: "off",

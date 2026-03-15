@@ -885,10 +885,20 @@ const customerQuestionSchema = z.object({
   required: z.boolean().default(false),
 })
 
+const serializeProductDescription = (description: unknown): string | null => {
+  if (description == null) return null
+  if (typeof description === 'string') return description
+  try {
+    return JSON.stringify(description)
+  } catch {
+    return null
+  }
+}
+
 const productBaseInput = z.object({
   userId: z.string(),
   title: z.string().min(1),
-  description: z.string().optional(),
+  description: z.any().optional(),
   productContent: z.any().optional(),
   images: z.array(z.string()).optional(),
   isActive: z.boolean().optional(),
@@ -960,7 +970,7 @@ const productRouter = {
           id,
           userId: actorUserId,
           title: input.title,
-          description: input.description ?? null,
+          description: serializeProductDescription(input.description),
           productContent: input.productContent ?? null,
           images: input.images || null,
           isActive: input.isActive ?? true,
@@ -995,7 +1005,7 @@ const productRouter = {
 
       const updatePayload: Record<string, unknown> = {
         title: input.title,
-        description: input.description ?? null,
+        description: serializeProductDescription(input.description),
         productContent: input.productContent ?? null,
         images: input.images || null,
         isActive: input.isActive ?? true,

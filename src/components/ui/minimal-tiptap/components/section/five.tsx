@@ -31,12 +31,16 @@ interface SectionFiveProps extends VariantProps<typeof toggleVariants> {
   editor: Editor
   activeActions?: InsertElementAction[]
   mainActionCount?: number
+  allowImageUpload?: boolean
+  allowFileUpload?: boolean
 }
 
 export const SectionFive: React.FC<SectionFiveProps> = ({
   editor,
   activeActions,
   mainActionCount = 0,
+  allowImageUpload = true,
+  allowFileUpload = true,
   size,
   variant,
 }) => {
@@ -62,15 +66,19 @@ export const SectionFive: React.FC<SectionFiveProps> = ({
   )
 
   const formatActions: InsertElement[] = [
-    {
-      value: "imageBlock",
-      label: "Image",
-      icon: <ImageIcon className="size-5" />,
-      action: () => imageInputRef.current?.click(),
-      isActive: (editorInstance) => editorInstance.isActive("image"),
-      canExecute: () => true,
-      shortcuts: [],
-    },
+    ...(allowImageUpload
+      ? [
+          {
+            value: "imageBlock",
+            label: "Image",
+            icon: <ImageIcon className="size-5" />,
+            action: () => imageInputRef.current?.click(),
+            isActive: (editorInstance) => editorInstance.isActive("image"),
+            canExecute: () => true,
+            shortcuts: [],
+          } satisfies InsertElement,
+        ]
+      : []),
     {
       value: "buttonBlock",
       label: "Button",
@@ -121,7 +129,9 @@ export const SectionFive: React.FC<SectionFiveProps> = ({
   return (
     <>
       <LinkEditPopover editor={editor} size={size} variant={variant} />
-      <FileInsertDialog editor={editor} size={size} variant={variant} />
+      {allowFileUpload ? (
+        <FileInsertDialog editor={editor} size={size} variant={variant} />
+      ) : null}
       <Separator orientation="vertical" className="mx-2" />
       <ToolbarSection
         editor={editor}
@@ -138,6 +148,16 @@ export const SectionFive: React.FC<SectionFiveProps> = ({
         size={size}
         variant={variant}
       />
+      {allowImageUpload ? (
+        <input
+          type="file"
+          ref={imageInputRef}
+          multiple
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageFiles}
+        />
+      ) : null}
     </>
   )
 }
