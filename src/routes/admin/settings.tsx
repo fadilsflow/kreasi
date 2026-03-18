@@ -1516,14 +1516,15 @@ function SettingsPage() {
                               </Badge>
                             </div>
                             <div className="space-y-1 text-sm text-muted-foreground">
-                              <p>
+                              {/* TODO: Make this in a hover card */}
+                              {/* <p>
                                 ViewContent and InitiateCheckout events are sent
                                 from browser pixel.
                               </p>
                               <p>
                                 Purchase is sent from browser + Meta Conversions
                                 API with shared event_id.
-                              </p>
+                              </p> */}
                             </div>
                             <p className="text-sm text-foreground">
                               {trackingConfig?.pixelId
