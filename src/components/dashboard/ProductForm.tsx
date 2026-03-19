@@ -3,6 +3,23 @@ import { ImageIcon, Plus, Trash2, X } from 'lucide-react'
 import type { Content } from '@tiptap/react'
 import { useFileUpload } from '@/hooks/use-file-upload'
 import { uploadFile } from '@/lib/upload-client'
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import type { DragEndEvent } from '@dnd-kit/core'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -200,6 +217,65 @@ function PriceInput({ id, placeholder, value, onChange }: {
   )
 }
 
+function SortableImageCard({
+  id,
+  index,
+  src,
+  onRemove,
+}: {
+  id: string
+  index: number
+  src?: string
+  onRemove: () => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        'relative aspect-square w-full min-w-0 rounded-lg overflow-hidden border group cursor-grab active:cursor-grabbing',
+        isDragging && 'z-50 opacity-60',
+      )}
+    >
+      <img
+        src={src}
+        alt="Product"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      {index === 0 && (
+        <Badge className="absolute bottom-1 left-1 text-[9px] px-1.5 py-0 h-4">
+          Cover
+        </Badge>
+      )}
+
+      <button
+        type="button"
+        onClick={onRemove}
+        className="absolute top-1 right-1 h-5 w-5 bg-background/80 backdrop-blur rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function ProductForm({
@@ -218,6 +294,7 @@ export function ProductForm({
   const [enableQuantityChoice, setEnableQuantityChoice] = React.useState(false)
   const [enableSalesLimit, setEnableSalesLimit] = React.useState(false)
   const [activeTab, setActiveTab] = React.useState<TabValue>('product')
+  const [imageOrder, setImageOrder] = React.useState<string[]>([])
 
   const setUploading = (val: boolean) => {
     setIsUploading(val)
@@ -275,6 +352,51 @@ export function ProductForm({
     if (imageFiles.length > 0) clearError('images')
   }, [imageFiles.length])
 
+  React.useEffect(() => {
+    setImageOrder((prev) => {
+      const currentIds = imageFiles.map((file) => file.id)
+      if (currentIds.length === 0) return []
+      if (prev.length === 0) return currentIds
+
+      const currentSet = new Set(currentIds)
+      const next = prev.filter((id) => currentSet.has(id))
+      const missing = currentIds.filter((id) => !next.includes(id))
+      return [...next, ...missing]
+    })
+  }, [imageFiles])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
+
+  const orderedImageFiles = React.useMemo(() => {
+    if (imageOrder.length === 0) return imageFiles
+    const map = new Map(imageFiles.map((file) => [file.id, file]))
+    const ordered = imageOrder
+      .map((id) => map.get(id))
+      .filter((file): file is (typeof imageFiles)[number] => Boolean(file))
+    const extras = imageFiles.filter((file) => !imageOrder.includes(file.id))
+    return ordered.length > 0 ? [...ordered, ...extras] : imageFiles
+  }, [imageFiles, imageOrder])
+
+  const handleImageDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const currentIds =
+      imageOrder.length > 0 ? imageOrder : imageFiles.map((file) => file.id)
+    const oldIndex = currentIds.indexOf(String(active.id))
+    const newIndex = currentIds.indexOf(String(over.id))
+    if (oldIndex === -1 || newIndex === -1) return
+
+    setImageOrder(arrayMove(currentIds, oldIndex, newIndex))
+  }
+
   const handleSubmit: React.FormEventHandler = async (e) => {
     e.preventDefault()
     if (!value.id && activeTab === 'product') {
@@ -298,7 +420,7 @@ export function ProductForm({
 
     try {
       const finalImages: string[] = []
-      for (const f of imageFiles) {
+      for (const f of orderedImageFiles) {
         if (f.file instanceof File) {
           finalImages.push(await uploadFile(f.file, 'products/images'))
         } else {
@@ -515,52 +637,46 @@ export function ProductForm({
               <section className="space-y-5 p-4 md:p-10">
                 <SectionHeader title="Images" description="First image is the cover" />
 
-                <div
-                  className="grid w-full min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
-                  onDrop={handleImageDrop}
-                  onDragOver={handleImageDragOver}
-                  onDragEnter={handleImageDragEnter}
-                  onDragLeave={handleImageDragLeave}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleImageDragEnd}
                 >
-                  {imageFiles.map((file, i) => (
+                  <SortableContext
+                    items={orderedImageFiles.map((file) => file.id)}
+                    strategy={rectSortingStrategy}
+                  >
                     <div
-                      key={file.id}
-                      className="relative aspect-square w-full min-w-0 rounded-lg overflow-hidden border group"
+                      className="grid w-full min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+                      onDrop={handleImageDrop}
+                      onDragOver={handleImageDragOver}
+                      onDragEnter={handleImageDragEnter}
+                      onDragLeave={handleImageDragLeave}
                     >
-                      <img
-                        src={file.preview}
-                        alt="Product"
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
+                      {orderedImageFiles.map((file, i) => (
+                        <SortableImageCard
+                          key={file.id}
+                          id={file.id}
+                          index={i}
+                          src={file.preview}
+                          onRemove={() => removeImage(file.id)}
+                        />
+                      ))}
 
-                      {i === 0 && (
-                        <Badge className="absolute bottom-1 left-1 text-[9px] px-1.5 py-0 h-4">
-                          Cover
-                        </Badge>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => removeImage(file.id)}
-                        className="absolute top-1 right-1 h-5 w-5 bg-background/80 backdrop-blur rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <div className="aspect-square w-full min-w-0">
+                        <button
+                          type="button"
+                          onClick={openImageDialog}
+                          className="w-full h-full flex flex-col items-center justify-center rounded-lg border border-dashed bg-muted/40 hover:bg-muted/70 transition-colors text-muted-foreground gap-1.5"
+                        >
+                          <ImageIcon className="h-5 w-5" />
+                          <span className="text-[10px] font-medium">Add image</span>
+                          <input {...getImageInputProps()} className="hidden" />
+                        </button>
+                      </div>
                     </div>
-                  ))}
-
-                  <div className="aspect-square w-full min-w-0">
-                    <button
-                      type="button"
-                      onClick={openImageDialog}
-                      className="w-full h-full flex flex-col items-center justify-center rounded-lg border border-dashed bg-muted/40 hover:bg-muted/70 transition-colors text-muted-foreground gap-1.5"
-                    >
-                      <ImageIcon className="h-5 w-5" />
-                      <span className="text-[10px] font-medium">Add image</span>
-                      <input {...getImageInputProps()} className="hidden" />
-                    </button>
-                  </div>
-                </div>
+                  </SortableContext>
+                </DndContext>
 
                 {errors.images && (
                   <p className="text-[11px] text-destructive font-medium">{errors.images}</p>
