@@ -1,9 +1,6 @@
 import type { BlockRadius, BlockStyle } from '@/lib/block-styles'
 import { cn } from '@/lib/utils'
-import {
-  getActionBlockRadius,
-  getBlockCardBase,
-} from '@/lib/block-styles'
+import { getActionBlockRadius, getBlockCardBase } from '@/lib/block-styles'
 
 interface BlockStyleSelectorProps {
   blockStyle: BlockStyle

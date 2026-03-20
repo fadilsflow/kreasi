@@ -1,8 +1,8 @@
-import * as React from "react"
-import type { Editor } from "@tiptap/react"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import * as React from 'react'
+import type { Editor } from '@tiptap/react'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 
 interface ImageEditBlockProps {
   editor: Editor
@@ -14,7 +14,7 @@ export const ImageEditBlock: React.FC<ImageEditBlockProps> = ({
   close,
 }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null)
-  const [link, setLink] = React.useState("")
+  const [link, setLink] = React.useState('')
 
   const handleClick = React.useCallback(() => {
     fileInputRef.current?.click()
@@ -39,7 +39,7 @@ export const ImageEditBlock: React.FC<ImageEditBlockProps> = ({
       await insertImages()
       close()
     },
-    [editor, close]
+    [editor, close],
   )
 
   const handleSubmit = React.useCallback(
@@ -52,7 +52,7 @@ export const ImageEditBlock: React.FC<ImageEditBlockProps> = ({
         close()
       }
     },
-    [editor, link, close]
+    [editor, link, close],
   )
 
   return (

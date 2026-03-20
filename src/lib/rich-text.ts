@@ -78,4 +78,3 @@ export const tiptapContentToText = (content: Content | null): string => {
 
   return bucket.join(' ').replace(/\s+/g, ' ').trim()
 }
-

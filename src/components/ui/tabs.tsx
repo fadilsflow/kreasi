@@ -39,7 +39,11 @@ function TabsList({
         className,
       )}
       data-slot="tabs-list"
-      style={{ '--tabs-indicator-color': 'var(--foreground, oklch(var(--primary)))' } as React.CSSProperties}
+      style={
+        {
+          '--tabs-indicator-color': 'var(--foreground, oklch(var(--primary)))',
+        } as React.CSSProperties
+      }
       {...props}
     >
       {children}

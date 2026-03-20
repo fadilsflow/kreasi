@@ -1,9 +1,9 @@
-import { useRef, useCallback } from "react"
+import { useRef, useCallback } from 'react'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useThrottle<T extends (...args: any[]) => void>(
   callback: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   const lastRan = useRef(Date.now())
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -23,13 +23,13 @@ export function useThrottle<T extends (...args: any[]) => void>(
               callback(...args)
               lastRan.current = Date.now()
             },
-            delay - (Date.now() - lastRan.current)
+            delay - (Date.now() - lastRan.current),
           )
         }
       }
 
       handler()
     },
-    [callback, delay]
+    [callback, delay],
   )
 }

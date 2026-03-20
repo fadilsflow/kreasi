@@ -1,11 +1,11 @@
-import * as React from "react"
-import { Separator } from "@/components/ui/separator"
-import { ToolbarButton } from "../toolbar-button"
+import * as React from 'react'
+import { Separator } from '@/components/ui/separator'
+import { ToolbarButton } from '../toolbar-button'
 import {
   CopyIcon,
   ExternalLinkIcon,
   LinkBreak2Icon,
-} from "@radix-ui/react-icons"
+} from '@radix-ui/react-icons'
 
 interface LinkPopoverBlockProps {
   url: string
@@ -18,7 +18,7 @@ export const LinkPopoverBlock: React.FC<LinkPopoverBlockProps> = ({
   onClear,
   onEdit,
 }) => {
-  const [copyTitle, setCopyTitle] = React.useState<string>("Copy")
+  const [copyTitle, setCopyTitle] = React.useState<string>('Copy')
 
   const handleCopy = React.useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -26,16 +26,16 @@ export const LinkPopoverBlock: React.FC<LinkPopoverBlockProps> = ({
       navigator.clipboard
         .writeText(url)
         .then(() => {
-          setCopyTitle("Copied!")
-          setTimeout(() => setCopyTitle("Copy"), 1000)
+          setCopyTitle('Copied!')
+          setTimeout(() => setCopyTitle('Copy'), 1000)
         })
         .catch(console.error)
     },
-    [url]
+    [url],
   )
 
   const handleOpenLink = React.useCallback(() => {
-    window.open(url, "_blank", "noopener,noreferrer")
+    window.open(url, '_blank', 'noopener,noreferrer')
   }, [url])
 
   return (

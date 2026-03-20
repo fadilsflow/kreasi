@@ -1,25 +1,25 @@
-import "./styles/index.css"
+import './styles/index.css'
 
-import type { Content, Editor } from "@tiptap/react"
-import type { UseMinimalTiptapEditorProps } from "./hooks/use-minimal-tiptap"
-import { EditorContent, EditorContext } from "@tiptap/react"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
-import { SectionOne } from "./components/section/one"
-import { SectionTwo } from "./components/section/two"
-import { SectionThree } from "./components/section/three"
-import { SectionFour } from "./components/section/four"
-import { SectionFive } from "./components/section/five"
-import { LinkBubbleMenu } from "./components/bubble-menu/link-bubble-menu"
-import { FileBubbleMenu } from "./components/bubble-menu/file-bubble-menu"
-import { ButtonBubbleMenu } from "./components/bubble-menu/button-bubble-menu"
-import { useMinimalTiptapEditor } from "./hooks/use-minimal-tiptap"
-import { MeasuredContainer } from "./components/measured-container"
-import { useTiptapEditor } from "./hooks/use-tiptap-editor"
+import type { Content, Editor } from '@tiptap/react'
+import type { UseMinimalTiptapEditorProps } from './hooks/use-minimal-tiptap'
+import { EditorContent, EditorContext } from '@tiptap/react'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+import { SectionOne } from './components/section/one'
+import { SectionTwo } from './components/section/two'
+import { SectionThree } from './components/section/three'
+import { SectionFour } from './components/section/four'
+import { SectionFive } from './components/section/five'
+import { LinkBubbleMenu } from './components/bubble-menu/link-bubble-menu'
+import { FileBubbleMenu } from './components/bubble-menu/file-bubble-menu'
+import { ButtonBubbleMenu } from './components/bubble-menu/button-bubble-menu'
+import { useMinimalTiptapEditor } from './hooks/use-minimal-tiptap'
+import { MeasuredContainer } from './components/measured-container'
+import { useTiptapEditor } from './hooks/use-tiptap-editor'
 
 export interface MinimalTiptapProps extends Omit<
   UseMinimalTiptapEditorProps,
-  "onUpdate"
+  'onUpdate'
 > {
   value?: Content
   onChange?: (value: Content) => void
@@ -47,12 +47,12 @@ const Toolbar = ({
       <SectionTwo
         editor={editor}
         activeActions={[
-          "bold",
-          "italic",
-          "underline",
-          "strikethrough",
-          "code",
-          "clearFormatting",
+          'bold',
+          'italic',
+          'underline',
+          'strikethrough',
+          'code',
+          'clearFormatting',
         ]}
         mainActionCount={3}
       />
@@ -65,7 +65,7 @@ const Toolbar = ({
 
       <SectionFour
         editor={editor}
-        activeActions={["orderedList", "bulletList"]}
+        activeActions={['orderedList', 'bulletList']}
         mainActionCount={0}
       />
 
@@ -73,13 +73,15 @@ const Toolbar = ({
 
       <SectionFive
         editor={editor}
-        activeActions={[
-          ...(allowImageUpload ? ["imageBlock"] : []),
-          "buttonBlock",
-          "codeBlock",
-          "blockquote",
-          "horizontalRule",
-        ] as any}
+        activeActions={
+          [
+            ...(allowImageUpload ? ['imageBlock'] : []),
+            'buttonBlock',
+            'codeBlock',
+            'blockquote',
+            'horizontalRule',
+          ] as any
+        }
         allowImageUpload={allowImageUpload}
         allowFileUpload={allowFileUpload}
         mainActionCount={0}
@@ -122,7 +124,7 @@ export const MinimalTiptapEditor = ({
   )
 }
 
-MinimalTiptapEditor.displayName = "MinimalTiptapEditor"
+MinimalTiptapEditor.displayName = 'MinimalTiptapEditor'
 
 export default MinimalTiptapEditor
 
@@ -144,9 +146,9 @@ export const MainMinimalTiptapEditor = ({
       as="div"
       name="editor"
       className={cn(
-        "border-input min-data-[orientation=vertical]:h-72 flex h-auto w-full flex-col rounded-md border shadow-xs",
-        "focus-within:border-ring focus-within:ring-input focus-within:ring-[1px]",
-        className
+        'border-input min-data-[orientation=vertical]:h-72 flex h-auto w-full flex-col rounded-md border shadow-xs',
+        'focus-within:border-ring focus-within:ring-input focus-within:ring-[1px]',
+        className,
       )}
     >
       <Toolbar
@@ -156,7 +158,7 @@ export const MainMinimalTiptapEditor = ({
       />
       <EditorContent
         editor={editor}
-        className={cn("minimal-tiptap-editor", editorContentClassName)}
+        className={cn('minimal-tiptap-editor', editorContentClassName)}
       />
       <LinkBubbleMenu editor={editor} />
       {allowFileUpload ? <FileBubbleMenu editor={editor} /> : null}

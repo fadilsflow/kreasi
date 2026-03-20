@@ -75,7 +75,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
   shellComponent: RootDocument,
   notFoundComponent: NotFound,
-
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
@@ -88,9 +87,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body>
         <ToastProvider>
           <AnchoredToastProvider>
-            <TooltipProvider delay={0}>
-              {children}
-            </TooltipProvider>
+            <TooltipProvider delay={0}>{children}</TooltipProvider>
           </AnchoredToastProvider>
         </ToastProvider>
         <TanStackDevtools

@@ -9,10 +9,7 @@ import {
   ShoppingBag,
 } from 'lucide-react'
 import type { ColumnDef } from '@tanstack/react-table'
-import {
-  AppHeader,
-  AppHeaderContent,
-} from '@/components/app-header'
+import { AppHeader, AppHeaderContent } from '@/components/app-header'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -151,7 +148,7 @@ function OrdersPage() {
         const title =
           order.productTitle ?? order.product?.title ?? 'Deleted Product'
         const image = order.productImage ?? order.product?.images?.[0] ?? null
-        
+
         return (
           <button
             type="button"
@@ -281,24 +278,23 @@ function OrdersPage() {
     ? selectedOrder.items.length > 0
       ? selectedOrder.items
       : [
-        {
-          id: selectedOrder.id,
-          productTitle: selectedOrder.productTitle,
-          productImage: selectedOrder.productImage,
-          quantity: selectedOrder.quantity,
-          amountPaid: selectedOrder.amountPaid,
-          productPrice: selectedOrder.productPrice,
-          checkoutAnswers: selectedOrder.checkoutAnswers ?? {},
-          creator: selectedOrder.creator,
-        },
-      ]
+          {
+            id: selectedOrder.id,
+            productTitle: selectedOrder.productTitle,
+            productImage: selectedOrder.productImage,
+            quantity: selectedOrder.quantity,
+            amountPaid: selectedOrder.amountPaid,
+            productPrice: selectedOrder.productPrice,
+            checkoutAnswers: selectedOrder.checkoutAnswers ?? {},
+            creator: selectedOrder.creator,
+          },
+        ]
     : []
 
   return (
     <>
       <AppHeader>
-        <AppHeaderContent title="Orders">
-        </AppHeaderContent>
+        <AppHeaderContent title="Orders"></AppHeaderContent>
       </AppHeader>
       <div className="space-y-6 px-4 md:px-10 pb-4 md:pb-10">
         {(isOrdersLoading || isOrdersFetching) && orders.length === 0 ? (

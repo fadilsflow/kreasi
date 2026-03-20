@@ -1,17 +1,19 @@
-import * as React from "react"
-import { BubbleMenu } from "@tiptap/react/menus"
-import type { Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
-import { ButtonEditBlock } from "../button/button-edit-block"
-import { ToolbarButton } from "../toolbar-button"
-import { Separator } from "@/components/ui/separator"
-import { ExternalLinkIcon, Pencil2Icon, TrashIcon } from "@radix-ui/react-icons"
+import * as React from 'react'
+import { BubbleMenu } from '@tiptap/react/menus'
+import type { Editor } from '@tiptap/react'
+import { NodeSelection } from '@tiptap/pm/state'
+import { ButtonEditBlock } from '../button/button-edit-block'
+import { ToolbarButton } from '../toolbar-button'
+import { Separator } from '@/components/ui/separator'
+import { ExternalLinkIcon, Pencil2Icon, TrashIcon } from '@radix-ui/react-icons'
 
 interface ButtonBubbleMenuProps {
   editor: Editor
 }
 
-export const ButtonBubbleMenu: React.FC<ButtonBubbleMenuProps> = ({ editor }) => {
+export const ButtonBubbleMenu: React.FC<ButtonBubbleMenuProps> = ({
+  editor,
+}) => {
   const [showEdit, setShowEdit] = React.useState(false)
   const [attrs, setAttrs] = React.useState<{
     text?: string
@@ -25,7 +27,7 @@ export const ButtonBubbleMenu: React.FC<ButtonBubbleMenuProps> = ({ editor }) =>
     const { selection } = editor.state
     if (selection instanceof NodeSelection) {
       const node = selection.node
-      if (node.type.name === "button") {
+      if (node.type.name === 'button') {
         setAttrs(node.attrs)
       }
     }
@@ -35,22 +37,24 @@ export const ButtonBubbleMenu: React.FC<ButtonBubbleMenuProps> = ({ editor }) =>
     if (!editor.isEditable) return false
     const { selection } = editor.state
     if (!(selection instanceof NodeSelection)) return false
-    if (selection.node.type.name !== "button") return false
+    if (selection.node.type.name !== 'button') return false
     updateState()
     return true
   }, [editor, updateState])
 
   const handleSave = React.useCallback(
-    (payload: { text: string; url: string; variant: string; size: string; alignment: string }) => {
-      editor
-        .chain()
-        .focus()
-        .updateAttributes("button", payload)
-        .run()
+    (payload: {
+      text: string
+      url: string
+      variant: string
+      size: string
+      alignment: string
+    }) => {
+      editor.chain().focus().updateAttributes('button', payload).run()
       setShowEdit(false)
       updateState()
     },
-    [editor, updateState]
+    [editor, updateState],
   )
 
   const handleRemove = React.useCallback(() => {
@@ -60,7 +64,7 @@ export const ButtonBubbleMenu: React.FC<ButtonBubbleMenuProps> = ({ editor }) =>
 
   const handleOpenLink = React.useCallback(() => {
     if (attrs.url) {
-      window.open(attrs.url, "_blank", "noopener,noreferrer")
+      window.open(attrs.url, '_blank', 'noopener,noreferrer')
     }
   }, [attrs.url])
 
@@ -70,7 +74,7 @@ export const ButtonBubbleMenu: React.FC<ButtonBubbleMenuProps> = ({ editor }) =>
       pluginKey="buttonBubbleMenu"
       shouldShow={shouldShow}
       options={{
-        placement: "bottom-start",
+        placement: 'bottom-start',
         onHide: () => setShowEdit(false),
       }}
     >
@@ -87,7 +91,10 @@ export const ButtonBubbleMenu: React.FC<ButtonBubbleMenuProps> = ({ editor }) =>
       ) : (
         <div className="bg-background flex overflow-hidden rounded border p-1 shadow-lg">
           <div className="inline-flex items-center gap-1">
-            <ToolbarButton tooltip="Edit Button" onClick={() => setShowEdit(true)}>
+            <ToolbarButton
+              tooltip="Edit Button"
+              onClick={() => setShowEdit(true)}
+            >
               <Pencil2Icon />
             </ToolbarButton>
             <Separator orientation="vertical" />

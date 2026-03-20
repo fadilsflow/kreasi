@@ -1,14 +1,14 @@
-import { Node, mergeAttributes } from "@tiptap/core"
-import { ReactNodeViewRenderer } from "@tiptap/react"
-import { ButtonViewBlock } from "./components/button-view-block"
+import { Node, mergeAttributes } from '@tiptap/core'
+import { ReactNodeViewRenderer } from '@tiptap/react'
+import { ButtonViewBlock } from './components/button-view-block'
 
 export interface ButtonOptions {
   HTMLAttributes: Record<string, unknown>
 }
 
 export const ButtonConfig = Node.create<ButtonOptions>({
-  name: "button",
-  group: "block",
+  name: 'button',
+  group: 'block',
   atom: true,
   draggable: true,
   selectable: true,
@@ -21,30 +21,30 @@ export const ButtonConfig = Node.create<ButtonOptions>({
 
   addAttributes() {
     return {
-      text: { default: "Click Me" },
-      url: { default: "" },
-      variant: { default: "default" },
-      size: { default: "default" },
-      alignment: { default: "left" },
+      text: { default: 'Click Me' },
+      url: { default: '' },
+      variant: { default: 'default' },
+      size: { default: 'default' },
+      alignment: { default: 'left' },
     }
   },
 
   parseHTML() {
-    return [{ tag: "div[data-button-block]" }]
+    return [{ tag: 'div[data-button-block]' }]
   },
 
   renderHTML({ HTMLAttributes }) {
     return [
-      "div",
+      'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-button-block": "true",
+        'data-button-block': 'true',
       }),
     ]
   },
 
   addNodeView() {
     return ReactNodeViewRenderer(ButtonViewBlock, {
-      className: "block-node",
+      className: 'block-node',
     })
   },
 

@@ -1,9 +1,9 @@
-import * as React from "react"
-import type { Editor } from "@tiptap/react"
-import type { VariantProps } from "class-variance-authority"
-import type { toggleVariants } from "@/components/ui/toggle"
-import { Upload } from "lucide-react"
-import { ToolbarButton } from "../toolbar-button"
+import * as React from 'react'
+import type { Editor } from '@tiptap/react'
+import type { VariantProps } from 'class-variance-authority'
+import type { toggleVariants } from '@/components/ui/toggle'
+import { Upload } from 'lucide-react'
+import { ToolbarButton } from '../toolbar-button'
 
 interface FileInsertDialogProps extends VariantProps<typeof toggleVariants> {
   editor: Editor
@@ -23,26 +23,26 @@ const FileInsertDialog = ({ editor, size, variant }: FileInsertDialogProps) => {
           .chain()
           .focus()
           .insertContent({
-            type: "file",
+            type: 'file',
             attrs: {
               url: blobUrl,
               name: file.name,
-              type: file.type || file.name.split(".").pop() || "",
+              type: file.type || file.name.split('.').pop() || '',
               size: file.size,
             },
           })
           .run()
       }
 
-      e.target.value = ""
+      e.target.value = ''
     },
-    [editor]
+    [editor],
   )
 
   return (
     <>
       <ToolbarButton
-        isActive={editor.isActive("file")}
+        isActive={editor.isActive('file')}
         tooltip="Upload File"
         aria-label="Upload File"
         size={size}

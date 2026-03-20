@@ -13,7 +13,6 @@ import {
   validateBankAccount,
 } from '@/lib/midtrans-iris'
 
-
 export async function getAvailableBalance(userId: string): Promise<number> {
   const [result] = await db
     .select({
@@ -222,13 +221,17 @@ export async function requestPayout(params: {
       })
     })
 
-    throw new Error('Payout request to provider failed. Funds have been refunded.')
+    throw new Error(
+      'Payout request to provider failed. Funds have been refunded.',
+    )
   }
 
   return { payoutId, referenceNo }
 }
 
-export async function processIrisNotification(payload: any): Promise<{ found: boolean; duplicate?: boolean; status?: string }> {
+export async function processIrisNotification(
+  payload: any,
+): Promise<{ found: boolean; duplicate?: boolean; status?: string }> {
   const referenceNo = payload?.reference_no
   const status = payload?.status
 
@@ -300,4 +303,3 @@ export async function processIrisNotification(payload: any): Promise<{ found: bo
 
   return { found: true, duplicate: false, status: nextStatus }
 }
-

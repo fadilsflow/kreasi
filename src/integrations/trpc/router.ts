@@ -191,9 +191,11 @@ const metaTrackingRouter = {
 
       const fallbackValue = product.payWhatYouWant
         ? (product.suggestedPrice ?? product.minimumPrice ?? 0)
-        : (product.salePrice && product.price && product.salePrice < product.price
-            ? product.salePrice
-            : (product.price ?? 0))
+        : product.salePrice &&
+            product.price &&
+            product.salePrice < product.price
+          ? product.salePrice
+          : (product.price ?? 0)
 
       await sendMetaPurchaseEvent({
         pixelId: metaPixelConfig.pixelId,
@@ -1265,7 +1267,9 @@ const orderRouter = {
   getPaymentStatus: publicProcedure
     .input(z.object({ checkoutGroupId: z.string().trim().min(1) }))
     .query(async ({ input }) => {
-      const payment = await getPaymentSessionByCheckoutGroup(input.checkoutGroupId)
+      const payment = await getPaymentSessionByCheckoutGroup(
+        input.checkoutGroupId,
+      )
       if (!payment) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Payment not found' })
       }
@@ -1291,8 +1295,7 @@ const orderRouter = {
         subtotalAmount: input.subtotalAmount,
         serviceFeeAmount,
         gatewayFeeAmount,
-        totalAmount:
-          input.subtotalAmount + serviceFeeAmount + gatewayFeeAmount,
+        totalAmount: input.subtotalAmount + serviceFeeAmount + gatewayFeeAmount,
       }
     }),
 

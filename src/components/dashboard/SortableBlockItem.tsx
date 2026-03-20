@@ -161,7 +161,9 @@ export function SortableBlockItem({
             </p>
             <div className="flex gap-1 items-center">
               <ChartNoAxesColumn className="w-[12px] h-[12px]" />
-              <p className="text-[12px] text-foreground">{block.clicks ?? 0}{" "}clicks</p>
+              <p className="text-[12px] text-foreground">
+                {block.clicks ?? 0} clicks
+              </p>
             </div>
           </div>
 

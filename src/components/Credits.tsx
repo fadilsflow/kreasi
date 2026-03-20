@@ -4,8 +4,12 @@ import { COMPANY_NAME, LINK_VERSION } from '@/lib/constans'
 
 // Use import.meta.env for Vite-compatible environment variables
 // Cloudflare Workers uses WORKERS_CI_COMMIT_SHA
-const cloudflareCommitHash = import.meta.env.VITE_WORKERS_CI_COMMIT_SHA || import.meta.env.WORKERS_CI_COMMIT_SHA
-const commitHash = cloudflareCommitHash ? `-${cloudflareCommitHash.slice(0, 7)}` : ''
+const cloudflareCommitHash =
+  import.meta.env.VITE_WORKERS_CI_COMMIT_SHA ||
+  import.meta.env.WORKERS_CI_COMMIT_SHA
+const commitHash = cloudflareCommitHash
+  ? `-${cloudflareCommitHash.slice(0, 7)}`
+  : ''
 const LinkVersion = `v.${LINK_VERSION}`
 
 export default function Credits() {

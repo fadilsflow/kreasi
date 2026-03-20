@@ -118,11 +118,8 @@ export const getPublicProduct = createServerFn({ method: 'GET' })
 export const getOrderByToken = createServerFn({ method: 'GET' })
   .inputValidator(z.object({ token: z.string() }))
   .handler(async ({ data }) => {
-    const {
-      ORDER_STATUS,
-      orders,
-      paymentSessions,
-    } = await import('@/db/schema')
+    const { ORDER_STATUS, orders, paymentSessions } =
+      await import('@/db/schema')
     const {
       calculatePaymentGatewayFee,
       calculatePlatformServiceFee,
@@ -230,14 +227,12 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
     const selectedPaymentMethod = requestedMethod
       ? getPaymentMethodCatalogEntry(requestedMethod as any)
       : null
-    const serviceFeeAmount =
-      requestedMethod
-        ? calculatePlatformServiceFee(subtotalAmount)
-        : 0
-    const gatewayFeeAmount =
-      requestedMethod
-        ? calculatePaymentGatewayFee(subtotalAmount, requestedMethod as any)
-        : 0
+    const serviceFeeAmount = requestedMethod
+      ? calculatePlatformServiceFee(subtotalAmount)
+      : 0
+    const gatewayFeeAmount = requestedMethod
+      ? calculatePaymentGatewayFee(subtotalAmount, requestedMethod as any)
+      : 0
 
     const metaPixelConfig = order.creatorId
       ? await db.query.metaPixelConfigs.findFirst({
@@ -262,8 +257,7 @@ export const getOrderByToken = createServerFn({ method: 'GET' })
               subtotalAmount,
               serviceFeeAmount,
               gatewayFeeAmount,
-              totalAmount:
-                subtotalAmount + serviceFeeAmount + gatewayFeeAmount,
+              totalAmount: subtotalAmount + serviceFeeAmount + gatewayFeeAmount,
             },
           }
         : null,

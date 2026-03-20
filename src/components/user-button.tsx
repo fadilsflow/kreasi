@@ -14,8 +14,7 @@ export default function UserButton() {
 
   if (!session?.user) return null
 
-  const username =
-    (session.user as { username?: string | null }).username ?? ''
+  const username = (session.user as { username?: string | null }).username ?? ''
 
   return (
     <Popover>
@@ -43,20 +42,36 @@ export default function UserButton() {
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={10} className="w-46">
         <div className="flex flex-col gap-1">
-          <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/admin' />}>
+          <Button
+            className="justify-start gap-4 flex"
+            variant={'ghost'}
+            render={<Link to="/admin" />}
+          >
             Dashboard
           </Button>
-          <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/admin/products' />}>
+          <Button
+            className="justify-start gap-4 flex"
+            variant={'ghost'}
+            render={<Link to="/admin/products" />}
+          >
             Produk
           </Button>
-          <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/admin/editor/profiles' />}>
+          <Button
+            className="justify-start gap-4 flex"
+            variant={'ghost'}
+            render={<Link to="/admin/editor/profiles" />}
+          >
             Edit my page
           </Button>
-          <Button className='justify-start gap-4 flex' variant={'ghost'} render={<Link to='/$username' params={{ username }} />}>
+          <Button
+            className="justify-start gap-4 flex"
+            variant={'ghost'}
+            render={<Link to="/$username" params={{ username }} />}
+          >
             View page
           </Button>
 
-          <div className='my-1 border-t border-dashed' />
+          <div className="my-1 border-t border-dashed" />
           <Button
             onClick={async () => {
               await authClient.signOut({
@@ -68,13 +83,13 @@ export default function UserButton() {
                 },
               })
             }}
-            className='justify-start flex'
+            className="justify-start flex"
             variant={'ghost'}
           >
             <LogOut /> Logout
           </Button>
         </div>
       </PopoverContent>
-    </Popover >
+    </Popover>
   )
 }

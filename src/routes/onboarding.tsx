@@ -9,10 +9,19 @@ import { adminAuthQueryKey } from '@/lib/admin-auth'
 import { LogoMark } from '@/components/kreasi-logo'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field'
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { trpcClient } from '@/integrations/tanstack-query/root-provider'
@@ -24,7 +33,13 @@ import { BASE_URL } from '@/lib/constans'
 
 const PUBLIC_BASE_HOST = new URL(BASE_URL).host
 
-const onboardingPages = ['welcome', 'username', 'role', 'details', 'finish'] as const
+const onboardingPages = [
+  'welcome',
+  'username',
+  'role',
+  'details',
+  'finish',
+] as const
 
 type OnboardingPage = (typeof onboardingPages)[number]
 
@@ -32,13 +47,13 @@ type SaveStepPayload =
   | { step: 'username'; username: string }
   | { step: 'role'; title: string }
   | {
-    step: 'details'
-    details: {
-      displayName: string
-      bio?: string
-      avatarUrl?: string
+      step: 'details'
+      details: {
+        displayName: string
+        bio?: string
+        avatarUrl?: string
+      }
     }
-  }
   | { step: 'finish' }
 
 type OnboardingState = {
@@ -60,7 +75,6 @@ const ONBOARDING_STATE_QUERY_KEY = ['onboarding-state'] as const
 const onboardingSearchSchema = z.object({
   page: z.enum(onboardingPages).optional(),
 })
-
 
 const stepItems: Array<StepMeta> = [
   {
@@ -173,14 +187,17 @@ function Stepper({
               canGoBack ? 'cursor-pointer' : '',
             )}
             aria-current={isCurrent ? 'step' : undefined}
-            aria-label={isCurrent ? `Current step: ${step.title}` : `Go back to ${step.title}`}
+            aria-label={
+              isCurrent
+                ? `Current step: ${step.title}`
+                : `Go back to ${step.title}`
+            }
           />
         )
       })}
     </div>
   )
 }
-
 
 export const Route = createFileRoute('/onboarding')({
   component: OnboardingPage,
@@ -223,13 +240,28 @@ const contentVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.05 + 0.04, duration: 0.18, ease: 'easeOut' as const },
+    transition: {
+      delay: i * 0.05 + 0.04,
+      duration: 0.18,
+      ease: 'easeOut' as const,
+    },
   }),
 }
 
-function AnimatedField({ index, children }: { index: number; children: React.ReactNode }) {
+function AnimatedField({
+  index,
+  children,
+}: {
+  index: number
+  children: React.ReactNode
+}) {
   return (
-    <motion.div custom={index} variants={contentVariants} initial="hidden" animate="visible">
+    <motion.div
+      custom={index}
+      variants={contentVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {children}
     </motion.div>
   )
@@ -250,11 +282,16 @@ function OnboardingPage() {
   const [avatarPreviewUrl, setAvatarPreviewUrl] = React.useState('')
   const [avatarError, setAvatarError] = React.useState<string | null>(null)
   const usernameInputRef = React.useRef<HTMLInputElement>(null)
-  const [direction, setDirection] = React.useState<'forward' | 'backward'>('forward')
-  const [currentPage, setCurrentPage] = React.useState<OnboardingPage>(search.page ?? 'welcome')
+  const [direction, setDirection] = React.useState<'forward' | 'backward'>(
+    'forward',
+  )
+  const [currentPage, setCurrentPage] = React.useState<OnboardingPage>(
+    search.page ?? 'welcome',
+  )
   const [debouncedUsername, setDebouncedUsername] = React.useState('')
 
-  const currentStep = stepItems.find((s) => s.page === currentPage) ?? stepItems[0]
+  const currentStep =
+    stepItems.find((s) => s.page === currentPage) ?? stepItems[0]
   const currentPageIndex = onboardingPages.indexOf(currentPage)
 
   const { data: onboardingState } = useQuery({
@@ -300,14 +337,16 @@ function OnboardingPage() {
   }, [username])
 
   const saveStepMutation = useMutation({
-    mutationFn: (payload: SaveStepPayload) => trpcClient.onboarding.saveStep.mutate(payload),
+    mutationFn: (payload: SaveStepPayload) =>
+      trpcClient.onboarding.saveStep.mutate(payload),
     onSuccess: (nextState, variables) => {
       queryClient.setQueryData(ONBOARDING_STATE_QUERY_KEY, nextState)
       queryClient.setQueryData(
         adminAuthQueryKey(),
         (previous: AdminAuthContextData | undefined) => {
           if (!previous) return previous
-          if (variables.step === 'username') return { ...previous, username: variables.username }
+          if (variables.step === 'username')
+            return { ...previous, username: variables.username }
           if (variables.step === 'details') {
             return {
               ...previous,
@@ -339,7 +378,10 @@ function OnboardingPage() {
 
       saveStepMutation.mutate(payload, {
         onError: (error) => {
-          console.error(`Failed to save onboarding step "${payload.step}"`, error)
+          console.error(
+            `Failed to save onboarding step "${payload.step}"`,
+            error,
+          )
         },
       })
     },
@@ -367,7 +409,8 @@ function OnboardingPage() {
   const normalizedUsername = username.trim().toLowerCase()
   const usernameFormatError =
     normalizedUsername.length > 0 ? validateUsername(normalizedUsername) : null
-  const currentSavedUsername = onboardingState?.username?.trim().toLowerCase() ?? ''
+  const currentSavedUsername =
+    onboardingState?.username?.trim().toLowerCase() ?? ''
   const needsUsernameAvailabilityCheck =
     currentPage === 'username' &&
     normalizedUsername.length > 0 &&
@@ -401,17 +444,18 @@ function OnboardingPage() {
       : usernameAvailability?.isAvailable === true
   const isUsernameUnavailable = usernameAvailability?.isAvailable === false
   const isUsernameDebouncing =
-    needsUsernameAvailabilityCheck &&
-    debouncedUsername !== normalizedUsername
+    needsUsernameAvailabilityCheck && debouncedUsername !== normalizedUsername
   const isUsernameLoading =
-    needsUsernameAvailabilityCheck && (isUsernameDebouncing || isCheckingUsername)
-  const usernameFailedMessage = usernameFormatError
-    ?? (!isUsernameLoading
-      ? (isUsernameUnavailable
+    needsUsernameAvailabilityCheck &&
+    (isUsernameDebouncing || isCheckingUsername)
+  const usernameFailedMessage =
+    usernameFormatError ??
+    (!isUsernameLoading
+      ? isUsernameUnavailable
         ? 'Username sudah ada, pakai username lain.'
         : isUsernameCheckError
           ? 'Gagal mengecek username. Coba lagi.'
-          : null)
+          : null
       : null)
   const usernameFieldError = usernameFailedMessage
   const usernameStatus: 'idle' | 'loading' | 'success' | 'failed' =
@@ -457,7 +501,8 @@ function OnboardingPage() {
     void navigate({ search: { page }, replace })
   }
 
-  const nextPage = onboardingPages[Math.min(currentPageIndex + 1, onboardingPages.length - 1)]
+  const nextPage =
+    onboardingPages[Math.min(currentPageIndex + 1, onboardingPages.length - 1)]
   const previewUsername = normalizedUsername
   const profileUrl =
     previewUsername.length > 0
@@ -499,7 +544,10 @@ function OnboardingPage() {
     if (currentPage === 'username') {
       if (isUsernameStepBlocked) return
       goToPage(nextPage)
-      persistStepInBackground({ step: 'username', username: normalizedUsername })
+      persistStepInBackground({
+        step: 'username',
+        username: normalizedUsername,
+      })
       return
     }
 
@@ -524,7 +572,11 @@ function OnboardingPage() {
         }
         persistStepInBackground({
           step: 'details',
-          details: { displayName: nextDisplayName, bio: bio.trim(), avatarUrl: nextAvatarUrl },
+          details: {
+            displayName: nextDisplayName,
+            bio: bio.trim(),
+            avatarUrl: nextAvatarUrl,
+          },
         })
       }
       void saveDetails()
@@ -574,10 +626,7 @@ function OnboardingPage() {
                           ease: [0.16, 1, 0.3, 1], // cinematic ease-out
                         }}
                       >
-                        <LogoMark
-                          className=" px-3 shadow-2xl"
-                          size={104}
-                        />
+                        <LogoMark className=" px-3 shadow-2xl" size={104} />
                       </motion.div>
                     </div>
                   </AnimatedField>
@@ -596,18 +645,26 @@ function OnboardingPage() {
                 </AnimatedField>
               </div>
 
-              <Form id="onboarding-step-form" className="mt-8 space-y-4" onSubmit={handleStepSubmit}>
+              <Form
+                id="onboarding-step-form"
+                className="mt-8 space-y-4"
+                onSubmit={handleStepSubmit}
+              >
                 {currentPage === 'username' && (
                   <AnimatedField index={2}>
                     <Field name="username">
-                      <FieldLabel className={"sr-only"}>Username</FieldLabel>
+                      <FieldLabel className={'sr-only'}>Username</FieldLabel>
                       <InputGroup>
                         <InputGroupInput
                           ref={usernameInputRef}
                           name="username"
                           value={username}
                           onChange={(e) => {
-                            setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._]/g, ''))
+                            setUsername(
+                              e.target.value
+                                .toLowerCase()
+                                .replace(/[^a-z0-9._]/g, ''),
+                            )
                           }}
                           required
                           minLength={4}
@@ -657,7 +714,7 @@ function OnboardingPage() {
                 {currentPage === 'details' && (
                   <>
                     <AnimatedField index={2}>
-                      <Field >
+                      <Field>
                         <FieldLabel>Avatar</FieldLabel>
                         <div className="flex items-center gap-3 rounded-lg border p-3 w-full">
                           <Avatar className="size-12 border bg-background">
@@ -665,7 +722,8 @@ function OnboardingPage() {
                               <AvatarImage src={resolvedAvatarPreview} />
                             ) : null}
                             <AvatarFallback>
-                              {displayName.trim().slice(0, 2).toUpperCase() || 'U'}
+                              {displayName.trim().slice(0, 2).toUpperCase() ||
+                                'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex flex-wrap items-center gap-2">
@@ -692,8 +750,14 @@ function OnboardingPage() {
                             )}
                           </div>
                         </div>
-                        <FieldDescription>JPG, PNG, WEBP. Maksimal 5MB.</FieldDescription>
-                        {avatarError ? <p className="text-destructive text-xs">{avatarError}</p> : null}
+                        <FieldDescription>
+                          JPG, PNG, WEBP. Maksimal 5MB.
+                        </FieldDescription>
+                        {avatarError ? (
+                          <p className="text-destructive text-xs">
+                            {avatarError}
+                          </p>
+                        ) : null}
                       </Field>
                     </AnimatedField>
 
@@ -723,7 +787,9 @@ function OnboardingPage() {
                           placeholder="Ceritakan secara singkat tentang kamu"
                           maxLength={300}
                         />
-                        <FieldDescription>{bio.length}/300 karakter</FieldDescription>
+                        <FieldDescription>
+                          {bio.length}/300 karakter
+                        </FieldDescription>
                       </Field>
                     </AnimatedField>
                   </>
@@ -732,11 +798,16 @@ function OnboardingPage() {
                 {currentPage === 'finish' && (
                   <AnimatedField index={2}>
                     <div className="rounded-lg border bg-muted/50 p-5 text-left">
-                      <p className="text-sm font-semibold">Selamat, profil kamu berhasil dibuat.</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Username: @{localState.username ?? (previewUsername || 'username')}
+                      <p className="text-sm font-semibold">
+                        Selamat, profil kamu berhasil dibuat.
                       </p>
-                      <p className="text-sm text-muted-foreground">Public URL: {profileUrl}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Username: @
+                        {localState.username ?? (previewUsername || 'username')}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Public URL: {profileUrl}
+                      </p>
                     </div>
                   </AnimatedField>
                 )}
@@ -767,7 +838,10 @@ function OnboardingPage() {
 
         {/* Stepper - unchanged, no animation */}
         <div className="absolute bottom-12 left-0 right-0 flex justify-center">
-          <Stepper currentPage={currentPage} onBackToStep={(page) => goToPage(page)} />
+          <Stepper
+            currentPage={currentPage}
+            onBackToStep={(page) => goToPage(page)}
+          />
         </div>
       </main>
     </div>

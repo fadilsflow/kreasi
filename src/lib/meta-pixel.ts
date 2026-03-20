@@ -77,9 +77,7 @@ export function getMetaAttributionData(): {
   const fbp = readCookie('_fbp') ?? undefined
   const cookieFbc = readCookie('_fbc') ?? undefined
   const fbclid = new URLSearchParams(window.location.search).get('fbclid')
-  const fbc =
-    cookieFbc ??
-    (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined)
+  const fbc = cookieFbc ?? (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined)
 
   return {
     fbp,

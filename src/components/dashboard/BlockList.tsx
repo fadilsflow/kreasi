@@ -63,7 +63,7 @@ export function BlockList({
         title="No blocks yet"
         description="Start by adding your first block to build your page."
         icon={<LayoutGrid className="size-5" />}
-        className='min-h-100'
+        className="min-h-100"
       >
         {emptyAction}
       </EmptyState>

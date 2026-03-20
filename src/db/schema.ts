@@ -36,8 +36,7 @@ export const PAYMENT_STATUS = {
   CANCELLED: 'cancelled',
 } as const
 
-export type PaymentStatus =
-  (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS]
+export type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS]
 
 export const TRANSACTION_TYPE = {
   SALE: 'sale',
@@ -461,7 +460,9 @@ export const paymentSessions = pgTable(
     paidAt: timestamp('paid_at'),
     lastNotifiedAt: timestamp('last_notified_at'),
     lastWebhookEventKey: text('last_webhook_event_key'),
-    lastWebhookPayload: json('last_webhook_payload').$type<Record<string, any>>(),
+    lastWebhookPayload: json('last_webhook_payload').$type<
+      Record<string, any>
+    >(),
     chargeRequest: json('charge_request').$type<Record<string, any>>(),
     chargeResponse: json('charge_response').$type<Record<string, any>>(),
     metadata: json('metadata').$type<Record<string, any>>(),

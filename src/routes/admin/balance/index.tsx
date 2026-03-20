@@ -8,7 +8,12 @@ import { AppHeader, AppHeaderContent } from '@/components/app-header'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Frame, FrameHeader, FramePanel, FrameTitle } from '@/components/ui/frame'
+import {
+  Frame,
+  FrameHeader,
+  FramePanel,
+  FrameTitle,
+} from '@/components/ui/frame'
 import {
   Dialog,
   DialogDescription,
@@ -79,7 +84,8 @@ function BalancePage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [historyTab, setHistoryTab] = useState<HistoryTab>('all')
   const [historyTypeFilter, setHistoryTypeFilter] = useState('all')
-  const [historyDateOrder, setHistoryDateOrder] = useState<HistorySort>('recent')
+  const [historyDateOrder, setHistoryDateOrder] =
+    useState<HistorySort>('recent')
   const [isBalanceHidden, setIsBalanceHidden] = useState(true)
 
   // Balance summary
@@ -166,7 +172,9 @@ function BalancePage() {
   const isLoading = isSummaryLoading
   const isHistoryLoading = isTxnsLoading || isPayoutsLoading
   const availableBalance = summary?.availableBalance ?? 0
-  const hasPendingPayout = (payoutsList ?? []).some((p: any) => p.status === 'pending')
+  const hasPendingPayout = (payoutsList ?? []).some(
+    (p: any) => p.status === 'pending',
+  )
   const disablePayoutRequest =
     requestPayoutMutation.isPending || availableBalance <= 0 || hasPendingPayout
   const payoutAmount = parsePriceInput(payoutAmountInput) ?? 0
@@ -219,17 +227,15 @@ function BalancePage() {
   }, [txns, payoutsList])
 
   const historyTypeOptions = useMemo(() => {
-    return [
-      'all',
-      ...Array.from(new Set(historyRows.map((row) => row.type))),
-    ]
+    return ['all', ...Array.from(new Set(historyRows.map((row) => row.type)))]
   }, [historyRows])
 
   const filteredHistoryRows = useMemo(() => {
     return historyRows
       .filter((row) => {
         if (historyTab !== 'all' && row.statusGroup !== historyTab) return false
-        if (historyTypeFilter !== 'all' && row.type !== historyTypeFilter) return false
+        if (historyTypeFilter !== 'all' && row.type !== historyTypeFilter)
+          return false
         return true
       })
       .sort((a, b) => {
@@ -244,9 +250,7 @@ function BalancePage() {
         accessorKey: 'type',
         header: () => <span className="font-semibold">TYPE</span>,
         cell: ({ row }) => {
-          return (
-            <span className="font-medium">{row.original.type}</span>
-          )
+          return <span className="font-medium">{row.original.type}</span>
         },
       },
       {
@@ -281,7 +285,9 @@ function BalancePage() {
                   className="h-8 w-8"
                   onClick={() => {
                     if (confirm('Cancel this payout request?')) {
-                      cancelPayoutMutation.mutate(row.original.payoutId as string)
+                      cancelPayoutMutation.mutate(
+                        row.original.payoutId as string,
+                      )
                     }
                   }}
                   disabled={cancelPayoutMutation.isPending}
@@ -332,14 +338,15 @@ function BalancePage() {
   return (
     <>
       <AppHeader>
-        <AppHeaderContent title="Balance">
-        </AppHeaderContent>
+        <AppHeaderContent title="Balance"></AppHeaderContent>
       </AppHeader>
       <div className="space-y-6 px-4 md:px-10 pb-4 md:pb-10">
         {hasPendingPayout && (
           <Alert variant={'info'} className="border-none bg-muted text-xs">
             <InfoIcon />
-            <AlertTitle>You already have a pending payout request. Only one pending payout is allowed.
+            <AlertTitle>
+              You already have a pending payout request. Only one pending payout
+              is allowed.
             </AlertTitle>
           </Alert>
         )}
@@ -353,9 +360,7 @@ function BalancePage() {
             isHidden={isBalanceHidden}
             onToggleHidden={() => setIsBalanceHidden(!isBalanceHidden)}
             actionLabel={
-              hasPendingPayout
-                ? 'Pending payout in progress'
-                : 'Withdraw'
+              hasPendingPayout ? 'Pending payout in progress' : 'Withdraw'
             }
             actionDisabled={disablePayoutRequest || isLoading}
             // actionLoading={requestPayoutMutation.isPending}
@@ -372,7 +377,6 @@ function BalancePage() {
             onAction={handleRefreshBalance}
           />
         </div>
-
 
         <Dialog
           open={payoutDialogOpen}
@@ -430,8 +434,12 @@ function BalancePage() {
               </Button>
               <Button
                 type="button"
-                onClick={() => requestPayoutMutation.mutate({ amount: payoutAmount })}
-                disabled={requestPayoutMutation.isPending || !!payoutAmountError}
+                onClick={() =>
+                  requestPayoutMutation.mutate({ amount: payoutAmount })
+                }
+                disabled={
+                  requestPayoutMutation.isPending || !!payoutAmountError
+                }
                 loading={requestPayoutMutation.isPending}
               >
                 Confirm Payout
@@ -461,7 +469,9 @@ function BalancePage() {
               <div className="flex items-center gap-2">
                 <Select
                   value={historyTypeFilter}
-                  onValueChange={(value) => setHistoryTypeFilter(value ?? 'all')}
+                  onValueChange={(value) =>
+                    setHistoryTypeFilter(value ?? 'all')
+                  }
                 >
                   <SelectTrigger className="w-[160px]">
                     <SelectValue placeholder="By type" />
@@ -478,7 +488,9 @@ function BalancePage() {
                 <Select
                   value={historyDateOrder}
                   onValueChange={(value) => {
-                    setHistoryDateOrder((value as HistorySort | null) ?? 'recent')
+                    setHistoryDateOrder(
+                      (value as HistorySort | null) ?? 'recent',
+                    )
                   }}
                 >
                   <SelectTrigger className="w-[140px]">
@@ -493,7 +505,7 @@ function BalancePage() {
             </div>
 
             <DataTable
-              variant='none'
+              variant="none"
               columns={historyColumns}
               data={filteredHistoryRows}
               isLoading={isHistoryLoading}
@@ -534,11 +546,7 @@ function BalanceCard({
   const hideable = isHidden !== undefined && onToggleHidden !== undefined
 
   return (
-    <Card
-      className={cn(
-        'p-4',
-      )}
-    >
+    <Card className={cn('p-4')}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center">
           {title}
@@ -546,14 +554,14 @@ function BalanceCard({
             <Button
               onClick={onToggleHidden}
               size={'icon-sm'}
-              className='ml-3'
-              variant='ghost'
+              className="ml-3"
+              variant="ghost"
               aria-label={isHidden ? 'Show balance' : 'Hide balance'}
             >
               {isHidden ? (
-                <Eye className='h-5 w-5' />
+                <Eye className="h-5 w-5" />
               ) : (
-                <EyeOff className='h-5 w-5' />
+                <EyeOff className="h-5 w-5" />
               )}
             </Button>
           )}
@@ -570,28 +578,28 @@ function BalanceCard({
               {hideable ? (
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
-                    key={isHidden ? "hidden" : "visible"}
-                    initial={{ y: "50%" }}
-                    animate={{ y: "0%" }}
-                    exit={{ y: "-50%" }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    key={isHidden ? 'hidden' : 'visible'}
+                    initial={{ y: '50%' }}
+                    animate={{ y: '0%' }}
+                    exit={{ y: '-50%' }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
                     className={cn(
-                      "text-4xl tracking-tight",
+                      'text-4xl tracking-tight',
                       negative && value > 0 ? 'text-red-500' : '',
-                      activeBalance ? 'text-foreground' : ''
+                      activeBalance ? 'text-foreground' : '',
                     )}
                   >
                     {isHidden
-                      ? "•••••"
+                      ? '•••••'
                       : `${negative && value > 0 ? '-' : ''}${formatPrice(value)}`}
                   </motion.div>
                 </AnimatePresence>
               ) : (
                 <div
                   className={cn(
-                    "text-4xl tracking-tight",
+                    'text-4xl tracking-tight',
                     negative && value > 0 ? 'text-red-500' : '',
-                    activeBalance ? 'text-foreground' : ''
+                    activeBalance ? 'text-foreground' : '',
                   )}
                 >
                   {negative && value > 0 ? '-' : ''}
@@ -611,13 +619,7 @@ function BalanceCard({
             className="rounded-full"
             size="lg"
           >
-            {actionLoading ? (
-              actionLabel
-            ) : (
-              <>
-                {actionLabel}
-              </>
-            )}
+            {actionLoading ? actionLabel : <>{actionLabel}</>}
           </Button>
         )}
       </CardContent>

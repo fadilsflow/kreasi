@@ -37,8 +37,8 @@ function TooltipPopup({
         <TooltipPrimitive.Popup
           data-slot="tooltip-popup"
           className={cn(
-            "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 rounded-md px-3 py-1.5 text-xs data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2 z-50 w-fit max-w-xs origin-(--transform-origin) bg-foreground text-background",
-            className
+            'data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 rounded-md px-3 py-1.5 text-xs data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2 z-50 w-fit max-w-xs origin-(--transform-origin) bg-foreground text-background',
+            className,
           )}
           {...props}
         >
@@ -54,23 +54,21 @@ function SimpleTooltip({
   children,
   content,
   render,
-  side
+  side,
 }: {
-  children?: React.ReactNode;
-  content: React.ReactNode;
-  render?: React.ReactElement;
+  children?: React.ReactNode
+  content: React.ReactNode
+  render?: React.ReactElement
   side?: TooltipPrimitive.Positioner.Props['side']
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger
-        {...(render ? { render } : {})}
-      >
+      <TooltipTrigger {...(render ? { render } : {})}>
         {children}
       </TooltipTrigger>
       <TooltipPopup side={side}>{content}</TooltipPopup>
     </Tooltip>
-  );
+  )
 }
 export {
   SimpleTooltip,

@@ -200,7 +200,6 @@ class LiteYouTubeElement extends HTMLElement {
 
     const paramsObj = Object.fromEntries(this.getParams().entries())
     if (window.YT?.Player) {
-       
       new window.YT.Player(placeholder, {
         width: '100%',
         videoId: this.videoId,

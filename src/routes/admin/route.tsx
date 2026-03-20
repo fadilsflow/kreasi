@@ -40,7 +40,6 @@ function AdminLayout() {
           <Outlet />
         )}
       </SidebarInset>
-
     </SidebarProvider>
   )
 }

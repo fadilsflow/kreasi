@@ -54,11 +54,7 @@ type CommandGroupItem = {
 }
 
 function buildSearchValue(command: CommandDefinition) {
-  return [
-    command.label,
-    command.section,
-    ...(command.keywords ?? []),
-  ]
+  return [command.label, command.section, ...(command.keywords ?? [])]
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
@@ -93,31 +89,31 @@ export default function DashboardSearchCommand({
     () => [
       ...(username
         ? [
-          {
-            id: 'action:open-public-page',
-            label: adminUtilityItems.openPublicPage.title,
-            section: 'Quick Action',
-            icon: adminUtilityItems.openPublicPage.icon,
-            keywords: adminUtilityItems.openPublicPage.keywords,
-            onSelect: () => {
-              window.open(publicPageUrl, '_blank', 'noopener,noreferrer')
+            {
+              id: 'action:open-public-page',
+              label: adminUtilityItems.openPublicPage.title,
+              section: 'Quick Action',
+              icon: adminUtilityItems.openPublicPage.icon,
+              keywords: adminUtilityItems.openPublicPage.keywords,
+              onSelect: () => {
+                window.open(publicPageUrl, '_blank', 'noopener,noreferrer')
+              },
             },
-          },
-          {
-            id: 'action:copy-public-page',
-            label: adminUtilityItems.copyPageLink.title,
-            section: 'Quick Action',
-            icon: ClipboardCopy,
-            keywords: adminUtilityItems.copyPageLink.keywords,
-            onSelect: async () => {
-              await navigator.clipboard.writeText(publicPageUrl)
-              toastManager.add({
-                title: 'Copied',
-                description: 'Public page link copied to clipboard',
-              })
+            {
+              id: 'action:copy-public-page',
+              label: adminUtilityItems.copyPageLink.title,
+              section: 'Quick Action',
+              icon: ClipboardCopy,
+              keywords: adminUtilityItems.copyPageLink.keywords,
+              onSelect: async () => {
+                await navigator.clipboard.writeText(publicPageUrl)
+                toastManager.add({
+                  title: 'Copied',
+                  description: 'Public page link copied to clipboard',
+                })
+              },
             },
-          },
-        ]
+          ]
         : []),
       {
         id: 'action:logout',
@@ -217,7 +213,9 @@ export default function DashboardSearchCommand({
                       )}
                     </CommandCollection>
                   </CommandGroup>
-                  {index < groupedItems.length - 1 ? <CommandSeparator /> : null}
+                  {index < groupedItems.length - 1 ? (
+                    <CommandSeparator />
+                  ) : null}
                 </React.Fragment>
               )}
             </CommandList>

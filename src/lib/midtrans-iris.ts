@@ -1,5 +1,3 @@
-
-
 export type MidtransIrisConfig = {
   isProduction: boolean
   creatorKey: string
@@ -92,16 +90,19 @@ export async function createPayout(
   payload: IrisPayoutRequest,
 ): Promise<IrisPayoutResponse> {
   const config = getIrisConfig()
-  const response = await fetch(`${getIrisBaseUrl(config.isProduction)}/api/v1/payouts`, {
-    method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-      authorization: getIrisAuthHeader(config.creatorKey),
-      'X-Idempotency-Key': `payout-${Date.now()}`, // Simple fallback idempotency if requested
+  const response = await fetch(
+    `${getIrisBaseUrl(config.isProduction)}/api/v1/payouts`,
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        authorization: getIrisAuthHeader(config.creatorKey),
+        'X-Idempotency-Key': `payout-${Date.now()}`, // Simple fallback idempotency if requested
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  })
+  )
 
   const text = await response.text()
   const parsed = text ? JSON.parse(text) : {}
@@ -129,20 +130,25 @@ export async function approvePayout(
   payload: IrisApprovePayoutRequest,
 ): Promise<IrisApprovePayoutResponse> {
   const config = getIrisConfig()
-  
+
   if (!config.approverKey) {
-    throw new Error('MIDTRANS_IRIS_APPROVER_KEY is not configured but required for approvePayout')
+    throw new Error(
+      'MIDTRANS_IRIS_APPROVER_KEY is not configured but required for approvePayout',
+    )
   }
 
-  const response = await fetch(`${getIrisBaseUrl(config.isProduction)}/api/v1/payouts/approve`, {
-    method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-      authorization: getIrisAuthHeader(config.approverKey),
+  const response = await fetch(
+    `${getIrisBaseUrl(config.isProduction)}/api/v1/payouts/approve`,
+    {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        authorization: getIrisAuthHeader(config.approverKey),
+      },
+      body: JSON.stringify(payload),
     },
-    body: JSON.stringify(payload),
-  })
+  )
 
   const text = await response.text()
   const parsed = text ? JSON.parse(text) : {}
@@ -210,5 +216,5 @@ export function verifyIrisWebhookSignature(
 ): boolean {
   // TODO: Add proper signature check based on Iris webhook docs
   // Midtrans Iris usually doesn't provide a signature hash. It relies on the Merchant URL being a secret or validating IP addresses.
-  return true 
+  return true
 }

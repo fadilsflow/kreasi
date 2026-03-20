@@ -1,11 +1,11 @@
-import * as React from "react"
-import { BubbleMenu } from "@tiptap/react/menus"
-import type { Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
-import { FileEditBlock } from "../file/file-edit-block"
-import { ToolbarButton } from "../toolbar-button"
-import { Separator } from "@/components/ui/separator"
-import { Pencil2Icon, TrashIcon } from "@radix-ui/react-icons"
+import * as React from 'react'
+import { BubbleMenu } from '@tiptap/react/menus'
+import type { Editor } from '@tiptap/react'
+import { NodeSelection } from '@tiptap/pm/state'
+import { FileEditBlock } from '../file/file-edit-block'
+import { ToolbarButton } from '../toolbar-button'
+import { Separator } from '@/components/ui/separator'
+import { Pencil2Icon, TrashIcon } from '@radix-ui/react-icons'
 
 interface FileBubbleMenuProps {
   editor: Editor
@@ -23,7 +23,7 @@ export const FileBubbleMenu: React.FC<FileBubbleMenuProps> = ({ editor }) => {
     const { selection } = editor.state
     if (selection instanceof NodeSelection) {
       const node = selection.node
-      if (node.type.name === "file") {
+      if (node.type.name === 'file') {
         setAttrs(node.attrs)
       }
     }
@@ -33,22 +33,18 @@ export const FileBubbleMenu: React.FC<FileBubbleMenuProps> = ({ editor }) => {
     if (!editor.isEditable) return false
     const { selection } = editor.state
     if (!(selection instanceof NodeSelection)) return false
-    if (selection.node.type.name !== "file") return false
+    if (selection.node.type.name !== 'file') return false
     updateState()
     return true
   }, [editor, updateState])
 
   const handleSave = React.useCallback(
     (payload: { name: string; description: string }) => {
-      editor
-        .chain()
-        .focus()
-        .updateAttributes("file", payload)
-        .run()
+      editor.chain().focus().updateAttributes('file', payload).run()
       setShowEdit(false)
       updateState()
     },
-    [editor, updateState]
+    [editor, updateState],
   )
 
   const handleRemove = React.useCallback(() => {
@@ -62,7 +58,7 @@ export const FileBubbleMenu: React.FC<FileBubbleMenuProps> = ({ editor }) => {
       pluginKey="fileBubbleMenu"
       shouldShow={shouldShow}
       options={{
-        placement: "bottom-start",
+        placement: 'bottom-start',
         onHide: () => setShowEdit(false),
       }}
     >

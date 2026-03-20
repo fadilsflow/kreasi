@@ -1,9 +1,9 @@
-import { Node, mergeAttributes } from "@tiptap/core"
-import type { Editor } from "@tiptap/core"
-import { ReactNodeViewRenderer } from "@tiptap/react"
-import { FileViewBlock } from "./components/file-view-block"
-import { ReplaceStep } from "@tiptap/pm/transform"
-import type { Attrs } from "@tiptap/pm/model"
+import { Node, mergeAttributes } from '@tiptap/core'
+import type { Editor } from '@tiptap/core'
+import { ReactNodeViewRenderer } from '@tiptap/react'
+import { FileViewBlock } from './components/file-view-block'
+import { ReplaceStep } from '@tiptap/pm/transform'
+import type { Attrs } from '@tiptap/pm/model'
 
 export type FileUploadReturnType =
   | string
@@ -12,13 +12,16 @@ export type FileUploadReturnType =
 
 export interface FileOptions {
   HTMLAttributes: Record<string, unknown>
-  uploadFn?: (file: globalThis.File, editor: Editor) => Promise<FileUploadReturnType>
+  uploadFn?: (
+    file: globalThis.File,
+    editor: Editor,
+  ) => Promise<FileUploadReturnType>
   onFileRemoved?: (attrs: Attrs) => void
 }
 
 export const File = Node.create<FileOptions>({
-  name: "file",
-  group: "block",
+  name: 'file',
+  group: 'block',
   atom: true,
   draggable: true,
   selectable: true,
@@ -34,23 +37,23 @@ export const File = Node.create<FileOptions>({
   addAttributes() {
     return {
       url: { default: null },
-      name: { default: "" },
-      type: { default: "" },
+      name: { default: '' },
+      type: { default: '' },
       size: { default: null },
-      description: { default: "" },
+      description: { default: '' },
       id: { default: null },
     }
   },
 
   parseHTML() {
-    return [{ tag: "div[data-file-card]" }]
+    return [{ tag: 'div[data-file-card]' }]
   },
 
   renderHTML({ HTMLAttributes }) {
     return [
-      "div",
+      'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-file-card": "true",
+        'data-file-card': 'true',
       }),
     ]
   },
@@ -61,10 +64,10 @@ export const File = Node.create<FileOptions>({
         const deletedPages = transaction.before.content.cut(step.from, step.to)
 
         deletedPages.forEach((node) => {
-          if (node.type.name === "file") {
+          if (node.type.name === 'file') {
             const attrs = node.attrs
 
-            if (attrs.url?.startsWith("blob:")) {
+            if (attrs.url?.startsWith('blob:')) {
               URL.revokeObjectURL(attrs.url)
             }
 
@@ -77,7 +80,7 @@ export const File = Node.create<FileOptions>({
 
   addNodeView() {
     return ReactNodeViewRenderer(FileViewBlock, {
-      className: "block-node",
+      className: 'block-node',
     })
   },
 

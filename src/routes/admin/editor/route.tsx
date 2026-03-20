@@ -48,27 +48,46 @@ function EditorLayout() {
                   disabled={!user?.username}
                 >
                   <span className="truncate w-[120px] md:w-40">
-                    {user?.username
-                      && `${PUBLIC_BASE_HOST}/${user.username}`
-                    }
+                    {user?.username && `${PUBLIC_BASE_HOST}/${user.username}`}
                   </span>
                 </Button>
               </ShareProfileModal>
               <GroupSeparator />
-              <SimpleTooltip content='Open Link' render={<Button disabled={!user?.username} variant='secondary' className='rounded-full py-6 px-6' render={<a href={`${BASE_URL}/${user?.username}`} target='_blank' rel="noopener noreferrer" />} />}>
-                {
-                  status.isSaving ? (
-                    <div className="flex items-center">
-                      <Spinner className="w-4 h-4" />
-                    </div>
-                  ) : <ExternalLink />
+              <SimpleTooltip
+                content="Open Link"
+                render={
+                  <Button
+                    disabled={!user?.username}
+                    variant="secondary"
+                    className="rounded-full py-6 px-6"
+                    render={
+                      <a
+                        href={`${BASE_URL}/${user?.username}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      />
+                    }
+                  />
                 }
+              >
+                {status.isSaving ? (
+                  <div className="flex items-center">
+                    <Spinner className="w-4 h-4" />
+                  </div>
+                ) : (
+                  <ExternalLink />
+                )}
               </SimpleTooltip>
             </Group>
           </div>
           <div className="pt-5 relative flex-1 w-full min-h-0 ">
             {user ? (
-              <AppearancePreview user={user} blocks={blocks} socialLinks={socialLinks} products={products} />
+              <AppearancePreview
+                user={user}
+                blocks={blocks}
+                socialLinks={socialLinks}
+                products={products}
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center p-2">
                 <div className="aspect-9/18 w-full max-w-[280px] overflow-hidden rounded-[32px] border-3 bg-muted relative">
@@ -81,6 +100,6 @@ function EditorLayout() {
           </div>
         </div>
       </div>
-    </main >
+    </main>
   )
 }

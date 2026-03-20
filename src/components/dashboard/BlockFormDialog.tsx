@@ -205,82 +205,31 @@ export function BlockFormDialog({
         </DialogHeader>
         <Form errors={errors} onSubmit={handleSubmit}>
           <DialogPanel className="space-y-4">
-          {(type === 'link' ||
-            type === 'text' ||
-            type === 'video' ||
-            type === 'discord' ||
-            type === 'telegram' ||
-            type === 'threads' ||
-            type === 'instagram' ||
-            type === 'tiktok' ||
-            type === 'twitter') && (
+            {(type === 'link' ||
+              type === 'text' ||
+              type === 'video' ||
+              type === 'discord' ||
+              type === 'telegram' ||
+              type === 'threads' ||
+              type === 'instagram' ||
+              type === 'tiktok' ||
+              type === 'twitter') && (
               <Field name="title">
                 <FieldLabel>Title</FieldLabel>
                 <Input
                   value={formValues.title}
                   onChange={(e) => setField('title', e.target.value)}
-                  placeholder={type === 'text' ? "What's the heading?" : 'Title'}
+                  placeholder={
+                    type === 'text' ? "What's the heading?" : 'Title'
+                  }
                 />
                 <FieldError />
               </Field>
             )}
 
-          {type === 'link' && (
-            <Field name="url">
-              <FieldLabel>URL</FieldLabel>
-              <Input
-                value={formValues.url}
-                onChange={(e) => setField('url', e.target.value)}
-                type="url"
-                placeholder="https://example.com"
-              />
-              <FieldError />
-            </Field>
-          )}
-
-          {type === 'text' && (
-            <Field>
-              <FieldLabel>Description</FieldLabel>
-              <Textarea
-                value={formValues.content || ''}
-                onChange={(e) => setField('content', e.target.value)}
-                placeholder="Add some details..."
-              />
-            </Field>
-          )}
-
-          {type === 'image' && (
-            <>
-              <Field name="content">
-                <FieldLabel>Image</FieldLabel>
-                <div className="space-y-3">
-                  {formValues.content ? (
-                    <div className="relative w-full overflow-hidden rounded-lg border bg-muted aspect-video">
-                      <img
-                        src={formValues.content}
-                        alt="Uploaded image"
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="w-full rounded-lg border border-dashed p-4 text-xs text-muted-foreground">
-                      No image uploaded.
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      disabled={isUploading}
-                      onChange={(e) => handleImageUpload(e.target.files?.[0])}
-                    />
-                    {isUploading ? <Spinner className="h-4 w-4" /> : null}
-                  </div>
-                </div>
-                <FieldError />
-              </Field>
+            {type === 'link' && (
               <Field name="url">
-                <FieldLabel>Optional Link</FieldLabel>
+                <FieldLabel>URL</FieldLabel>
                 <Input
                   value={formValues.url}
                   onChange={(e) => setField('url', e.target.value)}
@@ -289,75 +238,131 @@ export function BlockFormDialog({
                 />
                 <FieldError />
               </Field>
-            </>
-          )}
+            )}
 
-          {type === 'video' && (
-            <Field name="content">
-              <FieldLabel>Video URL</FieldLabel>
-              <Input
-                value={formValues.content || ''}
-                onChange={(e) => setField('content', e.target.value)}
-                type="url"
-                placeholder="https://youtube.com/watch?v=..."
-              />
-              <FieldError />
-            </Field>
-          )}
+            {type === 'text' && (
+              <Field>
+                <FieldLabel>Description</FieldLabel>
+                <Textarea
+                  value={formValues.content || ''}
+                  onChange={(e) => setField('content', e.target.value)}
+                  placeholder="Add some details..."
+                />
+              </Field>
+            )}
 
-          {type === 'product' && (
-            <Field name="content">
-              <FieldLabel>Product</FieldLabel>
-              <Select
-                value={formValues.content || ''}
-                onValueChange={(value) => setField('content', value || '')}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an existing product" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldError />
-            </Field>
-          )}
+            {type === 'image' && (
+              <>
+                <Field name="content">
+                  <FieldLabel>Image</FieldLabel>
+                  <div className="space-y-3">
+                    {formValues.content ? (
+                      <div className="relative w-full overflow-hidden rounded-lg border bg-muted aspect-video">
+                        <img
+                          src={formValues.content}
+                          alt="Uploaded image"
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full rounded-lg border border-dashed p-4 text-xs text-muted-foreground">
+                        No image uploaded.
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploading}
+                        onChange={(e) => handleImageUpload(e.target.files?.[0])}
+                      />
+                      {isUploading ? <Spinner className="h-4 w-4" /> : null}
+                    </div>
+                  </div>
+                  <FieldError />
+                </Field>
+                <Field name="url">
+                  <FieldLabel>Optional Link</FieldLabel>
+                  <Input
+                    value={formValues.url}
+                    onChange={(e) => setField('url', e.target.value)}
+                    type="url"
+                    placeholder="https://example.com"
+                  />
+                  <FieldError />
+                </Field>
+              </>
+            )}
 
-          {type === 'discord' && (
-            <Field name="url">
-              <FieldLabel>Discord Invite URL</FieldLabel>
-              <Input
-                value={formValues.url}
-                onChange={(e) => setField('url', e.target.value)}
-                type="url"
-                placeholder="https://discord.gg/..."
-              />
-              <FieldError />
-            </Field>
-          )}
+            {type === 'video' && (
+              <Field name="content">
+                <FieldLabel>Video URL</FieldLabel>
+                <Input
+                  value={formValues.content || ''}
+                  onChange={(e) => setField('content', e.target.value)}
+                  type="url"
+                  placeholder="https://youtube.com/watch?v=..."
+                />
+                <FieldError />
+              </Field>
+            )}
 
-          {type === 'telegram' && (
-            <Field name="content">
-              <FieldLabel>Telegram Username</FieldLabel>
-              <Input
-                value={formValues.content || ''}
-                onChange={(e) =>
-                  setField('content', normalizeTelegramUsername(e.target.value))
-                }
-                placeholder="username"
-              />
-              <FieldError />
-            </Field>
-          )}
+            {type === 'product' && (
+              <Field name="content">
+                <FieldLabel>Product</FieldLabel>
+                <Select
+                  value={formValues.content || ''}
+                  onValueChange={(value) => setField('content', value || '')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an existing product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError />
+              </Field>
+            )}
 
-          {(type === 'threads' ||
-            type === 'instagram' ||
-            type === 'tiktok' ||
-            type === 'twitter') && (
+            {type === 'discord' && (
+              <Field name="url">
+                <FieldLabel>Discord Invite URL</FieldLabel>
+                <Input
+                  value={formValues.url}
+                  onChange={(e) => setField('url', e.target.value)}
+                  type="url"
+                  placeholder="https://discord.gg/..."
+                />
+                <FieldError />
+              </Field>
+            )}
+
+            {type === 'telegram' && (
+              <Field name="content">
+                <FieldLabel>Telegram Username</FieldLabel>
+                <Input
+                  value={formValues.content || ''}
+                  onChange={(e) =>
+                    setField(
+                      'content',
+                      normalizeTelegramUsername(e.target.value),
+                    )
+                  }
+                  placeholder="username"
+                />
+                <FieldError />
+              </Field>
+            )}
+
+            {(type === 'threads' ||
+              type === 'instagram' ||
+              type === 'tiktok' ||
+              type === 'twitter') && (
               <Field name="content">
                 <FieldLabel>Username</FieldLabel>
                 <InputGroup>
@@ -389,8 +394,8 @@ export function BlockFormDialog({
                       : type === 'instagram'
                         ? 'instagram.com/'
                         : type === 'twitter'
-                      ? 'x.com/'
-                      : 'tiktok.com/@'}
+                          ? 'x.com/'
+                          : 'tiktok.com/@'}
                   </InputGroupAddon>
                 </InputGroup>
                 <FieldError />
@@ -398,55 +403,57 @@ export function BlockFormDialog({
             )}
           </DialogPanel>
           <DialogFooter variant="bare">
-          {mode === 'edit' ? (
-            <AlertDialog
-              open={deleteDialogOpen}
-              onOpenChange={setDeleteDialogOpen}
-            >
-              <AlertDialogTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="sm:mr-auto text-destructive hover:text-destructive hover:bg-destructive/10"
-                    disabled={submitting || deleting || isUploading}
-                  />
-                }
+            {mode === 'edit' ? (
+              <AlertDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
               >
-                Delete
-              </AlertDialogTrigger>
-              <AlertDialogPopup>
-                <div className="p-6 text-center sm:text-left">
-                  <AlertDialogTitle>Delete Block</AlertDialogTitle>
-                  <AlertDialogDescription className="mt-2">
-                    Are you sure you want to delete this block? This action
-                    cannot be undone.
-                  </AlertDialogDescription>
-                </div>
-                <AlertDialogFooter>
-                  <AlertDialogClose render={<Button variant="ghost" />}>
-                    Cancel
-                  </AlertDialogClose>
-                  <Button
-                    type="button"
-                    onClick={() => onDelete?.()}
-                    variant="destructive"
-                    loading={!!deleting}
-                  >
-                    Delete
-                  </Button>
-                </AlertDialogFooter>
-              </AlertDialogPopup>
-            </AlertDialog>
-          ) : null}
-          <DialogClose render={<Button type="button" variant="ghost" />}>Cancel</DialogClose>
-          <Button
-            type="submit"
-            disabled={submitting || deleting || isUploading}
-            loading={!!submitting}
-          >
-            {titleMode === 'create' ? 'Add Block' : 'Save Changes'}
-          </Button>
+                <AlertDialogTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="sm:mr-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+                      disabled={submitting || deleting || isUploading}
+                    />
+                  }
+                >
+                  Delete
+                </AlertDialogTrigger>
+                <AlertDialogPopup>
+                  <div className="p-6 text-center sm:text-left">
+                    <AlertDialogTitle>Delete Block</AlertDialogTitle>
+                    <AlertDialogDescription className="mt-2">
+                      Are you sure you want to delete this block? This action
+                      cannot be undone.
+                    </AlertDialogDescription>
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogClose render={<Button variant="ghost" />}>
+                      Cancel
+                    </AlertDialogClose>
+                    <Button
+                      type="button"
+                      onClick={() => onDelete?.()}
+                      variant="destructive"
+                      loading={!!deleting}
+                    >
+                      Delete
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogPopup>
+              </AlertDialog>
+            ) : null}
+            <DialogClose render={<Button type="button" variant="ghost" />}>
+              Cancel
+            </DialogClose>
+            <Button
+              type="submit"
+              disabled={submitting || deleting || isUploading}
+              loading={!!submitting}
+            >
+              {titleMode === 'create' ? 'Add Block' : 'Save Changes'}
+            </Button>
           </DialogFooter>
         </Form>
       </DialogPopup>

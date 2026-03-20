@@ -1,9 +1,9 @@
-import * as React from "react"
-import type { Editor } from "@tiptap/react"
-import type { VariantProps } from "class-variance-authority"
-import type { toggleVariants } from "@/components/ui/toggle"
-import { ImageIcon } from "@radix-ui/react-icons"
-import { ToolbarButton } from "../toolbar-button"
+import * as React from 'react'
+import type { Editor } from '@tiptap/react'
+import type { VariantProps } from 'class-variance-authority'
+import type { toggleVariants } from '@/components/ui/toggle'
+import { ImageIcon } from '@radix-ui/react-icons'
+import { ToolbarButton } from '../toolbar-button'
 
 interface ImageEditDialogProps extends VariantProps<typeof toggleVariants> {
   editor: Editor
@@ -25,15 +25,15 @@ const ImageEditDialog = ({ editor, size, variant }: ImageEditDialogProps) => {
       }
 
       editor.commands.setImages(contentBucket)
-      e.target.value = ""
+      e.target.value = ''
     },
-    [editor]
+    [editor],
   )
 
   return (
     <>
       <ToolbarButton
-        isActive={editor.isActive("image")}
+        isActive={editor.isActive('image')}
         tooltip="Image"
         aria-label="Insert image"
         size={size}

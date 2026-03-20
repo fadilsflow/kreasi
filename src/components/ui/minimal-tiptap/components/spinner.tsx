@@ -1,7 +1,7 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { cn } from '@/lib/utils'
 
-type SpinnerProps = React.ComponentProps<"svg">
+type SpinnerProps = React.ComponentProps<'svg'>
 
 const SpinnerComponent = function Spinner({
   className,
@@ -12,7 +12,7 @@ const SpinnerComponent = function Spinner({
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
-      className={cn("animate-spin", className)}
+      className={cn('animate-spin', className)}
       {...props}
     >
       <circle
@@ -32,6 +32,6 @@ const SpinnerComponent = function Spinner({
   )
 }
 
-SpinnerComponent.displayName = "Spinner"
+SpinnerComponent.displayName = 'Spinner'
 
 export const Spinner = React.memo(SpinnerComponent)

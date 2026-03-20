@@ -14,7 +14,9 @@ type R2Config = {
 function getRequiredEnv(name: string): string {
   const value = process.env[name]
   if (!value) {
-    throw new Error(`[StorageService] Missing required environment variable: ${name}`)
+    throw new Error(
+      `[StorageService] Missing required environment variable: ${name}`,
+    )
   }
   return value
 }
@@ -129,7 +131,9 @@ export class StorageService {
     const res = await fetch(url, { method: 'DELETE' })
     if (!res.ok && res.status !== 404) {
       const body = (await res.text()).slice(0, 400)
-      throw new Error(`Failed to delete R2 object: ${res.status} ${res.statusText}${body ? ` - ${body}` : ''}`)
+      throw new Error(
+        `Failed to delete R2 object: ${res.status} ${res.statusText}${body ? ` - ${body}` : ''}`,
+      )
     }
   }
 

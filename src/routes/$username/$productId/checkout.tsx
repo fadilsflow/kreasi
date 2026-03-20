@@ -61,16 +61,16 @@ export const Route = createFileRoute('/$username/$productId/checkout')({
     return {
       links: lcpImage
         ? [
-          {
-            rel: 'preload',
-            as: 'image',
-            href: lcpImage,
-          },
-        ]
+            {
+              rel: 'preload',
+              as: 'image',
+              href: lcpImage,
+            },
+          ]
         : [],
     }
   },
-  notFoundComponent: NotFound
+  notFoundComponent: NotFound,
 })
 
 type Question = {
@@ -126,7 +126,6 @@ function CheckoutPage() {
   )
   const productImages = product.images || []
   const hasImage = productImages.length > 0
-
 
   const [name, setName] = React.useState(search.name ?? '')
   const [email, setEmail] = React.useState(search.email ?? '')
@@ -292,10 +291,7 @@ function CheckoutPage() {
           <>
             {product.payWhatYouWant && (
               <div className="space-y-2 pt-2">
-                <Label
-                  htmlFor="amount"
-                  className="text-sm"
-                >
+                <Label htmlFor="amount" className="text-sm">
                   Your Price
                 </Label>
                 <div className="relative">
@@ -325,15 +321,10 @@ function CheckoutPage() {
 
             {questions.length > 0 && (
               <div className="space-y-4 pt-2">
-                <h2 className="text-md font-medium">
-                  Additional Questions
-                </h2>
+                <h2 className="text-md font-medium">Additional Questions</h2>
                 {questions.map((q) => (
                   <div key={q.id} className="space-y-2">
-                    <Label
-                      htmlFor={`q-${q.id}`}
-                      className="text-sm"
-                    >
+                    <Label htmlFor={`q-${q.id}`} className="text-sm">
                       {q.label}{' '}
                       {q.required && <span className="text-rose-500">*</span>}
                     </Label>
@@ -408,9 +399,7 @@ function CheckoutPage() {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 rounded-full"
-                    onClick={() =>
-                      setQuantity((prev) => Math.max(1, prev - 1))
-                    }
+                    onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                     disabled={quantity <= 1}
                   >
                     <Minus className="h-4 w-4" />
@@ -450,7 +439,7 @@ function CheckoutPage() {
                     <span>
                       {formatPrice(
                         paymentQuoteQuery.data?.subtotalAmount ??
-                        subtotalAmount,
+                          subtotalAmount,
                       )}
                     </span>
                   </div>
@@ -459,7 +448,7 @@ function CheckoutPage() {
                     <span>
                       {formatPrice(
                         paymentQuoteQuery.data?.subtotalAmount ??
-                        subtotalAmount,
+                          subtotalAmount,
                       )}
                     </span>
                   </div>
@@ -492,7 +481,6 @@ function CheckoutPage() {
             </AccordionItem>
           </Accordion>
         }
-
         payLabel={'Pay'}
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}

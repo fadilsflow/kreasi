@@ -70,7 +70,6 @@ export function ShareProfileModal({
 
   return (
     <Dialog>
-
       <DialogTrigger
         render={
           children || (
@@ -94,9 +93,7 @@ export function ShareProfileModal({
 
       <DialogPopup className="w-full max-w-xs">
         <DialogHeader>
-          <DialogTitle className={'text-center'} >
-            Share
-          </DialogTitle>
+          <DialogTitle className={'text-center'}>Share</DialogTitle>
         </DialogHeader>
         <DialogPanel className="space-y-4">
           <div className="space-y-3">
@@ -131,7 +128,6 @@ export function ShareProfileModal({
                 onClick={handleCopyLink}
               >
                 Copy Link
-
                 {copyStatus === 'copied' ? (
                   <CircleCheck className="size-5 fill-emerald-600 text-white dark:fill-emerald-400" />
                 ) : (

@@ -402,9 +402,7 @@ function UserProfile() {
         backgroundImageUrl: user.appearanceBgImageUrl,
       }).foreground
     : profileTextColor.foreground
-  const [, setHeaderLogoColor] = React.useState(
-    defaultHeaderLogoColor,
-  )
+  const [, setHeaderLogoColor] = React.useState(defaultHeaderLogoColor)
   const isDarkBg = isDarkBackground({
     backgroundType: user.appearanceBackgroundType,
     backgroundColor: user.appearanceBackgroundColor,

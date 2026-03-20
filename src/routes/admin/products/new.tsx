@@ -3,7 +3,10 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import type { ProductFormValues } from '@/components/dashboard/ProductForm'
-import { ProductForm, emptyProductForm } from '@/components/dashboard/ProductForm'
+import {
+  ProductForm,
+  emptyProductForm,
+} from '@/components/dashboard/ProductForm'
 import { getDashboardData } from '@/lib/profile-server'
 import { trpcClient } from '@/integrations/tanstack-query/root-provider'
 import { toastManager } from '@/components/ui/toast'
@@ -28,9 +31,10 @@ function buildProductPayload(values: ProductFormValues) {
       minimumPrice: values.priceSettings.minimumPrice ?? undefined,
       suggestedPrice: values.priceSettings.suggestedPrice ?? undefined,
     },
-    customerQuestions: values.customerQuestions.length > 0
-      ? values.customerQuestions
-      : undefined,
+    customerQuestions:
+      values.customerQuestions.length > 0
+        ? values.customerQuestions
+        : undefined,
   }
 }
 
@@ -63,7 +67,10 @@ function ProductNewRoute() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['dashboard'] })
       await queryClient.invalidateQueries({ queryKey: ['products', user?.id] })
-      toastManager.add({ title: 'Product created', description: 'Your product is now live.' })
+      toastManager.add({
+        title: 'Product created',
+        description: 'Your product is now live.',
+      })
       router.navigate({ to: '/admin/products' })
     },
     onError: (error: any) => {
@@ -77,10 +84,9 @@ function ProductNewRoute() {
 
   const isLoading = createMutation.isPending || isUploading
 
-
   return (
     <div className="mb-20 w-full max-w-3xl self-center space-y-6 p-6 md:mb-0 mt-2">
-      <h4 className='text-2xl font-medium whitespace-nowrap'>Create Product</h4>
+      <h4 className="text-2xl font-medium whitespace-nowrap">Create Product</h4>
 
       {form ? (
         <ProductForm

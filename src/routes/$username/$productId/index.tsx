@@ -58,16 +58,16 @@ export const Route = createFileRoute('/$username/$productId/')({
     return {
       links: heroImage
         ? [
-          {
-            rel: 'preload',
-            as: 'image',
-            href: heroImage,
-          },
-        ]
+            {
+              rel: 'preload',
+              as: 'image',
+              href: heroImage,
+            },
+          ]
         : [],
     }
   },
-  notFoundComponent: NotFound
+  notFoundComponent: NotFound,
 })
 
 function priceLabel(product: any): string {

@@ -133,7 +133,10 @@ function validate(
     errors['priceSettings.price'] = 'Price is required.'
   }
 
-  if (pricingType === 'pay-what-you-want' && value.priceSettings.minimumPrice == null) {
+  if (
+    pricingType === 'pay-what-you-want' &&
+    value.priceSettings.minimumPrice == null
+  ) {
     errors['priceSettings.minimumPrice'] = 'Minimum price is required.'
   }
 
@@ -154,7 +157,10 @@ function validate(
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function SectionHeader({ title, description }: {
+function SectionHeader({
+  title,
+  description,
+}: {
   title: string
   description?: string
 }) {
@@ -162,13 +168,22 @@ function SectionHeader({ title, description }: {
     <div className="flex flex-col items-start gap-3">
       <div>
         <p className="text-lg font-sans ">{title}</p>
-        {description && <p className="te  xt-sm leading-snug text-muted-foreground mt-0.5">{description}</p>}
+        {description && (
+          <p className="te  xt-sm leading-snug text-muted-foreground mt-0.5">
+            {description}
+          </p>
+        )}
       </div>
     </div>
   )
 }
 
-function FieldWrapper({ label, error, children, required }: {
+function FieldWrapper({
+  label,
+  error,
+  children,
+  required,
+}: {
   label?: string
   error?: string
   hint?: string
@@ -177,18 +192,26 @@ function FieldWrapper({ label, error, children, required }: {
 }) {
   return (
     <div className="space-y-1.5">
-      {label && <Label className="text-sm font-medium">
-        {label}
-        {required && <span className="text-destructive">*</span>}
-      </Label>
-      }
+      {label && (
+        <Label className="text-sm font-medium">
+          {label}
+          {required && <span className="text-destructive">*</span>}
+        </Label>
+      )}
       {children}
-      {error && <p className="text-[11px] text-destructive font-medium">{error}</p>}
+      {error && (
+        <p className="text-[11px] text-destructive font-medium">{error}</p>
+      )}
     </div>
   )
 }
 
-function PriceInput({ id, placeholder, value, onChange }: {
+function PriceInput({
+  id,
+  placeholder,
+  value,
+  onChange,
+}: {
   id: string
   placeholder: string
   value: number | null | undefined
@@ -196,9 +219,7 @@ function PriceInput({ id, placeholder, value, onChange }: {
 }) {
   return (
     <InputGroup className="relative">
-      <InputGroupAddon align={'inline-start'}>
-        Rp
-      </InputGroupAddon>
+      <InputGroupAddon align={'inline-start'}>Rp</InputGroupAddon>
       {/* <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground font-medium">
         Rp
       </span> */}
@@ -302,7 +323,8 @@ export function ProductForm({
   }
 
   React.useEffect(() => {
-    const isFreePricing = !value.priceSettings.payWhatYouWant &&
+    const isFreePricing =
+      !value.priceSettings.payWhatYouWant &&
       value.priceSettings.price === 0 &&
       value.priceSettings.salePrice == null &&
       value.priceSettings.minimumPrice == null &&
@@ -312,9 +334,11 @@ export function ProductForm({
       ? 'pay-what-you-want'
       : isFreePricing
         ? 'free'
-        : value.priceSettings.price != null || value.priceSettings.salePrice != null
+        : value.priceSettings.price != null ||
+            value.priceSettings.salePrice != null
           ? 'fixed'
-          : value.priceSettings.minimumPrice != null || value.priceSettings.suggestedPrice != null
+          : value.priceSettings.minimumPrice != null ||
+              value.priceSettings.suggestedPrice != null
             ? 'pay-what-you-want'
             : 'fixed'
     setPricingType(nextPricingType)
@@ -331,19 +355,26 @@ export function ProductForm({
   }
 
   // Image upload
-  const [{ files: imageFiles }, {
-    getInputProps: getImageInputProps,
-    openFileDialog: openImageDialog,
-    removeFile: removeImage,
-    handleDrop: handleImageDrop,
-    handleDragOver: handleImageDragOver,
-    handleDragEnter: handleImageDragEnter,
-    handleDragLeave: handleImageDragLeave,
-  }] = useFileUpload({
+  const [
+    { files: imageFiles },
+    {
+      getInputProps: getImageInputProps,
+      openFileDialog: openImageDialog,
+      removeFile: removeImage,
+      handleDrop: handleImageDrop,
+      handleDragOver: handleImageDragOver,
+      handleDragEnter: handleImageDragEnter,
+      handleDragLeave: handleImageDragLeave,
+    },
+  ] = useFileUpload({
     accept: 'image/*',
     multiple: true,
     initialFiles: value.images.map((url) => ({
-      id: url, name: 'Image', url, size: 0, type: 'image/jpeg',
+      id: url,
+      name: 'Image',
+      url,
+      size: 0,
+      type: 'image/jpeg',
     })),
   })
 
@@ -403,7 +434,13 @@ export function ProductForm({
       setActiveTab('content')
       return
     }
-    const nextErrors = validate(value, imageFiles.length, pricingType, enableQuantityChoice, enableSalesLimit)
+    const nextErrors = validate(
+      value,
+      imageFiles.length,
+      pricingType,
+      enableQuantityChoice,
+      enableSalesLimit,
+    )
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
@@ -434,27 +471,27 @@ export function ProductForm({
         priceSettings:
           pricingType === 'fixed'
             ? {
-              payWhatYouWant: false,
-              price: value.priceSettings.price,
-              salePrice: value.priceSettings.salePrice,
-              minimumPrice: undefined,
-              suggestedPrice: undefined,
-            }
-            : pricingType === 'pay-what-you-want'
-              ? {
-                payWhatYouWant: true,
-                price: undefined,
-                salePrice: undefined,
-                minimumPrice: value.priceSettings.minimumPrice,
-                suggestedPrice: value.priceSettings.suggestedPrice,
-              }
-              : {
                 payWhatYouWant: false,
-                price: 0,
-                salePrice: undefined,
+                price: value.priceSettings.price,
+                salePrice: value.priceSettings.salePrice,
                 minimumPrice: undefined,
                 suggestedPrice: undefined,
-              },
+              }
+            : pricingType === 'pay-what-you-want'
+              ? {
+                  payWhatYouWant: true,
+                  price: undefined,
+                  salePrice: undefined,
+                  minimumPrice: value.priceSettings.minimumPrice,
+                  suggestedPrice: value.priceSettings.suggestedPrice,
+                }
+              : {
+                  payWhatYouWant: false,
+                  price: 0,
+                  salePrice: undefined,
+                  minimumPrice: undefined,
+                  suggestedPrice: undefined,
+                },
         limitPerCheckout: enableQuantityChoice ? value.limitPerCheckout : 1,
         totalQuantity: enableSalesLimit ? value.totalQuantity : null,
       })
@@ -469,7 +506,8 @@ export function ProductForm({
     }
   }
 
-  const update = (patch: Partial<ProductFormValues>) => onChange({ ...value, ...patch })
+  const update = (patch: Partial<ProductFormValues>) =>
+    onChange({ ...value, ...patch })
   const updatePrice = (patch: Partial<PriceSettings>) =>
     update({ priceSettings: { ...value.priceSettings, ...patch } })
 
@@ -502,22 +540,27 @@ export function ProductForm({
             </Button>
           </div>
 
-
           <TabsPanel value="product">
             <div className="rounded-xl border">
               {/* ── Basic Info ─────────────────────────────────────────────── */}
               <section className="space-y-5 p-4 md:p-10">
-                <SectionHeader title="Product" description="Basic product information" />
+                <SectionHeader
+                  title="Product"
+                  description="Basic product information"
+                />
 
                 <FieldWrapper label="Name" error={errors.title} required>
                   <Input
                     value={value.title}
-                    onChange={(e) => { update({ title: e.target.value }); clearError('title') }}
+                    onChange={(e) => {
+                      update({ title: e.target.value })
+                      clearError('title')
+                    }}
                     placeholder="e.g. Notion template, e-book, Figma kit..."
                   />
                 </FieldWrapper>
 
-                <FieldWrapper label="Description" >
+                <FieldWrapper label="Description">
                   <MinimalTiptapEditor
                     value={value.description ?? undefined}
                     onChange={(content) => update({ description: content })}
@@ -543,7 +586,10 @@ export function ProductForm({
 
               {/* ── Pricing ────────────────────────────────────────────────── */}
               <section className="space-y-5 p-4 md:p-10">
-                <SectionHeader title="Pricing" description="Choose pricing mode and set one price value." />
+                <SectionHeader
+                  title="Pricing"
+                  description="Choose pricing mode and set one price value."
+                />
 
                 <FieldWrapper label="Pricing type">
                   <select
@@ -551,18 +597,25 @@ export function ProductForm({
                     onChange={(e) => {
                       const nextType = e.target.value as PricingType
                       setPricingType(nextType)
-                      clearError('priceSettings.price', 'priceSettings.minimumPrice')
+                      clearError(
+                        'priceSettings.price',
+                        'priceSettings.minimumPrice',
+                      )
 
                       if (nextType === 'fixed') {
                         updatePrice({
                           payWhatYouWant: false,
-                          price: value.priceSettings.price ?? value.priceSettings.minimumPrice,
+                          price:
+                            value.priceSettings.price ??
+                            value.priceSettings.minimumPrice,
                         })
                       } else if (nextType === 'pay-what-you-want') {
                         updatePrice({
                           payWhatYouWant: true,
                           price: undefined,
-                          minimumPrice: value.priceSettings.minimumPrice ?? value.priceSettings.price,
+                          minimumPrice:
+                            value.priceSettings.minimumPrice ??
+                            value.priceSettings.price,
                         })
                       } else {
                         updatePrice({
@@ -588,14 +641,24 @@ export function ProductForm({
                 {pricingType !== 'free' && (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <FieldWrapper
-                      label={pricingType === 'fixed' ? 'Price' : 'Minimum price'}
-                      error={pricingType === 'fixed' ? errors['priceSettings.price'] : errors['priceSettings.minimumPrice']}
+                      label={
+                        pricingType === 'fixed' ? 'Price' : 'Minimum price'
+                      }
+                      error={
+                        pricingType === 'fixed'
+                          ? errors['priceSettings.price']
+                          : errors['priceSettings.minimumPrice']
+                      }
                       required
                     >
                       <PriceInput
                         id={pricingType === 'fixed' ? 'price' : 'min-price'}
                         placeholder={pricingType === 'fixed' ? '10,000' : '0'}
-                        value={pricingType === 'fixed' ? value.priceSettings.price : value.priceSettings.minimumPrice}
+                        value={
+                          pricingType === 'fixed'
+                            ? value.priceSettings.price
+                            : value.priceSettings.minimumPrice
+                        }
                         onChange={(v) => {
                           if (pricingType === 'fixed') {
                             updatePrice({ price: v })
@@ -609,7 +672,10 @@ export function ProductForm({
                     </FieldWrapper>
 
                     {pricingType === 'fixed' ? (
-                      <FieldWrapper label="Sale price" hint="Optional discounted price.">
+                      <FieldWrapper
+                        label="Sale price"
+                        hint="Optional discounted price."
+                      >
                         <PriceInput
                           id="sale-price"
                           placeholder="7,000"
@@ -618,7 +684,10 @@ export function ProductForm({
                         />
                       </FieldWrapper>
                     ) : (
-                      <FieldWrapper label="Suggested price" hint="Shown as default.">
+                      <FieldWrapper
+                        label="Suggested price"
+                        hint="Shown as default."
+                      >
                         <PriceInput
                           id="suggested-price"
                           placeholder="10,000"
@@ -635,7 +704,10 @@ export function ProductForm({
 
               {/* ── Images ─────────────────────────────────────────────────── */}
               <section className="space-y-5 p-4 md:p-10">
-                <SectionHeader title="Images" description="First image is the cover" />
+                <SectionHeader
+                  title="Images"
+                  description="First image is the cover"
+                />
 
                 <DndContext
                   sensors={sensors}
@@ -670,7 +742,9 @@ export function ProductForm({
                           className="w-full h-full flex flex-col items-center justify-center rounded-lg border border-dashed bg-muted/40 hover:bg-muted/70 transition-colors text-muted-foreground gap-1.5"
                         >
                           <ImageIcon className="h-5 w-5" />
-                          <span className="text-[10px] font-medium">Add image</span>
+                          <span className="text-[10px] font-medium">
+                            Add image
+                          </span>
                           <input {...getImageInputProps()} className="hidden" />
                         </button>
                       </div>
@@ -679,7 +753,9 @@ export function ProductForm({
                 </DndContext>
 
                 {errors.images && (
-                  <p className="text-[11px] text-destructive font-medium">{errors.images}</p>
+                  <p className="text-[11px] text-destructive font-medium">
+                    {errors.images}
+                  </p>
                 )}
               </section>
 
@@ -687,7 +763,10 @@ export function ProductForm({
 
               {/* ── Inventory & Limits ─────────────────────────────────────── */}
               <section className="space-y-5 p-4 md:p-10">
-                <SectionHeader title="Inventory & Limits" description="Control quantity and stock" />
+                <SectionHeader
+                  title="Inventory & Limits"
+                  description="Control quantity and stock"
+                />
 
                 <div className="space-y-2 ">
                   {/* Quantity choice */}
@@ -697,10 +776,19 @@ export function ProductForm({
                       onCheckedChange={(checked) => {
                         setEnableQuantityChoice(checked)
                         clearError('limitPerCheckout')
-                        update({ limitPerCheckout: checked ? (value.limitPerCheckout && value.limitPerCheckout > 1 ? value.limitPerCheckout : 10) : 1 })
+                        update({
+                          limitPerCheckout: checked
+                            ? value.limitPerCheckout &&
+                              value.limitPerCheckout > 1
+                              ? value.limitPerCheckout
+                              : 10
+                            : 1,
+                        })
                       }}
                     />
-                    <p className="text-sm font-medium">Customer chooses quantity</p>
+                    <p className="text-sm font-medium">
+                      Customer chooses quantity
+                    </p>
                   </div>
                   {enableQuantityChoice && (
                     <FieldWrapper error={errors.limitPerCheckout}>
@@ -727,7 +815,13 @@ export function ProductForm({
                       onCheckedChange={(checked) => {
                         setEnableSalesLimit(checked)
                         clearError('totalQuantity')
-                        update({ totalQuantity: checked ? (value.totalQuantity && value.totalQuantity > 0 ? value.totalQuantity : 100) : null })
+                        update({
+                          totalQuantity: checked
+                            ? value.totalQuantity && value.totalQuantity > 0
+                              ? value.totalQuantity
+                              : 100
+                            : null,
+                        })
                       }}
                     />
                     <p className="text-sm font-medium">Limit Product Sales</p>
@@ -755,36 +849,45 @@ export function ProductForm({
               {/* ── Checkout Questions ─────────────────────────────────────── */}
               <section className="space-y-5 p-4 md:p-10">
                 <div className="flex  pb-4 justify-between">
-                  <SectionHeader title="Buyer form" description="Collect extra info after name & email." />
+                  <SectionHeader
+                    title="Buyer form"
+                    description="Collect extra info after name & email."
+                  />
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     className="h-8 shrink-0 text-xs gap-1.5"
-                    onClick={() => update({
-                      customerQuestions: [
-                        ...value.customerQuestions,
-                        { id: crypto.randomUUID(), label: '', required: false },
-                      ],
-                    })}
+                    onClick={() =>
+                      update({
+                        customerQuestions: [
+                          ...value.customerQuestions,
+                          {
+                            id: crypto.randomUUID(),
+                            label: '',
+                            required: false,
+                          },
+                        ],
+                      })
+                    }
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Add question
                   </Button>
                 </div>
-                <div >
+                <div>
                   <div className="flex gap-2">
-                    <p className='text-sm'>Your Name</p>
+                    <p className="text-sm">Your Name</p>
                     <Badge variant={'secondary'}>Mandatory</Badge>
                   </div>
-                  <span className='text-xs text-muted-foreground'>Name</span>
+                  <span className="text-xs text-muted-foreground">Name</span>
                 </div>
-                <div >
+                <div>
                   <div className="flex gap-2">
-                    <p className='text-sm'>Email</p>
+                    <p className="text-sm">Email</p>
                     <Badge variant={'secondary'}>Mandatory</Badge>
                   </div>
-                  <span className='text-xs text-muted-foreground'>Name</span>
+                  <span className="text-xs text-muted-foreground">Name</span>
                 </div>
                 {value.customerQuestions.length === 0 ? (
                   <p className="text-xs text-muted-foreground py-2">
@@ -793,7 +896,10 @@ export function ProductForm({
                 ) : (
                   <div className="space-y-2">
                     {value.customerQuestions.map((q, i) => (
-                      <div key={q.id} className="flex items-start gap-3 rounded-lg border p-3">
+                      <div
+                        key={q.id}
+                        className="flex items-start gap-3 rounded-lg border p-3"
+                      >
                         <div className="flex-1 space-y-2">
                           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                             Question {i + 1}
@@ -802,8 +908,11 @@ export function ProductForm({
                             value={q.label}
                             onChange={(e) => {
                               update({
-                                customerQuestions: value.customerQuestions.map((cq) =>
-                                  cq.id === q.id ? { ...cq, label: e.target.value } : cq,
+                                customerQuestions: value.customerQuestions.map(
+                                  (cq) =>
+                                    cq.id === q.id
+                                      ? { ...cq, label: e.target.value }
+                                      : cq,
                                 ),
                               })
                               clearError(`question.${i}`)
@@ -811,20 +920,27 @@ export function ProductForm({
                             placeholder="e.g. What name should we print on the certificate?"
                           />
                           {errors[`question.${i}`] && (
-                            <p className="text-[11px] text-destructive">{errors[`question.${i}`]}</p>
+                            <p className="text-[11px] text-destructive">
+                              {errors[`question.${i}`]}
+                            </p>
                           )}
                           <div className="flex items-center gap-2">
                             <Switch
                               checked={q.required}
                               onCheckedChange={(checked) =>
                                 update({
-                                  customerQuestions: value.customerQuestions.map((cq) =>
-                                    cq.id === q.id ? { ...cq, required: checked } : cq,
-                                  ),
+                                  customerQuestions:
+                                    value.customerQuestions.map((cq) =>
+                                      cq.id === q.id
+                                        ? { ...cq, required: checked }
+                                        : cq,
+                                    ),
                                 })
                               }
                             />
-                            <span className="text-xs text-muted-foreground">Required</span>
+                            <span className="text-xs text-muted-foreground">
+                              Required
+                            </span>
                           </div>
                         </div>
                         <Button
@@ -834,7 +950,9 @@ export function ProductForm({
                           className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
                           onClick={() =>
                             update({
-                              customerQuestions: value.customerQuestions.filter((cq) => cq.id !== q.id),
+                              customerQuestions: value.customerQuestions.filter(
+                                (cq) => cq.id !== q.id,
+                              ),
                             })
                           }
                         >
@@ -870,7 +988,6 @@ export function ProductForm({
               </span>
             </div>
 
-
             <Button
               type="button"
               variant="destructive-outline"
@@ -883,7 +1000,6 @@ export function ProductForm({
                 if (value.id && onDelete) onDelete(value.id)
               }}
               disabled={submitting || isUploading}
-
             >
               Delete product
             </Button>

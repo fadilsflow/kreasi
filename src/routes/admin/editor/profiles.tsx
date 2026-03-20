@@ -159,9 +159,9 @@ function AdminDashboard() {
       values:
         pendingCreateType === 'video'
           ? {
-            ...defaultValues,
-            title: defaultValues.title || 'YouTube Video',
-          }
+              ...defaultValues,
+              title: defaultValues.title || 'YouTube Video',
+            }
           : defaultValues,
     })
     setPendingCreateType(null)
@@ -281,13 +281,13 @@ function AdminDashboard() {
         prev.map((block) =>
           block.id === updated.id
             ? {
-              ...block,
-              ...updated,
-              url: updated.url || '',
-              content: updated.content || '',
-              syncStatus: 'saved',
-              errors: {},
-            }
+                ...block,
+                ...updated,
+                url: updated.url || '',
+                content: updated.content || '',
+                syncStatus: 'saved',
+                errors: {},
+              }
             : block,
         ),
       )
@@ -317,13 +317,13 @@ function AdminDashboard() {
         prev.map((block) =>
           block.id === updated.id
             ? {
-              ...block,
-              ...updated,
-              url: updated.url || '',
-              content: updated.content || '',
-              syncStatus: 'saved',
-              errors: {},
-            }
+                ...block,
+                ...updated,
+                url: updated.url || '',
+                content: updated.content || '',
+                syncStatus: 'saved',
+                errors: {},
+              }
             : block,
         ),
       )
@@ -383,66 +383,65 @@ function AdminDashboard() {
           </AppHeaderDescription> */}
         </AppHeaderContent>
       </AppHeader>
-      <div className='px-4 md:px-10 pb-4 md:pb-10 space-y-6'>
+      <div className="px-4 md:px-10 pb-4 md:pb-10 space-y-6">
+        <Card>
+          <CardPanel className="gap-4 flex flex-col">
+            <section>
+              <ProfileEditor user={user} onSave={handleProfileSave} />
+            </section>
 
-
-      <Card>
-        <CardPanel className='gap-4 flex flex-col'>
-          <section>
-            <ProfileEditor user={user} onSave={handleProfileSave} />
-          </section>
-
-          <section>
-            <SocialEditor
-              username={user.username ?? ''}
-              socialLinks={localSocialLinks}
-              onSocialLinksChange={setLocalSocialLinks}
-            />
-          </section>
-        </CardPanel>
-      </Card>
-      <section className="space-y-6">
-        <BlockTypeSelector
-          open={isAddBlockOpen}
-          onOpenChange={setIsAddBlockOpen}
-          onSelect={handleAddBlockTypeSelect}
-        />
-        <Frame>
-          <BlockList
-            blocks={localBlocks}
-            products={productOptions}
-            onEdit={handleEditBlock}
-            onToggleEnabled={handleToggleBlockEnabled}
-            onReorder={handleReorder}
-            emptyAction={
-              <Button onClick={() => setIsAddBlockOpen(true)}>Add block</Button>
-            }
+            <section>
+              <SocialEditor
+                username={user.username ?? ''}
+                socialLinks={localSocialLinks}
+                onSocialLinksChange={setLocalSocialLinks}
+              />
+            </section>
+          </CardPanel>
+        </Card>
+        <section className="space-y-6">
+          <BlockTypeSelector
+            open={isAddBlockOpen}
+            onOpenChange={setIsAddBlockOpen}
+            onSelect={handleAddBlockTypeSelect}
           />
-        </Frame>
-      </section>
+          <Frame>
+            <BlockList
+              blocks={localBlocks}
+              products={productOptions}
+              onEdit={handleEditBlock}
+              onToggleEnabled={handleToggleBlockEnabled}
+              onReorder={handleReorder}
+              emptyAction={
+                <Button onClick={() => setIsAddBlockOpen(true)}>
+                  Add block
+                </Button>
+              }
+            />
+          </Frame>
+        </section>
 
-      <BlockFormDialog
-        open={!!blockFormState}
-        onOpenChange={(open) => {
-          if (!open) setBlockFormState(null)
-        }}
-        mode={blockFormState?.mode || 'create'}
-        values={blockFormState?.values || getDefaultBlockValues('link')}
-        products={productOptions}
-        submitting={createBlock.isPending || updateBlockMutation.isPending}
-        deleting={deleteBlockMutation.isPending}
-        onDelete={async () => {
-          if (blockFormState?.mode !== 'edit' || !blockFormState.blockId)
-            return
-          await deleteBlockMutation.mutateAsync({
-            id: blockFormState.blockId,
-          })
-          setBlockFormState(null)
-        }}
-        onSubmit={handleBlockFormSubmit}
-      />
-    </div>
+        <BlockFormDialog
+          open={!!blockFormState}
+          onOpenChange={(open) => {
+            if (!open) setBlockFormState(null)
+          }}
+          mode={blockFormState?.mode || 'create'}
+          values={blockFormState?.values || getDefaultBlockValues('link')}
+          products={productOptions}
+          submitting={createBlock.isPending || updateBlockMutation.isPending}
+          deleting={deleteBlockMutation.isPending}
+          onDelete={async () => {
+            if (blockFormState?.mode !== 'edit' || !blockFormState.blockId)
+              return
+            await deleteBlockMutation.mutateAsync({
+              id: blockFormState.blockId,
+            })
+            setBlockFormState(null)
+          }}
+          onSubmit={handleBlockFormSubmit}
+        />
+      </div>
     </>
-
   )
 }

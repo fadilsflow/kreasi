@@ -9,14 +9,18 @@ interface PublicMarkProps {
 export default function PublicMark({ textColor, logoColor }: PublicMarkProps) {
   return (
     <div className="flex w-full font-sans  items-center justify-center px-4 sm:px-6">
-      <div className='flex gap-3 items-center'>
+      <div className="flex gap-3 items-center">
         <p style={{ color: textColor }} className="text-sm">
-          Powered by{" "}
+          Powered by{' '}
         </p>
         <Link className="" to="/" style={{ color: textColor }}>
-          <LogoType style={{ color: logoColor }} logoSize={14} textSize='15px' />
+          <LogoType
+            style={{ color: logoColor }}
+            logoSize={14}
+            textSize="15px"
+          />
         </Link>
       </div>
-    </div >
+    </div>
   )
 }

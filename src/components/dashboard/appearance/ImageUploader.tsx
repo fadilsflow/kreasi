@@ -110,7 +110,17 @@ export function ImageUploader({
   )
   const [zoom, setZoom] = useState(1)
 
-  const [, { openFileDialog, getInputProps, handleDrop, handleDragOver, handleDragEnter, handleDragLeave }] = useFileUpload({
+  const [
+    ,
+    {
+      openFileDialog,
+      getInputProps,
+      handleDrop,
+      handleDragOver,
+      handleDragEnter,
+      handleDragLeave,
+    },
+  ] = useFileUpload({
     accept: 'image/*',
     maxFiles: 1,
     multiple: false,
@@ -118,7 +128,11 @@ export function ImageUploader({
 
   const resolvedCropAspect =
     cropAspect ??
-    (aspectRatio === 'video' ? 16 / 9 : aspectRatio === 'square' ? 1 : 1440 / 190)
+    (aspectRatio === 'video'
+      ? 16 / 9
+      : aspectRatio === 'square'
+        ? 1
+        : 1440 / 190)
 
   // Handle file upload
   const processUpload = async (file: File) => {
@@ -168,8 +182,10 @@ export function ImageUploader({
       return
     }
 
-    const targetWidth = cropOutputWidth ?? Math.max(1, Math.round(croppedAreaPixels.width))
-    const targetHeight = cropOutputHeight ?? Math.max(1, Math.round(croppedAreaPixels.height))
+    const targetWidth =
+      cropOutputWidth ?? Math.max(1, Math.round(croppedAreaPixels.width))
+    const targetHeight =
+      cropOutputHeight ?? Math.max(1, Math.round(croppedAreaPixels.height))
 
     const blob = await getCroppedImageBlob(
       cropSource,
@@ -230,10 +246,10 @@ export function ImageUploader({
         style={
           value || backgroundPreviewUrl
             ? {
-              backgroundImage: `url(${value || backgroundPreviewUrl})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }
+                backgroundImage: `url(${value || backgroundPreviewUrl})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }
             : undefined
         }
         onClick={openFileDialog}
@@ -256,11 +272,7 @@ export function ImageUploader({
           )}
         >
           <div className="p-2 rounded-full">
-            {isUploading ? (
-              <Spinner />
-            ) : (
-              <Upload className="h-4 w-4 " />
-            )}
+            {isUploading ? <Spinner /> : <Upload className="h-4 w-4 " />}
           </div>
           {placeholder && !isUploading ? (
             <div className="text-xs">{placeholder}</div>
@@ -270,7 +282,10 @@ export function ImageUploader({
 
       {error && <p className="text-xs text-red-500">{error}</p>}
 
-      <Dialog open={isCropOpen} onOpenChange={(open) => !open && resetCropState()}>
+      <Dialog
+        open={isCropOpen}
+        onOpenChange={(open) => !open && resetCropState()}
+      >
         <DialogPopup className="p-0 sm:max-w-2xl" showCloseButton={false}>
           <DialogDescription className="sr-only">
             Crop uploaded image before applying
@@ -307,7 +322,9 @@ export function ImageUploader({
               aspectRatio={resolvedCropAspect}
               zoom={zoom}
               onZoomChange={setZoom}
-              onCropChange={(pixels) => setCroppedAreaPixels(pixels as CropArea | null)}
+              onCropChange={(pixels) =>
+                setCroppedAreaPixels(pixels as CropArea | null)
+              }
             >
               <CropperDescription />
               <CropperImage />

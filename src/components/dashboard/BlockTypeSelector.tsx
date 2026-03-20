@@ -63,14 +63,7 @@ export function BlockTypeSelector({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger
-        render={
-          <Button
-            size="xl"
-            className="w-full flex "
-          />
-        }
-      >
+      <DialogTrigger render={<Button size="xl" className="w-full flex " />}>
         <Plus className="h-5 w-5" />
         Add
       </DialogTrigger>
@@ -78,7 +71,7 @@ export function BlockTypeSelector({
         <DialogHeader>
           <DialogTitle className="font-heading">Add a Block</DialogTitle>
         </DialogHeader>
-        <DialogPanel >
+        <DialogPanel>
           {categories.map((category) => (
             <div key={category} className="contents">
               <div className="col-span-2 pt-3 pb-1">
@@ -87,7 +80,6 @@ export function BlockTypeSelector({
                 </h3>
               </div>
               <Frame className="grid grid-cols-2 gap-1">
-
                 {blocksByCategory[category].map((option) => (
                   <div
                     key={option.type}
@@ -100,7 +92,9 @@ export function BlockTypeSelector({
                       <option.icon className={` ${option.iconColor} h-6 w-6`} />
                     </div>
                     <div className="gap-0 flex group-hover:opacity-70 flex-col">
-                      <span className="text-sm font-semibold">{option.title}</span>
+                      <span className="text-sm font-semibold">
+                        {option.title}
+                      </span>
                       <p className="text-[10px] leading-tight">
                         {option.description}
                       </p>

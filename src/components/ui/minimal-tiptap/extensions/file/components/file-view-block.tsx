@@ -1,10 +1,10 @@
-import * as React from "react"
-import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react"
-import { File as FileIcon, Download } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { ImageOverlay } from "../../image/components/image-overlay"
-import { blobUrlToBase64, randomId } from "../../../utils"
-import { Button } from "@/components/ui/button"
+import * as React from 'react'
+import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
+import { File as FileIcon, Download } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { ImageOverlay } from '../../image/components/image-overlay'
+import { blobUrlToBase64, randomId } from '../../../utils'
+import { Button } from '@/components/ui/button'
 
 const formatFileSize = (bytes?: number | null) => {
   if (!bytes) return null
@@ -15,13 +15,13 @@ const formatFileSize = (bytes?: number | null) => {
 
 const getFileTypeLabel = (name?: string, mime?: string) => {
   if (mime) {
-    const last = mime.split("/").pop()
-    return last ? last.toUpperCase() : "FILE"
+    const last = mime.split('/').pop()
+    return last ? last.toUpperCase() : 'FILE'
   }
-  if (name?.includes(".")) {
-    return name.split(".").pop()?.toUpperCase() ?? "FILE"
+  if (name?.includes('.')) {
+    return name.split('.').pop()?.toUpperCase() ?? 'FILE'
   }
-  return "FILE"
+  return 'FILE'
 }
 
 export const FileViewBlock: React.FC<NodeViewProps> = ({
@@ -33,7 +33,7 @@ export const FileViewBlock: React.FC<NodeViewProps> = ({
   const { name, type, size, url, description } = node.attrs
   const fileTypeLabel = getFileTypeLabel(name, type)
   const sizeLabel = formatFileSize(size)
-  const metaLine = [fileTypeLabel, sizeLabel].filter(Boolean).join(" · ")
+  const metaLine = [fileTypeLabel, sizeLabel].filter(Boolean).join(' · ')
 
   const uploadAttemptedRef = React.useRef(false)
   const [isServerUploading, setIsServerUploading] = React.useState(false)
@@ -41,17 +41,18 @@ export const FileViewBlock: React.FC<NodeViewProps> = ({
 
   React.useEffect(() => {
     const handleFile = async () => {
-      if (!url?.startsWith("blob:") || uploadAttemptedRef.current) {
+      if (!url?.startsWith('blob:') || uploadAttemptedRef.current) {
         return
       }
 
       uploadAttemptedRef.current = true
       const fileExtension = editor.options.extensions.find(
-        (ext) => ext.name === "file"
+        (ext) => ext.name === 'file',
       )
-      const { uploadFn } = (fileExtension?.options as Record<string, unknown>) ?? {}
+      const { uploadFn } =
+        (fileExtension?.options as Record<string, unknown>) ?? {}
 
-      if (!uploadFn || typeof uploadFn !== "function") {
+      if (!uploadFn || typeof uploadFn !== 'function') {
         try {
           const base64 = await blobUrlToBase64(url)
           updateAttributes({ url: base64 })
@@ -65,17 +66,21 @@ export const FileViewBlock: React.FC<NodeViewProps> = ({
         setIsServerUploading(true)
         const response = await fetch(url)
         const blob = await response.blob()
-        const file = new globalThis.File([blob], name || "file", { type: blob.type })
+        const file = new globalThis.File([blob], name || 'file', {
+          type: blob.type,
+        })
 
-        const uploadedUrl = await (uploadFn as (f: globalThis.File, e: typeof editor) => Promise<unknown>)(file, editor)
+        const uploadedUrl = await (
+          uploadFn as (f: globalThis.File, e: typeof editor) => Promise<unknown>
+        )(file, editor)
         const normalizedData = {
           url:
-            typeof uploadedUrl === "string"
+            typeof uploadedUrl === 'string'
               ? uploadedUrl
               : (uploadedUrl as Record<string, string>).src ||
                 (uploadedUrl as Record<string, string>).url,
           id:
-            typeof uploadedUrl === "string"
+            typeof uploadedUrl === 'string'
               ? randomId()
               : (uploadedUrl as Record<string, string>).id,
         }
@@ -91,30 +96,28 @@ export const FileViewBlock: React.FC<NodeViewProps> = ({
     handleFile()
   }, [editor, name, url, updateAttributes])
 
-
-
   const handleDownload = React.useCallback(
     (event: React.MouseEvent) => {
       event.stopPropagation()
-      if (!url || url.startsWith("blob:")) return
-      window.open(url, "_blank", "noopener,noreferrer")
+      if (!url || url.startsWith('blob:')) return
+      window.open(url, '_blank', 'noopener,noreferrer')
     },
-    [url]
+    [url],
   )
 
-  const hasUrl = url && !url.startsWith("blob:")
+  const hasUrl = url && !url.startsWith('blob:')
 
   return (
     <NodeViewWrapper
-      className={cn("not-prose my-3", editor.isEditable && "cursor-move")}
+      className={cn('not-prose my-3', editor.isEditable && 'cursor-move')}
       data-drag-handle
     >
       <div
         className={cn(
-          "relative flex items-center gap-4 rounded-lg border bg-card p-4 shadow-sm transition-all contain-paint",
+          'relative flex items-center gap-4 rounded-lg border bg-card p-4 shadow-sm transition-all contain-paint',
           {
-            "outline-primary outline-2 outline-offset-1": selected,
-          }
+            'outline-primary outline-2 outline-offset-1': selected,
+          },
         )}
       >
         {/* File icon */}
@@ -125,10 +128,10 @@ export const FileViewBlock: React.FC<NodeViewProps> = ({
         {/* Info */}
         <div className="flex flex-1 flex-col overflow-hidden min-w-0">
           <span className="truncate text-sm font-medium leading-tight text-foreground">
-            {name || "Untitled file"}
+            {name || 'Untitled file'}
           </span>
           <span className="mt-0.5 truncate text-xs text-muted-foreground">
-            {error ? "Failed to upload" : metaLine}
+            {error ? 'Failed to upload' : metaLine}
           </span>
           {description && (
             <span className="mt-1 truncate text-xs text-muted-foreground">

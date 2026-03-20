@@ -5,8 +5,13 @@ import { Button } from './ui/button'
 import { SavedDrawer } from './saved-drawer'
 // import { LogoMark } from './kreasi-logo'
 
-
-export default function SiteUserProfileHeader({ textColor, className }: { textColor: string, className: string }) {
+export default function SiteUserProfileHeader({
+  textColor,
+  className,
+}: {
+  textColor: string
+  className: string
+}) {
   const [isSavedOpen, setIsSavedOpen] = useState(false)
 
   return (
@@ -22,7 +27,10 @@ export default function SiteUserProfileHeader({ textColor, className }: { textCo
                 className="relative"
                 onClick={() => setIsSavedOpen(true)}
               >
-                <Ellipsis style={{ color: textColor }} className="h-4 w-4 fill-current" />
+                <Ellipsis
+                  style={{ color: textColor }}
+                  className="h-4 w-4 fill-current"
+                />
               </Button>
             </div>
           </div>

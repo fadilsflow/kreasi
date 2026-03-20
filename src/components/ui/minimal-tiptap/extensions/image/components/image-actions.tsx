@@ -1,24 +1,24 @@
-import * as React from "react"
+import * as React from 'react'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+} from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
 import {
   ClipboardCopyIcon,
   DotsHorizontalIcon,
   DownloadIcon,
   Link2Icon,
   SizeIcon,
-} from "@radix-ui/react-icons"
+} from '@radix-ui/react-icons'
 
 interface ImageActionsProps {
   shouldMerge?: boolean
@@ -29,7 +29,7 @@ interface ImageActionsProps {
   onCopyLink?: () => void
 }
 
-interface ActionButtonProps extends React.ComponentProps<"button"> {
+interface ActionButtonProps extends React.ComponentProps<'button'> {
   icon: React.ReactNode
   tooltip: string
 }
@@ -38,12 +38,12 @@ export const ActionWrapper = ({
   children,
   className,
   ...props
-}: React.ComponentProps<"div">) => (
+}: React.ComponentProps<'div'>) => (
   <div
     className={cn(
-      "absolute top-3 right-3 flex flex-row rounded px-0.5 opacity-0 group-hover/node-image:opacity-100",
-      "border-[0.5px] bg-[var(--mt-bg-secondary)] [backdrop-filter:saturate(1.8)_blur(20px)]",
-      className
+      'absolute top-3 right-3 flex flex-row rounded px-0.5 opacity-0 group-hover/node-image:opacity-100',
+      'border-[0.5px] bg-[var(--mt-bg-secondary)] [backdrop-filter:saturate(1.8)_blur(20px)]',
+      className,
     )}
     {...props}
   >
@@ -51,7 +51,7 @@ export const ActionWrapper = ({
   </div>
 )
 
-ActionWrapper.displayName = "ActionWrapper"
+ActionWrapper.displayName = 'ActionWrapper'
 
 export const ActionButton = ({
   icon,
@@ -64,9 +64,9 @@ export const ActionButton = ({
       <Button
         variant="ghost"
         className={cn(
-          "text-muted-foreground hover:text-foreground relative flex h-7 w-7 flex-row rounded-none p-0",
-          "bg-transparent hover:bg-transparent",
-          className
+          'text-muted-foreground hover:text-foreground relative flex h-7 w-7 flex-row rounded-none p-0',
+          'bg-transparent hover:bg-transparent',
+          className,
         )}
         {...props}
       >
@@ -77,9 +77,9 @@ export const ActionButton = ({
   </Tooltip>
 )
 
-ActionButton.displayName = "ActionButton"
+ActionButton.displayName = 'ActionButton'
 
-type ActionKey = "onView" | "onDownload" | "onCopy" | "onCopyLink"
+type ActionKey = 'onView' | 'onDownload' | 'onCopy' | 'onCopyLink'
 
 const ActionItems: Array<{
   key: ActionKey
@@ -88,24 +88,24 @@ const ActionItems: Array<{
   isLink?: boolean
 }> = [
   {
-    key: "onView",
+    key: 'onView',
     icon: <SizeIcon />,
-    tooltip: "View image",
+    tooltip: 'View image',
   },
   {
-    key: "onDownload",
+    key: 'onDownload',
     icon: <DownloadIcon />,
-    tooltip: "Download image",
+    tooltip: 'Download image',
   },
   {
-    key: "onCopy",
+    key: 'onCopy',
     icon: <ClipboardCopyIcon />,
-    tooltip: "Copy image to clipboard",
+    tooltip: 'Copy image to clipboard',
   },
   {
-    key: "onCopyLink",
+    key: 'onCopyLink',
     icon: <Link2Icon />,
-    tooltip: "Copy image link",
+    tooltip: 'Copy image link',
     isLink: true,
   },
 ]
@@ -123,16 +123,16 @@ export const ImageActions: React.FC<ImageActionsProps> = ({
       e.stopPropagation()
       action?.()
     },
-    []
+    [],
   )
 
   const filteredActions = React.useMemo(
     () => ActionItems.filter((item) => isLink || !item.isLink),
-    [isLink]
+    [isLink],
   )
 
   return (
-    <ActionWrapper className={cn({ "opacity-100": isOpen })}>
+    <ActionWrapper className={cn({ 'opacity-100': isOpen })}>
       {shouldMerge ? (
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
           <DropdownMenuTrigger asChild>
@@ -170,4 +170,4 @@ export const ImageActions: React.FC<ImageActionsProps> = ({
   )
 }
 
-ImageActions.displayName = "ImageActions"
+ImageActions.displayName = 'ImageActions'

@@ -1,7 +1,7 @@
-import * as React from "react"
-import type { Editor } from "@tiptap/react"
-import type { Node } from "@tiptap/pm/model"
-import { isUrl } from "../../../utils"
+import * as React from 'react'
+import type { Editor } from '@tiptap/react'
+import type { Node } from '@tiptap/pm/model'
+import { isUrl } from '../../../utils'
 
 interface UseImageActionsProps {
   editor: Editor
@@ -47,7 +47,7 @@ export const useImageActions = ({
       const { selection } = tr
       const nodeAtSelection = tr.doc.nodeAt(selection.from)
 
-      if (nodeAtSelection && nodeAtSelection.type.name === "image") {
+      if (nodeAtSelection && nodeAtSelection.type.name === 'image') {
         if (dispatch) {
           tr.deleteSelection()
           return true

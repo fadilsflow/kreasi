@@ -1,11 +1,15 @@
-import * as React from "react"
-import type { Editor } from "@tiptap/react"
-import type { VariantProps } from "class-variance-authority"
-import type { toggleVariants } from "@/components/ui/toggle"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Pencil2Icon } from "@radix-ui/react-icons"
-import { ToolbarButton } from "../toolbar-button"
-import { FileEditBlock } from "./file-edit-block"
+import * as React from 'react'
+import type { Editor } from '@tiptap/react'
+import type { VariantProps } from 'class-variance-authority'
+import type { toggleVariants } from '@/components/ui/toggle'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Pencil2Icon } from '@radix-ui/react-icons'
+import { ToolbarButton } from '../toolbar-button'
+import { FileEditBlock } from './file-edit-block'
 
 interface FileEditPopoverProps extends VariantProps<typeof toggleVariants> {
   editor: Editor
@@ -49,7 +53,7 @@ export const FileEditPopover = ({
           className="bg-popover text-popover-foreground w-full min-w-80 rounded-md border p-4 shadow-md outline-hidden"
         />
       </PopoverContent>
-    </Popover >
+    </Popover>
   )
 }
 

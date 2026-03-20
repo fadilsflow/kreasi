@@ -1,7 +1,5 @@
 import { Resend } from 'resend'
-import {
-  getOrderConfirmationEmailHtml,
-} from './emails/templates'
+import { getOrderConfirmationEmailHtml } from './emails/templates'
 import { generateInvoicePdf } from './invoice'
 import { BASE_URL } from '@/lib/constans'
 

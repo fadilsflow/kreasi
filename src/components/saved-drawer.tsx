@@ -37,7 +37,12 @@ export function SavedDrawer({ open, onClose }: SavedDrawerProps) {
                 description="Save products to find them quickly later"
                 icon={<Bookmark />}
               >
-                <Button variant="default" size="lg" className="w-full" onClick={onClose}>
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="w-full"
+                  onClick={onClose}
+                >
                   Explore products
                 </Button>
               </Emptys>
@@ -113,8 +118,6 @@ export function SavedDrawer({ open, onClose }: SavedDrawerProps) {
             </div>
           )}
         </SheetPanel>
-
-
       </SheetContent>
     </Sheet>
   )

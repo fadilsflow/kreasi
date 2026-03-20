@@ -28,28 +28,42 @@ function getSocialUrl(link: PublicSocialLink): string {
   return link.url
 }
 
-function getSocialIcon(
-  platform?: string | null,
-  iconColor?: string,
-) {
+function getSocialIcon(platform?: string | null, iconColor?: string) {
   const iconStyle = iconColor ? { color: iconColor } : undefined
   switch (platform) {
     case 'instagram':
-      return <Instagram className={getSocialBlockIconClasses()} style={iconStyle} />
+      return (
+        <Instagram className={getSocialBlockIconClasses()} style={iconStyle} />
+      )
     case 'youtube':
-      return <YouTube className={getSocialBlockIconClasses()} style={iconStyle} />
+      return (
+        <YouTube className={getSocialBlockIconClasses()} style={iconStyle} />
+      )
     case 'email':
       return <Gmail className={getSocialBlockIconClasses()} style={iconStyle} />
     case 'whatsapp':
-      return <WhatsApp className={getSocialBlockIconClasses()} style={iconStyle} />
+      return (
+        <WhatsApp className={getSocialBlockIconClasses()} style={iconStyle} />
+      )
     case 'twitter':
-      return <XformerlyTwitter className={getSocialBlockIconClasses()} style={iconStyle} />
+      return (
+        <XformerlyTwitter
+          className={getSocialBlockIconClasses()}
+          style={iconStyle}
+        />
+      )
     case 'linkedin':
-      return <LinkedIn className={getSocialBlockIconClasses()} style={iconStyle} />
+      return (
+        <LinkedIn className={getSocialBlockIconClasses()} style={iconStyle} />
+      )
     case 'github':
-      return <GitHub className={getSocialBlockIconClasses()} style={iconStyle} />
+      return (
+        <GitHub className={getSocialBlockIconClasses()} style={iconStyle} />
+      )
     case 'facebook':
-      return <Facebook className={getSocialBlockIconClasses()} style={iconStyle} />
+      return (
+        <Facebook className={getSocialBlockIconClasses()} style={iconStyle} />
+      )
     default:
       return <Globe className={getSocialBlockIconClasses()} style={iconStyle} />
   }

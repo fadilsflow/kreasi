@@ -67,8 +67,8 @@ export function CheckoutForm({
     const percentageLabel =
       option.gatewayFeeRule.percentBps > 0
         ? `${(option.gatewayFeeRule.percentBps / 100)
-          .toFixed(2)
-          .replace(/\.?0+$/, '')}%`
+            .toFixed(2)
+            .replace(/\.?0+$/, '')}%`
         : null
     if (percentageLabel) return percentageLabel
     if (option.gatewayFeeRule.fixedAmount > 0) {
@@ -80,7 +80,6 @@ export function CheckoutForm({
   return (
     <form onSubmit={onSubmit} className="overflow-x-hidden">
       <div className="relative">
-
         {/* HEADER */}
         <header className="sticky top-0 z-40 bg-background screen-line-after">
           <div className="mx-auto flex max-w-6xl items-center justify-start px-4 py-4 sm:px-6 lg:px-10">
@@ -90,12 +89,9 @@ export function CheckoutForm({
 
         {/* MAIN CONTAINER */}
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-10">
-
           <div className="grid min-h-screen flex-1 gap-8 md:grid-cols-[minmax(0,1.7fr)_minmax(360px,1fr)] md:divide-x">
-
             {/* LEFT COLUMN */}
             <div className="space-y-6 pt-12 md:pr-8 screen-line-after">
-
               {purchasedProducts}
 
               <div className="space-y-5">
@@ -104,7 +100,6 @@ export function CheckoutForm({
                 </h4>
 
                 <div className="space-y-4">
-
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-sm">
                       Email address*
@@ -133,14 +128,13 @@ export function CheckoutForm({
                       size="lg"
                     />
                   </div>
-
                 </div>
 
                 {additionalContactFields}
 
                 <div className="space-y-2 pt-2">
                   <Label htmlFor="note" className="text-sm">
-                    Note to seller{" "}
+                    Note to seller{' '}
                     <span className="text-muted-foreground">(optional)</span>
                   </Label>
                   <Textarea
@@ -157,8 +151,10 @@ export function CheckoutForm({
 
             {/* RIGHT COLUMN */}
             <div className="space-y-6 pt-12 pb-32 md:pl-8 md:pb-8">
-
-              <Label htmlFor={paymentOptionsName} className="text-xs font-medium">
+              <Label
+                htmlFor={paymentOptionsName}
+                className="text-xs font-medium"
+              >
                 Payment method
               </Label>
 
@@ -217,7 +213,6 @@ export function CheckoutForm({
                   </Button>
                 </div>
               </div>
-
             </div>
           </div>
         </div>

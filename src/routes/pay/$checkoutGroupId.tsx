@@ -233,9 +233,9 @@ function PaymentPage() {
   const instructionBlocks = [
     payment.instructions.permataVaNumber
       ? {
-        label: 'Permata virtual account',
-        value: payment.instructions.permataVaNumber,
-      }
+          label: 'Permata virtual account',
+          value: payment.instructions.permataVaNumber,
+        }
       : null,
     ...payment.instructions.vaNumbers.map((va) => ({
       label: `${va.bank.toUpperCase()} virtual account`,
@@ -243,15 +243,15 @@ function PaymentPage() {
     })),
     payment.instructions.billKey
       ? {
-        label: 'Bill key',
-        value: payment.instructions.billKey,
-      }
+          label: 'Bill key',
+          value: payment.instructions.billKey,
+        }
       : null,
     payment.instructions.billerCode
       ? {
-        label: 'Biller code',
-        value: payment.instructions.billerCode,
-      }
+          label: 'Biller code',
+          value: payment.instructions.billerCode,
+        }
       : null,
   ].filter((item): item is { label: string; value: string } => Boolean(item))
   const showInstructionFallback =
@@ -271,10 +271,11 @@ function PaymentPage() {
         <DialogPopup className="sm:max-w-md">
           <DialogHeader>
             <div
-              className={`flex size-12 items-center justify-center rounded-full ${payment.status === 'paid'
-                ? 'bg-emerald-500/12 text-emerald-600'
-                : 'bg-rose-500/12 text-rose-600'
-                }`}
+              className={`flex size-12 items-center justify-center rounded-full ${
+                payment.status === 'paid'
+                  ? 'bg-emerald-500/12 text-emerald-600'
+                  : 'bg-rose-500/12 text-rose-600'
+              }`}
             >
               <StatusDialogIcon className="size-6" />
             </div>
@@ -313,9 +314,7 @@ function PaymentPage() {
               <div className="flex flex-col gap-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-2">
-                    <h1 className="text-2xl font-heading">
-                      Product Purchase
-                    </h1>
+                    <h1 className="text-2xl font-heading">Product Purchase</h1>
                     <p className="text-2xl font-heading">
                       {formatPrice(payment.amountBreakdown.totalAmount)}
                     </p>
@@ -323,11 +322,7 @@ function PaymentPage() {
                   <Badge
                     size="default"
                     variant={
-                      isPaid
-                        ? "success"
-                        : isFailedState
-                          ? "error"
-                          : "warning"
+                      isPaid ? 'success' : isFailedState ? 'error' : 'warning'
                     }
                     className="rounded-full px-5 py-3"
                   >
@@ -349,14 +344,13 @@ function PaymentPage() {
 
                   {showPaymentTiming && (
                     <div
-                      className={`inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold ${countdown.isExpired
-                        ? "bg-rose-100 text-rose-700"
-                        : "bg-muted text-foreground"
-                        }`}
+                      className={`inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold ${
+                        countdown.isExpired
+                          ? 'bg-rose-100 text-rose-700'
+                          : 'bg-muted text-foreground'
+                      }`}
                     >
-                      <span className="font-mono">
-                        {countdown.label}
-                      </span>
+                      <span className="font-mono">{countdown.label}</span>
                     </div>
                   )}
                 </div>
@@ -551,7 +545,7 @@ function PaymentPage() {
                 </div>
               </div>
 
-              <Accordion defaultValue={["transactions"]} className="w-full">
+              <Accordion defaultValue={['transactions']} className="w-full">
                 <AccordionItem value="transactions" className="border-none">
                   <AccordionTrigger className="text-md font-medium">
                     Detail Transactions

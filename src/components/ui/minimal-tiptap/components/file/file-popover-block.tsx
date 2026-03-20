@@ -1,7 +1,7 @@
-import * as React from "react"
-import { Separator } from "@/components/ui/separator"
-import { ToolbarButton } from "../toolbar-button"
-import { DownloadIcon, TrashIcon } from "@radix-ui/react-icons"
+import * as React from 'react'
+import { Separator } from '@/components/ui/separator'
+import { ToolbarButton } from '../toolbar-button'
+import { DownloadIcon, TrashIcon } from '@radix-ui/react-icons'
 
 interface FilePopoverBlockProps {
   url?: string | null
@@ -14,7 +14,7 @@ export const FilePopoverBlock: React.FC<FilePopoverBlockProps> = ({
 }) => {
   const handleDownload = React.useCallback(() => {
     if (!url) return
-    window.open(url, "_blank", "noopener,noreferrer")
+    window.open(url, '_blank', 'noopener,noreferrer')
   }, [url])
 
   return (

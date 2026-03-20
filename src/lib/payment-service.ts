@@ -192,7 +192,8 @@ function buildPaymentSessionView(
     (total, order) => total + order.amountPaid,
     0,
   )
-  const requestedMethod = session.requestedPaymentMethod as MidtransRequestedPaymentMethod
+  const requestedMethod =
+    session.requestedPaymentMethod as MidtransRequestedPaymentMethod
   const serviceFeeAmount = calculatePlatformServiceFee(subtotalAmount)
   const gatewayFeeAmount = calculatePaymentGatewayFee(
     subtotalAmount,
@@ -429,7 +430,8 @@ async function sendFulfillmentEmails(ordersInGroup: Array<FinalizableOrder>) {
 
   const emailResult = await sendConsolidatedCheckoutEmail({
     to: pendingEmailOrders[0].buyerEmail,
-    checkoutGroupId: pendingEmailOrders[0].checkoutGroupId ?? pendingEmailOrders[0].id,
+    checkoutGroupId:
+      pendingEmailOrders[0].checkoutGroupId ?? pendingEmailOrders[0].id,
     buyerName: pendingEmailOrders[0].buyerName,
     buyerEmail: pendingEmailOrders[0].buyerEmail,
     createdAt: pendingEmailOrders[0].createdAt,
@@ -462,7 +464,12 @@ async function sendFulfillmentEmails(ordersInGroup: Array<FinalizableOrder>) {
     await db
       .update(orders)
       .set({ emailSent: true, emailSentAt: new Date() })
-      .where(inArray(orders.id, pendingEmailOrders.map((order) => order.id)))
+      .where(
+        inArray(
+          orders.id,
+          pendingEmailOrders.map((order) => order.id),
+        ),
+      )
   }
 }
 
@@ -699,14 +706,13 @@ export async function createMultiProductPayment(
   const providerOrderId = createMidtransOrderId(checkoutGroupId)
   const productIds = [...new Set(params.items.map((item) => item.productId))]
   const productsList = await db.query.products.findMany({
-    where: and(
-      inArray(products.id, productIds),
-      eq(products.isDeleted, false),
-    ),
+    where: and(inArray(products.id, productIds), eq(products.isDeleted, false)),
     with: { user: true },
   })
 
-  const productMap = new Map(productsList.map((product) => [product.id, product]))
+  const productMap = new Map(
+    productsList.map((product) => [product.id, product]),
+  )
   const normalizedItems: Array<{
     product: (typeof productsList)[number]
     quantity: number
@@ -725,7 +731,10 @@ export async function createMultiProductPayment(
     if (!product.isActive) {
       throw new Error(`${product.title} is no longer available`)
     }
-    if (product.totalQuantity !== null && product.totalQuantity < item.quantity) {
+    if (
+      product.totalQuantity !== null &&
+      product.totalQuantity < item.quantity
+    ) {
       throw new Error(`Product ${product.title} sold out or not enough stock`)
     }
     if (
@@ -744,10 +753,15 @@ export async function createMultiProductPayment(
       }
     }
 
-    const effectivePrice = getEffectiveUnitPrice(product, item.amountPaidPerUnit)
+    const effectivePrice = getEffectiveUnitPrice(
+      product,
+      item.amountPaidPerUnit,
+    )
     if (product.payWhatYouWant && product.minimumPrice) {
       if (item.amountPaidPerUnit < product.minimumPrice) {
-        throw new Error(`${product.title} requires at least ${product.minimumPrice}`)
+        throw new Error(
+          `${product.title} requires at least ${product.minimumPrice}`,
+        )
       }
     }
 
@@ -762,7 +776,10 @@ export async function createMultiProductPayment(
     })
   }
 
-  const itemsByCreator = new Map<string, Array<(typeof normalizedItems)[number]>>()
+  const itemsByCreator = new Map<
+    string,
+    Array<(typeof normalizedItems)[number]>
+  >()
   for (const item of normalizedItems) {
     const existing = itemsByCreator.get(item.creatorId) ?? []
     existing.push(item)
@@ -928,7 +945,9 @@ export async function createMultiProductPayment(
   }
 }
 
-export async function getPaymentSessionByCheckoutGroup(checkoutGroupId: string) {
+export async function getPaymentSessionByCheckoutGroup(
+  checkoutGroupId: string,
+) {
   const session = await db.query.paymentSessions.findFirst({
     where: eq(paymentSessions.checkoutGroupId, checkoutGroupId),
   })
@@ -988,12 +1007,13 @@ async function applyMidtransStatusToSession(
       expiresAt: payload.expiry_time
         ? new Date(payload.expiry_time)
         : session.expiresAt,
-      lastNotifiedAt: options?.recordNotificationPayload ? new Date() : session.lastNotifiedAt,
+      lastNotifiedAt: options?.recordNotificationPayload
+        ? new Date()
+        : session.lastNotifiedAt,
       lastWebhookEventKey: options?.eventKey ?? session.lastWebhookEventKey,
-      lastWebhookPayload:
-        options?.recordNotificationPayload
-          ? payload
-          : session.lastWebhookPayload,
+      lastWebhookPayload: options?.recordNotificationPayload
+        ? payload
+        : session.lastWebhookPayload,
       updatedAt: new Date(),
     })
     .where(eq(paymentSessions.id, session.id))
@@ -1013,7 +1033,9 @@ async function applyMidtransStatusToSession(
         .set({
           status: ORDER_STATUS.COMPLETED,
           paymentMethod:
-            payload.payment_type ?? updatedSession.paymentType ?? order.paymentMethod,
+            payload.payment_type ??
+            updatedSession.paymentType ??
+            order.paymentMethod,
           paidAt: updatedSession.paidAt ?? new Date(),
           updatedAt: new Date(),
         })
@@ -1037,7 +1059,10 @@ async function applyMidtransStatusToSession(
     )) as Array<FinalizableOrder>
 
     await sendFulfillmentEmails(refreshedOrders)
-    await sendMetaPurchaseEventsForCompletedOrders(refreshedOrders, updatedSession)
+    await sendMetaPurchaseEventsForCompletedOrders(
+      refreshedOrders,
+      updatedSession,
+    )
   }
 
   if (

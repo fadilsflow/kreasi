@@ -1,11 +1,11 @@
-import * as React from "react"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
+import * as React from 'react'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 
-export interface LinkEditorProps extends React.ComponentProps<"div"> {
+export interface LinkEditorProps extends React.ComponentProps<'div'> {
   defaultUrl?: string
   defaultText?: string
   defaultIsNewTab?: boolean
@@ -20,8 +20,8 @@ export const LinkEditBlock = ({
   className,
 }: LinkEditorProps) => {
   const formRef = React.useRef<HTMLDivElement>(null)
-  const [url, setUrl] = React.useState(defaultUrl || "")
-  const [text, setText] = React.useState(defaultText || "")
+  const [url, setUrl] = React.useState(defaultUrl || '')
+  const [text, setText] = React.useState(defaultText || '')
   const [isNewTab, setIsNewTab] = React.useState(defaultIsNewTab || false)
 
   const handleSave = React.useCallback(
@@ -29,13 +29,13 @@ export const LinkEditBlock = ({
       e.preventDefault()
       if (formRef.current) {
         const isValid = Array.from(
-          formRef.current.querySelectorAll("input")
+          formRef.current.querySelectorAll('input'),
         ).every((input) => input.checkValidity())
 
         if (isValid) {
           onSave(url, text, isNewTab)
         } else {
-          formRef.current.querySelectorAll("input").forEach((input) => {
+          formRef.current.querySelectorAll('input').forEach((input) => {
             if (!input.checkValidity()) {
               input.reportValidity()
             }
@@ -43,22 +43,22 @@ export const LinkEditBlock = ({
         }
       }
     },
-    [onSave, url, text, isNewTab]
+    [onSave, url, text, isNewTab],
   )
 
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent) => {
-      if (event.key === "Enter") {
+      if (event.key === 'Enter') {
         event.preventDefault()
         handleSave(event)
       }
     },
-    [handleSave]
+    [handleSave],
   )
 
   return (
     <div ref={formRef} onKeyDown={handleKeyDown}>
-      <div className={cn("space-y-4", className)}>
+      <div className={cn('space-y-4', className)}>
         <div className="space-y-1">
           <Label>URL</Label>
           <Input
@@ -95,6 +95,6 @@ export const LinkEditBlock = ({
   )
 }
 
-LinkEditBlock.displayName = "LinkEditBlock"
+LinkEditBlock.displayName = 'LinkEditBlock'
 
 export default LinkEditBlock

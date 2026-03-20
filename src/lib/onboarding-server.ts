@@ -4,7 +4,6 @@ import { getServerAuthContext } from './auth-server'
 import { db } from '@/db'
 import { user } from '@/db/schema'
 
-
 export const ONBOARDING_PAGES = [
   'username',
   'role',

@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { HexColorPicker } from 'react-colorful'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { isValidAppearanceHexColor } from '@/lib/appearance'
 
@@ -114,9 +118,7 @@ export function ColorPicker({
       <PopoverContent className="w-[244px] p-3">
         <div className="space-y-3">
           <HexColorPicker
-            color={
-              isValidAppearanceHexColor(draft) ? draft : '#000000'
-            }
+            color={isValidAppearanceHexColor(draft) ? draft : '#000000'}
             onChange={handleChange}
           />
 

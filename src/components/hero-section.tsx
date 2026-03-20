@@ -26,9 +26,7 @@ export default function HeroSection() {
         </div>
         <div className="mask-b-from-55% relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20">
           <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border p-4 shadow-lg shadow-zinc-950/15 ring-1">
-            <div
-              className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border bg-muted"
-            />
+            <div className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border bg-muted" />
             {/* <img
               className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border"
               src="/hero.png"

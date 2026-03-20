@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useMemo, useState } from 'react'
 import type { BlockRadius, BlockStyle } from '@/lib/block-styles'
-import type { AppearanceBackgroundType, AppearanceTextFont } from '@/lib/appearance'
+import type {
+  AppearanceBackgroundType,
+  AppearanceTextFont,
+} from '@/lib/appearance'
 
 export interface PreviewUser {
   id: string

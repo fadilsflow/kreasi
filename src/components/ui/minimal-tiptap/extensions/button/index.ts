@@ -1,1 +1,1 @@
-export { ButtonConfig as ButtonExtension } from "./button"
+export { ButtonConfig as ButtonExtension } from './button'
