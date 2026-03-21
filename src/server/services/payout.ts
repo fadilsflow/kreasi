@@ -1,3 +1,13 @@
+// Saat ini implementasi payout otomatis melalui Midtrans IRIS belum dapat digunakan karena akun masih berupa individu dan belum memenuhi persyaratan sebagai badan usaha.
+
+// Untuk tetap mendukung proses pencairan dana dan mempercepat peluncuran produk, sistem payout akan diimplementasikan secara manual dengan mekanisme admin approval.
+
+// TODO:
+// Implement manual payout flow (request → approval → transfer)
+// Design system to be provider-agnostic (ready for IRIS later)
+// Abstract payout service/interface
+// Add payout status handling
+
 import { and, desc, eq, lte, sql } from 'drizzle-orm'
 import { db } from '@/db'
 import {
