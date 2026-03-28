@@ -96,6 +96,7 @@ export const user = pgTable('user', {
   appearanceBlockShadowColor: text('appearance_block_shadow_color'),
   appearanceTextColor: text('appearance_text_color'),
   appearanceTextFont: text('appearance_text_font').$type<AppearanceTextFont>(),
+  isAdmin: boolean('is_admin').notNull().default(false),
   // Denormalized analytics (cached, derived from transactions & events)
   totalRevenue: integer('total_revenue').notNull().default(0), // in IDR (Rupiah) — cached from transactions
   totalSalesCount: integer('total_sales_count').notNull().default(0),

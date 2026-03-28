@@ -13,10 +13,15 @@ import { Route as TosRouteImport } from './routes/tos'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as SuperadminRouteRouteImport } from './routes/superadmin/route'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SuperadminIndexRouteImport } from './routes/superadmin/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as UsernameIndexRouteImport } from './routes/$username/index'
+import { Route as SuperadminUsersRouteImport } from './routes/superadmin/users'
+import { Route as SuperadminSettingsRouteImport } from './routes/superadmin/settings'
+import { Route as SuperadminPayoutsRouteImport } from './routes/superadmin/payouts'
 import { Route as PayCheckoutGroupIdRouteImport } from './routes/pay/$checkoutGroupId'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -57,6 +62,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuperadminRouteRoute = SuperadminRouteRouteImport.update({
+  id: '/superadmin',
+  path: '/superadmin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -67,6 +77,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuperadminIndexRoute = SuperadminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SuperadminRouteRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -76,6 +91,21 @@ const UsernameIndexRoute = UsernameIndexRouteImport.update({
   id: '/$username/',
   path: '/$username/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SuperadminUsersRoute = SuperadminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => SuperadminRouteRoute,
+} as any)
+const SuperadminSettingsRoute = SuperadminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => SuperadminRouteRoute,
+} as any)
+const SuperadminPayoutsRoute = SuperadminPayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => SuperadminRouteRoute,
 } as any)
 const PayCheckoutGroupIdRoute = PayCheckoutGroupIdRouteImport.update({
   id: '/pay/$checkoutGroupId',
@@ -179,6 +209,7 @@ const ApiPaymentsMidtransIrisWebhookRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/superadmin': typeof SuperadminRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
@@ -188,8 +219,12 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/pay/$checkoutGroupId': typeof PayCheckoutGroupIdRoute
+  '/superadmin/payouts': typeof SuperadminPayoutsRoute
+  '/superadmin/settings': typeof SuperadminSettingsRoute
+  '/superadmin/users': typeof SuperadminUsersRoute
   '/$username/': typeof UsernameIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/superadmin/': typeof SuperadminIndexRoute
   '/$username/$productId/checkout': typeof UsernameProductIdCheckoutRoute
   '/admin/editor/appearance': typeof AdminEditorAppearanceRoute
   '/admin/editor/profiles': typeof AdminEditorProfilesRoute
@@ -215,8 +250,12 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/pay/$checkoutGroupId': typeof PayCheckoutGroupIdRoute
+  '/superadmin/payouts': typeof SuperadminPayoutsRoute
+  '/superadmin/settings': typeof SuperadminSettingsRoute
+  '/superadmin/users': typeof SuperadminUsersRoute
   '/$username': typeof UsernameIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/superadmin': typeof SuperadminIndexRoute
   '/$username/$productId/checkout': typeof UsernameProductIdCheckoutRoute
   '/admin/editor/appearance': typeof AdminEditorAppearanceRoute
   '/admin/editor/profiles': typeof AdminEditorProfilesRoute
@@ -236,6 +275,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/superadmin': typeof SuperadminRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/register': typeof RegisterRoute
@@ -245,8 +285,12 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/pay/$checkoutGroupId': typeof PayCheckoutGroupIdRoute
+  '/superadmin/payouts': typeof SuperadminPayoutsRoute
+  '/superadmin/settings': typeof SuperadminSettingsRoute
+  '/superadmin/users': typeof SuperadminUsersRoute
   '/$username/': typeof UsernameIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/superadmin/': typeof SuperadminIndexRoute
   '/$username/$productId/checkout': typeof UsernameProductIdCheckoutRoute
   '/admin/editor/appearance': typeof AdminEditorAppearanceRoute
   '/admin/editor/profiles': typeof AdminEditorProfilesRoute
@@ -267,6 +311,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/superadmin'
     | '/login'
     | '/onboarding'
     | '/register'
@@ -276,8 +321,12 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/callback'
     | '/pay/$checkoutGroupId'
+    | '/superadmin/payouts'
+    | '/superadmin/settings'
+    | '/superadmin/users'
     | '/$username/'
     | '/admin/'
+    | '/superadmin/'
     | '/$username/$productId/checkout'
     | '/admin/editor/appearance'
     | '/admin/editor/profiles'
@@ -303,8 +352,12 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/callback'
     | '/pay/$checkoutGroupId'
+    | '/superadmin/payouts'
+    | '/superadmin/settings'
+    | '/superadmin/users'
     | '/$username'
     | '/admin'
+    | '/superadmin'
     | '/$username/$productId/checkout'
     | '/admin/editor/appearance'
     | '/admin/editor/profiles'
@@ -323,6 +376,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/superadmin'
     | '/login'
     | '/onboarding'
     | '/register'
@@ -332,8 +386,12 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/auth/callback'
     | '/pay/$checkoutGroupId'
+    | '/superadmin/payouts'
+    | '/superadmin/settings'
+    | '/superadmin/users'
     | '/$username/'
     | '/admin/'
+    | '/superadmin/'
     | '/$username/$productId/checkout'
     | '/admin/editor/appearance'
     | '/admin/editor/profiles'
@@ -353,6 +411,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  SuperadminRouteRoute: typeof SuperadminRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   RegisterRoute: typeof RegisterRoute
@@ -399,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/superadmin': {
+      id: '/superadmin'
+      path: '/superadmin'
+      fullPath: '/superadmin'
+      preLoaderRoute: typeof SuperadminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -413,6 +479,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/superadmin/': {
+      id: '/superadmin/'
+      path: '/'
+      fullPath: '/superadmin/'
+      preLoaderRoute: typeof SuperadminIndexRouteImport
+      parentRoute: typeof SuperadminRouteRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -426,6 +499,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/$username/'
       preLoaderRoute: typeof UsernameIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/superadmin/users': {
+      id: '/superadmin/users'
+      path: '/users'
+      fullPath: '/superadmin/users'
+      preLoaderRoute: typeof SuperadminUsersRouteImport
+      parentRoute: typeof SuperadminRouteRoute
+    }
+    '/superadmin/settings': {
+      id: '/superadmin/settings'
+      path: '/settings'
+      fullPath: '/superadmin/settings'
+      preLoaderRoute: typeof SuperadminSettingsRouteImport
+      parentRoute: typeof SuperadminRouteRoute
+    }
+    '/superadmin/payouts': {
+      id: '/superadmin/payouts'
+      path: '/payouts'
+      fullPath: '/superadmin/payouts'
+      preLoaderRoute: typeof SuperadminPayoutsRouteImport
+      parentRoute: typeof SuperadminRouteRoute
     }
     '/pay/$checkoutGroupId': {
       id: '/pay/$checkoutGroupId'
@@ -613,9 +707,28 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface SuperadminRouteRouteChildren {
+  SuperadminPayoutsRoute: typeof SuperadminPayoutsRoute
+  SuperadminSettingsRoute: typeof SuperadminSettingsRoute
+  SuperadminUsersRoute: typeof SuperadminUsersRoute
+  SuperadminIndexRoute: typeof SuperadminIndexRoute
+}
+
+const SuperadminRouteRouteChildren: SuperadminRouteRouteChildren = {
+  SuperadminPayoutsRoute: SuperadminPayoutsRoute,
+  SuperadminSettingsRoute: SuperadminSettingsRoute,
+  SuperadminUsersRoute: SuperadminUsersRoute,
+  SuperadminIndexRoute: SuperadminIndexRoute,
+}
+
+const SuperadminRouteRouteWithChildren = SuperadminRouteRoute._addFileChildren(
+  SuperadminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
+  SuperadminRouteRoute: SuperadminRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   RegisterRoute: RegisterRoute,

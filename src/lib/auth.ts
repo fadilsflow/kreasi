@@ -38,6 +38,10 @@ export const auth = betterAuth({
   },
   user: {
     additionalFields: {
+      isAdmin: {
+        type: 'boolean',
+        required: false,
+      },
       username: {
         type: 'string',
         required: false,

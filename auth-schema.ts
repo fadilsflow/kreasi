@@ -15,6 +15,7 @@ export const user = pgTable('user', {
   username: text('username'),
   bio: text('bio'),
   title: text('title'),
+  isAdmin: boolean('is_admin').notNull().default(false),
 })
 
 export const session = pgTable(

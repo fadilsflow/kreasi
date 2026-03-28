@@ -1,6 +1,9 @@
 import { TRPCError, initTRPC } from '@trpc/server'
 import superjson from 'superjson'
+import { eq } from 'drizzle-orm'
 import { getSessionFromHeaders } from '@/lib/auth-server'
+import { db } from '@/db'
+import { user } from '@/db/schema'
 
 export async function createTRPCContext({ req }: { req: Request }) {
   const session = await getSessionFromHeaders(req.headers)
@@ -47,6 +50,27 @@ export const protectedProcedure = t.procedure.use(({ ctx, input, next }) => {
     ctx: {
       ...ctx,
       session: ctx.session,
+    },
+  })
+})
+
+export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const actorUserId = ctx.session.user.id
+  const currentUser = await db.query.user.findFirst({
+    where: eq(user.id, actorUserId),
+    columns: {
+      id: true,
+      isAdmin: true,
+    },
+  })
+
+  if (!currentUser?.isAdmin) {
+    throw new TRPCError({ code: 'FORBIDDEN' })
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
     },
   })
 })

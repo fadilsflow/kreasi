@@ -1,7 +1,12 @@
 import { z } from 'zod'
 import { and, asc, desc, eq, gte, inArray, lte, or, sql } from 'drizzle-orm'
 import { TRPCError } from '@trpc/server'
-import { createTRPCRouter, protectedProcedure, publicProcedure } from './init'
+import {
+  adminProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from './init'
 import type { TRPCRouterRecord } from '@trpc/server'
 import { db } from '@/db'
 import {
@@ -2076,6 +2081,175 @@ const adminRouter = {
   }),
 } satisfies TRPCRouterRecord
 
+const superAdminRouter = {
+  getContext: adminProcedure.query(async ({ ctx }) => {
+    const actorUserId = ctx.session.user.id
+    const currentUser = await db.query.user.findFirst({
+      where: eq(user.id, actorUserId),
+      columns: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        image: true,
+        isAdmin: true,
+      },
+    })
+
+    if (!currentUser || !currentUser.isAdmin) {
+      throw new TRPCError({ code: 'FORBIDDEN' })
+    }
+
+    return {
+      userId: currentUser.id,
+      username: currentUser.username ?? null,
+      name: currentUser.name,
+      email: currentUser.email,
+      image: currentUser.image ?? null,
+      isAdmin: currentUser.isAdmin,
+    }
+  }),
+
+  listPayouts: adminProcedure
+    .input(
+      z
+        .object({
+          status: z
+            .enum(['pending', 'processing', 'completed', 'failed', 'cancelled'])
+            .optional(),
+          limit: z.number().int().min(1).max(200).default(100),
+          offset: z.number().int().min(0).default(0),
+        })
+        .optional(),
+    )
+    .query(async ({ input }) => {
+      const statusFilter = input?.status
+      const limit = input?.limit ?? 100
+      const offset = input?.offset ?? 0
+
+      const payoutRows = await db.query.payouts.findMany({
+        where: statusFilter ? eq(payouts.status, statusFilter) : undefined,
+        orderBy: [desc(payouts.createdAt)],
+        limit,
+        offset,
+        with: {
+          creator: {
+            columns: {
+              id: true,
+              name: true,
+              email: true,
+              username: true,
+              image: true,
+            },
+          },
+        },
+      })
+
+      const creatorIds = Array.from(
+        new Set(payoutRows.map((row) => row.creatorId)),
+      )
+
+      const bankRows = creatorIds.length
+        ? await db.query.bankAccounts.findMany({
+            where: inArray(bankAccounts.userId, creatorIds),
+            orderBy: [desc(bankAccounts.updatedAt)],
+          })
+        : []
+
+      const bankAccountByUser = new Map<string, (typeof bankRows)[number]>()
+      for (const bank of bankRows) {
+        if (!bankAccountByUser.has(bank.userId)) {
+          bankAccountByUser.set(bank.userId, bank)
+        }
+      }
+
+      return payoutRows.map((row) => ({
+        ...row,
+        creator: row.creator,
+        bankAccount: bankAccountByUser.get(row.creatorId) ?? null,
+      }))
+    }),
+
+  updatePayoutStatus: adminProcedure
+    .input(
+      z.object({
+        payoutId: z.string(),
+        status: z.enum([
+          'pending',
+          'processing',
+          'completed',
+          'failed',
+          'cancelled',
+        ]),
+        notes: z.string().optional(),
+        failureReason: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const payout = await db.query.payouts.findFirst({
+        where: eq(payouts.id, input.payoutId),
+      })
+
+      if (!payout) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Payout not found' })
+      }
+
+      const now = new Date()
+      const nextStatus = input.status
+      const shouldFinalize =
+        nextStatus === 'completed' ||
+        nextStatus === 'failed' ||
+        nextStatus === 'cancelled'
+      const shouldReverse =
+        (nextStatus === 'failed' || nextStatus === 'cancelled') &&
+        payout.status !== 'failed' &&
+        payout.status !== 'cancelled'
+
+      await db.transaction(async (tx) => {
+        await tx
+          .update(payouts)
+          .set({
+            status: nextStatus,
+            processedAt: shouldFinalize ? now : payout.processedAt,
+            notes: input.notes ?? payout.notes,
+            failureReason:
+              nextStatus === 'failed'
+                ? input.failureReason ?? payout.failureReason ?? 'Failed'
+                : nextStatus === 'cancelled'
+                  ? input.failureReason ?? payout.failureReason ?? 'Cancelled'
+                  : payout.failureReason,
+            updatedAt: now,
+          })
+          .where(eq(payouts.id, payout.id))
+
+        if (shouldReverse) {
+          await tx
+            .insert(transactions)
+            .values({
+              id: crypto.randomUUID(),
+              creatorId: payout.creatorId,
+              payoutId: payout.id,
+              type: TRANSACTION_TYPE.ADJUSTMENT,
+              amount: payout.amount,
+              netAmount: payout.amount,
+              platformFeePercent: 0,
+              platformFeeAmount: 0,
+              description: `Payout ${nextStatus}: #${payout.id.slice(0, 8)}`,
+              availableAt: now,
+              idempotencyKey: `payout-reversal-${payout.id}`,
+              metadata: {
+                reversalForPayoutId: payout.id,
+                reason: nextStatus,
+              },
+            })
+            .onConflictDoNothing()
+        }
+      })
+
+      return { success: true }
+    }),
+} satisfies TRPCRouterRecord
+
 // ─── Main Router ─────────────────────────────────────────────────────────────
 
 export const trpcRouter = createTRPCRouter({
@@ -2093,5 +2267,6 @@ export const trpcRouter = createTRPCRouter({
   payout: payoutRouter,
   analytics: analyticsRouter,
   admin: adminRouter,
+  superAdmin: superAdminRouter,
 })
 export type TRPCRouter = typeof trpcRouter
