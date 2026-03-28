@@ -40,7 +40,6 @@ import { Route as AdminEditorProfilesRouteImport } from './routes/admin/editor/p
 import { Route as AdminEditorAppearanceRouteImport } from './routes/admin/editor/appearance'
 import { Route as UsernameProductIdCheckoutRouteImport } from './routes/$username/$productId/checkout'
 import { Route as ApiPaymentsMidtransWebhookRouteImport } from './routes/api/payments/midtrans/webhook'
-import { Route as ApiPaymentsMidtransIrisWebhookRouteImport } from './routes/api/payments/midtrans/iris-webhook'
 
 const TosRoute = TosRouteImport.update({
   id: '/tos',
@@ -199,12 +198,6 @@ const ApiPaymentsMidtransWebhookRoute =
     path: '/api/payments/midtrans/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPaymentsMidtransIrisWebhookRoute =
-  ApiPaymentsMidtransIrisWebhookRouteImport.update({
-    id: '/api/payments/midtrans/iris-webhook',
-    path: '/api/payments/midtrans/iris-webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -237,7 +230,6 @@ export interface FileRoutesByFullPath {
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/d/$token/': typeof DTokenIndexRoute
-  '/api/payments/midtrans/iris-webhook': typeof ApiPaymentsMidtransIrisWebhookRoute
   '/api/payments/midtrans/webhook': typeof ApiPaymentsMidtransWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -268,7 +260,6 @@ export interface FileRoutesByTo {
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
   '/d/$token': typeof DTokenIndexRoute
-  '/api/payments/midtrans/iris-webhook': typeof ApiPaymentsMidtransIrisWebhookRoute
   '/api/payments/midtrans/webhook': typeof ApiPaymentsMidtransWebhookRoute
 }
 export interface FileRoutesById {
@@ -303,7 +294,6 @@ export interface FileRoutesById {
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
   '/d/$token/': typeof DTokenIndexRoute
-  '/api/payments/midtrans/iris-webhook': typeof ApiPaymentsMidtransIrisWebhookRoute
   '/api/payments/midtrans/webhook': typeof ApiPaymentsMidtransWebhookRoute
 }
 export interface FileRouteTypes {
@@ -339,7 +329,6 @@ export interface FileRouteTypes {
     | '/admin/orders/'
     | '/admin/products/'
     | '/d/$token/'
-    | '/api/payments/midtrans/iris-webhook'
     | '/api/payments/midtrans/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -370,7 +359,6 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/products'
     | '/d/$token'
-    | '/api/payments/midtrans/iris-webhook'
     | '/api/payments/midtrans/webhook'
   id:
     | '__root__'
@@ -404,7 +392,6 @@ export interface FileRouteTypes {
     | '/admin/orders/'
     | '/admin/products/'
     | '/d/$token/'
-    | '/api/payments/midtrans/iris-webhook'
     | '/api/payments/midtrans/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -424,7 +411,6 @@ export interface RootRouteChildren {
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   UsernameProductIdIndexRoute: typeof UsernameProductIdIndexRoute
   DTokenIndexRoute: typeof DTokenIndexRoute
-  ApiPaymentsMidtransIrisWebhookRoute: typeof ApiPaymentsMidtransIrisWebhookRoute
   ApiPaymentsMidtransWebhookRoute: typeof ApiPaymentsMidtransWebhookRoute
 }
 
@@ -647,13 +633,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPaymentsMidtransWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/payments/midtrans/iris-webhook': {
-      id: '/api/payments/midtrans/iris-webhook'
-      path: '/api/payments/midtrans/iris-webhook'
-      fullPath: '/api/payments/midtrans/iris-webhook'
-      preLoaderRoute: typeof ApiPaymentsMidtransIrisWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -741,7 +720,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   UsernameProductIdIndexRoute: UsernameProductIdIndexRoute,
   DTokenIndexRoute: DTokenIndexRoute,
-  ApiPaymentsMidtransIrisWebhookRoute: ApiPaymentsMidtransIrisWebhookRoute,
   ApiPaymentsMidtransWebhookRoute: ApiPaymentsMidtransWebhookRoute,
 }
 export const routeTree = rootRouteImport

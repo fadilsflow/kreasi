@@ -1622,6 +1622,7 @@ const payoutRouter = {
         amount: z.number().int().positive().optional(), // if not specified, payout all available
         payoutMethod: z.string().optional(),
         payoutDetails: z.any().optional(),
+        bankAccountId: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -1630,6 +1631,21 @@ const payoutRouter = {
       let createdPayoutId: string | null = null
 
       try {
+        const bankAccount = input.bankAccountId
+          ? await db.query.bankAccounts.findFirst({
+              where: and(
+                eq(bankAccounts.id, input.bankAccountId),
+                eq(bankAccounts.userId, actorUserId),
+              ),
+            })
+          : await db.query.bankAccounts.findFirst({
+              where: eq(bankAccounts.userId, actorUserId),
+              orderBy: [desc(bankAccounts.updatedAt)],
+            })
+        if (!bankAccount && !input.payoutDetails) {
+          throw new Error('No bank account found for payout')
+        }
+
         const existingPendingPayout = await db.query.payouts.findFirst({
           where: and(
             eq(payouts.creatorId, actorUserId),
@@ -1680,8 +1696,17 @@ const payoutRouter = {
             amount: payoutAmount,
             status: 'pending',
             periodEnd: now,
-            payoutMethod: input.payoutMethod ?? null,
-            payoutDetails: input.payoutDetails ?? null,
+            payoutMethod: input.payoutMethod ?? 'bank_transfer',
+            payoutDetails:
+              input.payoutDetails ??
+              (bankAccount
+                ? {
+                    bankName: bankAccount.bankName,
+                    bankCode: bankAccount.bankCode,
+                    accountName: bankAccount.accountName,
+                    accountNumber: bankAccount.accountNumber,
+                  }
+                : null),
           })
           .returning()
 
@@ -1734,6 +1759,7 @@ const payoutRouter = {
         const isDomainValidationError =
           message.includes('you already have a pending payout request') ||
           message.includes('no available balance for payout') ||
+          message.includes('no bank account found for payout') ||
           (message.includes('requested') && message.includes('available'))
 
         if (
@@ -2205,46 +2231,44 @@ const superAdminRouter = {
         payout.status !== 'failed' &&
         payout.status !== 'cancelled'
 
-      await db.transaction(async (tx) => {
-        await tx
-          .update(payouts)
-          .set({
-            status: nextStatus,
-            processedAt: shouldFinalize ? now : payout.processedAt,
-            notes: input.notes ?? payout.notes,
-            failureReason:
-              nextStatus === 'failed'
-                ? input.failureReason ?? payout.failureReason ?? 'Failed'
-                : nextStatus === 'cancelled'
-                  ? input.failureReason ?? payout.failureReason ?? 'Cancelled'
-                  : payout.failureReason,
-            updatedAt: now,
-          })
-          .where(eq(payouts.id, payout.id))
+      await db
+        .update(payouts)
+        .set({
+          status: nextStatus,
+          processedAt: shouldFinalize ? now : payout.processedAt,
+          notes: input.notes ?? payout.notes,
+          failureReason:
+            nextStatus === 'failed'
+              ? input.failureReason ?? payout.failureReason ?? 'Failed'
+              : nextStatus === 'cancelled'
+                ? input.failureReason ?? payout.failureReason ?? 'Cancelled'
+                : payout.failureReason,
+          updatedAt: now,
+        })
+        .where(eq(payouts.id, payout.id))
 
-        if (shouldReverse) {
-          await tx
-            .insert(transactions)
-            .values({
-              id: crypto.randomUUID(),
-              creatorId: payout.creatorId,
-              payoutId: payout.id,
-              type: TRANSACTION_TYPE.ADJUSTMENT,
-              amount: payout.amount,
-              netAmount: payout.amount,
-              platformFeePercent: 0,
-              platformFeeAmount: 0,
-              description: `Payout ${nextStatus}: #${payout.id.slice(0, 8)}`,
-              availableAt: now,
-              idempotencyKey: `payout-reversal-${payout.id}`,
-              metadata: {
-                reversalForPayoutId: payout.id,
-                reason: nextStatus,
-              },
-            })
-            .onConflictDoNothing()
-        }
-      })
+      if (shouldReverse) {
+        await db
+          .insert(transactions)
+          .values({
+            id: crypto.randomUUID(),
+            creatorId: payout.creatorId,
+            payoutId: payout.id,
+            type: TRANSACTION_TYPE.ADJUSTMENT,
+            amount: payout.amount,
+            netAmount: payout.amount,
+            platformFeePercent: 0,
+            platformFeeAmount: 0,
+            description: `Payout ${nextStatus}: #${payout.id.slice(0, 8)}`,
+            availableAt: now,
+            idempotencyKey: `payout-reversal-${payout.id}`,
+            metadata: {
+              reversalForPayoutId: payout.id,
+              reason: nextStatus,
+            },
+          })
+          .onConflictDoNothing()
+      }
 
       return { success: true }
     }),

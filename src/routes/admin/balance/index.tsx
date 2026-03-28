@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { useEffect, useMemo, useState } from 'react'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Eye, EyeOff, InfoIcon, XCircle } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
@@ -52,6 +52,9 @@ function getFinanceUiError(message: string): string {
   if (lower.includes('no available balance')) {
     return 'No available balance to withdraw yet. Pending funds will unlock after the hold period.'
   }
+  if (lower.includes('no bank account')) {
+    return 'Please add a bank account in Settings before requesting a payout.'
+  }
 
   return message
 }
@@ -70,6 +73,8 @@ type HistoryRow = {
   source: 'transaction' | 'payout'
   payoutId?: string
   canCancelPayout: boolean
+  bankAccountLabel?: string
+  notes?: string | null
 }
 
 export const Route = createFileRoute('/admin/balance/')({
@@ -81,6 +86,9 @@ function BalancePage() {
   const queryClient = useQueryClient()
   const [payoutDialogOpen, setPayoutDialogOpen] = useState(false)
   const [payoutAmountInput, setPayoutAmountInput] = useState('')
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<
+    string | null
+  >(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [historyTab, setHistoryTab] = useState<HistoryTab>('all')
   const [historyTypeFilter, setHistoryTypeFilter] = useState('all')
@@ -120,12 +128,38 @@ function BalancePage() {
     enabled: !!session?.user.id,
   })
 
+  const { data: bankAccounts, isLoading: isBankAccountsLoading } = useQuery({
+    queryKey: ['bank-accounts', session?.user.id],
+    queryFn: async () => {
+      if (!session?.user.id) return []
+      return await trpcClient.bankAccount.list.query()
+    },
+    enabled: !!session?.user.id,
+  })
+
+  const hasBankAccounts = (bankAccounts ?? []).length > 0
+
+  useEffect(() => {
+    if (!selectedBankAccountId && hasBankAccounts) {
+      setSelectedBankAccountId(bankAccounts?.[0]?.id ?? null)
+    }
+  }, [bankAccounts, hasBankAccounts, selectedBankAccountId])
+
   // Request payout mutation
   const requestPayoutMutation = useMutation({
     mutationKey: ['payout', 'request', session?.user.id ?? 'anonymous'],
-    mutationFn: async ({ amount }: { amount: number }) => {
+    mutationFn: async ({
+      amount,
+      bankAccountId,
+    }: {
+      amount: number
+      bankAccountId?: string | null
+    }) => {
       if (!session?.user.id) throw new Error('Unauthorized')
-      return await trpcClient.payout.request.mutate({ amount })
+      return await trpcClient.payout.request.mutate({
+        amount,
+        bankAccountId: bankAccountId ?? undefined,
+      })
     },
     onSuccess: () => {
       toastManager.add({
@@ -176,7 +210,10 @@ function BalancePage() {
     (p: any) => p.status === 'pending',
   )
   const disablePayoutRequest =
-    requestPayoutMutation.isPending || availableBalance <= 0 || hasPendingPayout
+    requestPayoutMutation.isPending ||
+    availableBalance <= 0 ||
+    hasPendingPayout ||
+    !hasBankAccounts
   const payoutAmount = parsePriceInput(payoutAmountInput) ?? 0
   const payoutAmountError =
     payoutAmount <= 0
@@ -208,6 +245,13 @@ function BalancePage() {
     const payoutRows = (payoutsList ?? []).map((payout: any) => {
       const createdAt = new Date(payout.createdAt).toISOString()
       const normalizedStatus = `${payout.status ?? 'pending'}`.toLowerCase()
+      const payoutDetails = payout.payoutDetails ?? {}
+      const bankName = payoutDetails.bankName as string | undefined
+      const accountName = payoutDetails.accountName as string | undefined
+      const accountNumber = payoutDetails.accountNumber as string | undefined
+      const bankAccountLabel = bankName
+        ? `${bankName} • ${accountNumber ? maskAccountNumber(accountNumber) : '-'}`
+        : undefined
 
       return {
         id: `payout-${payout.id}`,
@@ -220,6 +264,8 @@ function BalancePage() {
         source: 'payout' as const,
         payoutId: payout.id,
         canCancelPayout: normalizedStatus === 'pending',
+        bankAccountLabel,
+        notes: payout.notes ?? payout.failureReason ?? null,
       }
     })
 
@@ -298,6 +344,24 @@ function BalancePage() {
             </div>
           )
         },
+      },
+      {
+        accessorKey: 'bankAccountLabel',
+        header: () => <span className="font-semibold">BANK</span>,
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">
+            {row.original.bankAccountLabel ?? '-'}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'notes',
+        header: () => <span className="font-semibold">NOTES</span>,
+        cell: ({ row }) => (
+          <span className="text-xs text-muted-foreground">
+            {row.original.notes ?? '-'}
+          </span>
+        ),
       },
       {
         accessorKey: 'createdAt',
@@ -382,7 +446,10 @@ function BalancePage() {
           open={payoutDialogOpen}
           onOpenChange={(open) => {
             setPayoutDialogOpen(open)
-            if (!open) setPayoutAmountInput('')
+            if (!open) {
+              setPayoutAmountInput('')
+              setSelectedBankAccountId(null)
+            }
           }}
         >
           <DialogPopup className="sm:max-w-md">
@@ -393,6 +460,48 @@ function BalancePage() {
               </DialogDescription>
             </DialogHeader>
             <DialogPanel className="space-y-3">
+              {isBankAccountsLoading ? (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Spinner className="h-3.5 w-3.5" />
+                  Loading bank accounts...
+                </div>
+              ) : !hasBankAccounts ? (
+                <Alert variant={'info'} className="border-none bg-muted text-xs">
+                  <InfoIcon />
+                  <AlertTitle>
+                    Belum ada bank account. Tambahkan di Settings dulu.
+                  </AlertTitle>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2"
+                    render={<Link to="/admin/settings" />}
+                  >
+                    Go to Settings
+                  </Button>
+                </Alert>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Pilih bank account untuk payout
+                  </p>
+                  <Select
+                    value={selectedBankAccountId ?? undefined}
+                    onValueChange={(value) => setSelectedBankAccountId(value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select bank account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(bankAccounts ?? []).map((account: any) => (
+                        <SelectItem key={account.id} value={account.id}>
+                          {account.bankName} • {maskAccountNumber(account.accountNumber)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground">
                   Available balance: {formatPrice(availableBalance)}
@@ -435,10 +544,17 @@ function BalancePage() {
               <Button
                 type="button"
                 onClick={() =>
-                  requestPayoutMutation.mutate({ amount: payoutAmount })
+                  requestPayoutMutation.mutate({
+                    amount: payoutAmount,
+                    bankAccountId: selectedBankAccountId,
+                  })
                 }
                 disabled={
-                  requestPayoutMutation.isPending || !!payoutAmountError
+                  requestPayoutMutation.isPending ||
+                  !!payoutAmountError ||
+                  isBankAccountsLoading ||
+                  !hasBankAccounts ||
+                  !selectedBankAccountId
                 }
                 loading={requestPayoutMutation.isPending}
               >
@@ -630,13 +746,21 @@ function BalanceCard({
 function HistoryStatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'settled':
-    case 'completed':
       return (
         <Badge
           variant="outline"
           className="border-emerald-500/30 text-emerald-600 bg-emerald-50/50"
         >
           Settled
+        </Badge>
+      )
+    case 'completed':
+      return (
+        <Badge
+          variant="outline"
+          className="border-emerald-500/30 text-emerald-600 bg-emerald-50/50"
+        >
+          Completed
         </Badge>
       )
     case 'processing':
@@ -705,4 +829,11 @@ function getTransactionTypeConfig(
     default:
       return { label: type, color: 'zinc' }
   }
+}
+
+function maskAccountNumber(value: string) {
+  const trimmed = value.trim()
+  if (trimmed.length <= 4) return trimmed
+  const last = trimmed.slice(-4)
+  return `${'*'.repeat(Math.max(0, trimmed.length - 4))}${last}`
 }
