@@ -29,7 +29,7 @@
 
 </p>
 
-## Why Link?
+## Why kreasi?
 
 Most link-in-bio tools are restrictive and expensive. **Link** gives you the freedom to build a mini-website that truly represents your brand.
 
