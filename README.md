@@ -4,7 +4,7 @@
    <img src="./public/readme-image.png" alt="Logo">
   </a>
 
-  <h3 align="center">Link</h3>
+  <h3 align="center">kreasi</h3>
 
   <p align="center">
     The professional, open-source Link-in-Bio platform built for creators who value design and performance.
